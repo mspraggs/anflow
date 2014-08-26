@@ -14,12 +14,13 @@ def main(argv):
     study_name = argv[0]
     template_args = {'study_name': study_name}
 
-    file_template = settings.COMPONENT_PATH
+    file_template = settings.COMPONENT_TEMPLATE
 
     paths = {}
     for component in settings.STUDY_COMPONENTS:
-        new_path = settings.COMPONENT_PATH.format(study_name=study_name,
-                                                  component=(component + ".py"))
+        new_path = (settings.COMPONENT_TEMPLATE
+                    .format(study_name=study_name,
+                            component=(component + ".py")))
         if os.path.exists(new_path):
             return
         paths[component] = new_path

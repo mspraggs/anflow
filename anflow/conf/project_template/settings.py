@@ -15,7 +15,7 @@ LOGGING_FORMAT = "%(asctime)s : %(name)s : %(levelname)s : %(message)s"
 LOGGING_DATEFMT = "%d/%m/%Y %H:%M:%S"
 LOGGING_FILE = "output_{}".format(datetime)
 
-COMPONENT_PATH = "{study_name}/{component}"
+COMPONENT_TEMPLATE = "{study_name}/{component}"
 
-INSTALLED_STUDIES = [
+ACTIVE_STUDIES = [
     ]
