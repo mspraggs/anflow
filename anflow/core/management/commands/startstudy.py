@@ -15,11 +15,6 @@ def main(argv):
     template_args = {'study_name': study_name}
 
     file_template = settings.COMPONENT_TEMPLATE
-
-    try:
-        os.makedirs(settings.RAWDATA_TEMPLATE.format(study_name=study_name))
-    except OSError as e:
-        debug_message(e)
     
     paths = {}
     for component in settings.STUDY_COMPONENTS:
@@ -43,3 +38,11 @@ def main(argv):
             template = Template(f.read())
         with open(path, 'w') as f:
             f.write(template.render(**template_args))
+
+    for template in [settings.RAWDATA_TEMPLATE,
+                     settings.RESULTS_TEMPLATE,
+                     settings.PLOTS_TEMPLATE]:
+        try:
+            os.makedirs(template.format(study_name=study_name))
+        except OSError as e:
+            debug_message(e)
