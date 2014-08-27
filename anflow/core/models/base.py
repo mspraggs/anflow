@@ -23,7 +23,6 @@ class Model(object):
         """Runs the measurement on the files returned by the specified
         input_stream"""
 
-        #print(self.input_stream.populate())
         main_partial = partial(self.main, *args, **kwargs)
         
         for params, data in self.input_stream:
