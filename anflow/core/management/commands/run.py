@@ -37,11 +37,11 @@ def main(argv):
                         themodel.run(*params[0], **params[1])
                     except (IndexError, TypeError) as e:
                         debug_message(e)
-                        try:
-                            themodel.run(**params)
-                        except TypeError as e:
-                            debug_message(e)
-                            themodel.run(*params)
+                    try:
+                        themodel.run(**params)
+                    except TypeError as e:
+                        debug_message(e)
+                        themodel.run(*params)
             else:
                 themodel.run()
             themodel.save()
