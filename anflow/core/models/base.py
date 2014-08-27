@@ -65,5 +65,20 @@ class Model(object):
     def save(self):
         """Saves the result defined by the specified parameters"""
 
+        
         for params, result in self.results:
-            pass # do something
+            # Parameters missing from self.results_format
+            
+            missing_params = dict([(key, val) for key, val in params.items()
+                                   if key not in self.results_format_args])
+
+            filename = self.results_format.format(**params)
+            if self.main_has_args and missing_params:
+                filename, extension = os.path.splitext(filename)
+                for key, val in missing_params.items():
+                    filename += "_{}{}".format(key, val)
+                filename += extension
+                
+            print(filename)
+            with open(filename, 'w') as f:
+                pickle.dump(result, f)
