@@ -37,6 +37,6 @@ class Parser(object):
     def next(self):
         try:
             self.current += 1
-            return self.parsed_data[self.current]        
+            return self.parsed_data[self.current - 1]        
         except IndexError:
             raise StopIteration
