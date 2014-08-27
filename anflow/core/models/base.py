@@ -12,6 +12,7 @@ except ImportError:
     import pickle
 from functools import partial
 
+from anflow.conf import settings
 from anflow.utils.debug import debug_message
 
 class Model(object):
@@ -72,13 +73,15 @@ class Model(object):
             missing_params = dict([(key, val) for key, val in params.items()
                                    if key not in self.results_format_args])
 
-            filename = self.results_format.format(**params)
+            study_name = self.__module__.split('.')[0]
+            filename = os.path.join(settings.RESULTS_TEMPLATE
+                                    .format(study_name=study_name),
+                                    self.results_format.format(**params))
             if self.main_has_args and missing_params:
                 filename, extension = os.path.splitext(filename)
                 for key, val in missing_params.items():
                     filename += "_{}{}".format(key, val)
                 filename += extension
                 
-            print(filename)
             with open(filename, 'w') as f:
                 pickle.dump(result, f)
