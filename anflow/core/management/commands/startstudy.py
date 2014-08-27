@@ -16,6 +16,11 @@ def main(argv):
 
     file_template = settings.COMPONENT_TEMPLATE
 
+    try:
+        os.makedirs(settings.RAWDATA_TEMPLATE.format(study_name=study_name))
+    except OSError as e:
+        debug_message(e)
+    
     paths = {}
     for component in settings.STUDY_COMPONENTS:
         new_path = (settings.COMPONENT_TEMPLATE
