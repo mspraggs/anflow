@@ -8,7 +8,6 @@ import logging
 import datetime
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-DATA_ROOT = os.path.join(PROJECT_ROOT, "rawdata")
 
 LOGGING_LEVEL = logging.INFO
 LOGGING_FORMAT = "%(asctime)s : %(name)s : %(levelname)s : %(message)s"
@@ -16,6 +15,9 @@ LOGGING_DATEFMT = "%d/%m/%Y %H:%M:%S"
 LOGGING_FILE = "output_{}".format(datetime)
 
 COMPONENT_TEMPLATE = "{study_name}/{component}"
+RAWDATA_TEMPLATE = "rawdata"
+RESULTS_TEMPLATE = os.path.join(COMPONENT_TEMPLATE, "results")
+PLOTS_TEMPLATE = os.path.join(COMPONENT_TEMPLATE, "plots")
 
 ACTIVE_STUDIES = [
     ]
