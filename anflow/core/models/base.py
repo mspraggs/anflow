@@ -41,7 +41,7 @@ class Model(object):
                 raise AttributeError("Member results_format not specified and "
                                      "input_stream has no member path_format")
 
-        self.results_format_args = re.findall(r'\{ * (\w+) *\}',
+        self.results_format_args = re.findall(r'\{ *(\w+) *\}',
                                               self.results_format)
 
     def run(self, *args, **kwargs):
@@ -69,7 +69,6 @@ class Model(object):
         
         for params, result in self.results:
             # Parameters missing from self.results_format
-            
             missing_params = dict([(key, val) for key, val in params.items()
                                    if key not in self.results_format_args])
 
