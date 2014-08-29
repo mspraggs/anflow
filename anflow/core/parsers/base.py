@@ -71,7 +71,6 @@ class Parser(object):
         else:
             self.parsed_data = temp_parsed_data
 
-        print(self.parsed_data[0][0])
         params = self.parsed_data[0][0].keys()
         self.path_format = "_".join(["{}{{{}}}".format(param, param)
                                      for param in params])
