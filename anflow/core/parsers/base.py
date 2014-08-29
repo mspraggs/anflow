@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+import copy
 import inspect
 import os
 import re
@@ -35,9 +36,42 @@ class Parser(object):
             for f in files:
                 result_paths.append(os.path.join(directory, f))
         result_paths.sort()
-        for result_path in result_paths:
-            self.parsed_data.append(self.parser(result_path))
 
+        temp_parsed_data = []
+        for result_path in result_paths:
+            temp_parsed_data.append(self.parser(result_path))
+
+        if collect:
+            # This block is executed if the user wants to group the data
+            # according the parameter specified in collect. This means that
+            # each element in self.parsed_data will contain a list of data,
+            # each corresponding to a unique value of the specified parameter.
+            # Basically it's a way of collecting all data for a specified
+            # parameter so we can do some resampling in some way.
+            # This code is messy and potentially slow, so if it can be cleaned
+            # up then so much the better
+            
+            uncollected_params = []
+            # Get the unique parameters after the collect parameter is removed
+            for params, datum in temp_parsed_data:
+                temp_params = copy.copy(params)
+                temp_params.pop(collect)
+                if temp_params not in uncollected_params:
+                    uncollected_params.append(temp_params)
+
+            for params in uncollected_params:
+                def list_filter(datum):
+                    datum_params = copy.copy(datum[0])
+                    #print(datum_params.keys())
+                    datum_params.pop(collect)
+                    return datum_params == params
+                filtered_list = filter(list_filter, temp_parsed_data)
+                self.parsed_data.append((params, map(lambda item: item[1],
+                                                     filtered_list)))
+        else:
+            self.parsed_data = temp_parsed_data
+
+        print(self.parsed_data[0][0])
         params = self.parsed_data[0][0].keys()
         self.path_format = "_".join(["{}{{{}}}".format(param, param)
                                      for param in params])
