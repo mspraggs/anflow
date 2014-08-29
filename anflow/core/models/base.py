@@ -86,3 +86,24 @@ class Model(object):
                 debug_message(e)
             with open(filename, 'w') as f:
                 pickle.dump(result, f)
+
+    def load(self):
+        """Load any results found in the results path"""
+
+        results = []
+        study = self.__module__.split('.')[0]
+        results_dir = settings.RESULTS_TEMPLATE.format(study_name=study)
+        results_regex = re.compile(re.sub(r'\{ *(?P<var>\w+) *\}',
+                                          '(?P<\g<var>>.+)',
+                                          self.results_format))        
+        for directory, dirs, files in os.walk(results_dir):
+            for f in files:
+                path = os.path.join(directory, f)
+                params = results_regex.search(path).groupdict()
+                for key, val in params.items():
+                    params[key] = getattr(self, key)(val)
+                with open(path) as f:
+                    data = pickle.load(f)
+                results.append((params, data))
+                
+        return results
