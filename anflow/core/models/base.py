@@ -82,5 +82,9 @@ class Model(object):
                     filename += "_{}{}".format(key, val)
                 filename += extension
                 
+            try:
+                os.makedirs(os.path.dirname(filename))
+            except OSError as e:
+                debug_message(e)
             with open(filename, 'w') as f:
                 pickle.dump(result, f)
