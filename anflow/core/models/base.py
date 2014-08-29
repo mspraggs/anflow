@@ -13,10 +13,42 @@ except ImportError:
 from functools import partial
 
 from anflow.conf import settings
+from anflow.core.data import DataSet
 from anflow.utils.debug import debug_message
+
+
+
+class MetaModel(type):
+
+    def __new__(cls, names, bases, attrs):
+        new_class = super(MetaModel, cls).__new__(cls, names, bases, attrs)
+        study = attrs['__module__'].split('.')[0]
+
+        if not attrs['results_format'] or study == "anflow":
+            new_class.data = None
+            return new_class
+        
+        results = DataSet()            
+        results_dir = settings.RESULTS_TEMPLATE.format(study_name=study)
+        results_regex = re.compile(re.sub(r'\{ *(?P<var>\w+) *\}',
+                                          '(?P<\g<var>>.+)',
+                                          attrs['results_format']))
+        for directory, dirs, files in os.walk(results_dir):
+            for f in files:
+                path = os.path.join(directory, f)
+                params = results_regex.search(path).groupdict()
+                for key, val in params.items():
+                    params[key] = attrs[key](val)
+                with open(path) as f:
+                    data = pickle.load(f)
+                results.append((params, data))
+        new_class.data = results
+        return new_class
 
 class Model(object):
 
+    __metaclass__ = MetaModel
+    
     main = None
     input_stream = None
     resampler = None
@@ -79,7 +111,7 @@ class Model(object):
             filename = os.path.join(settings.RESULTS_TEMPLATE
                                     .format(study_name=study_name),
                                     self.results_format.format(**params))
-                
+            
             try:
                 os.makedirs(os.path.dirname(filename))
             except OSError as e:
