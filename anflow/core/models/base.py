@@ -76,11 +76,6 @@ class Model(object):
             filename = os.path.join(settings.RESULTS_TEMPLATE
                                     .format(study_name=study_name),
                                     self.results_format.format(**params))
-            if self.main_has_args and missing_params:
-                filename, extension = os.path.splitext(filename)
-                for key, val in missing_params.items():
-                    filename += "_{}{}".format(key, val)
-                filename += extension
                 
             try:
                 os.makedirs(os.path.dirname(filename))
