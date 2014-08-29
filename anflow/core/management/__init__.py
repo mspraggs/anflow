@@ -59,5 +59,7 @@ class Manager(object):
         print("Available subcommands:")
         print()
         print("[anflow]")
-        for command in self.anflow_commands.keys():
+        commands = self.anflow_commands.keys()
+        commands.sort()
+        for command in commands:
             print("    {}".format(command))
