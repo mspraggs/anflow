@@ -25,7 +25,6 @@ class MetaModel(type):
         study = attrs['__module__'].split('.')[0]
 
         if not attrs['results_format'] or study == "anflow":
-            new_class.data = None
             return new_class
         
         results = DataSet()            
