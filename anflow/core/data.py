@@ -30,4 +30,25 @@ class DataSet(list):
         list.__init__(self, *args)
 
     def filter(self, **kwargs):
-        pass
+        """Filter the data"""
+
+        out = self
+        for key, value in kwargs.items():
+            def filter_function(datum):
+                return datum[0][key] == value
+            out = filter(filter_function, out)
+        return out
+
+    def __getitem__(self, index):
+        params, datum = list.__getitem__(self, index)
+        return Datum(params, datum)
+
+    def __setitem__(self, index, datum):
+        params = value.paramsdict()
+        list.__setitem__(self, index, (params, datum.value))
+
+    def __getslice__(self, i, j):
+        return DataSet(list.__getslice__(self, i, j))
+    
+    def __repr__(self):
+        return object.__repr__(self)
