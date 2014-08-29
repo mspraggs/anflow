@@ -56,6 +56,9 @@ class Model(object):
             all_params.update(kwargs)
             all_params.update(params)
 
+            for key, value in all_params.items():
+                all_params[key] = getattr(self, key)(value)
+
             if self.resampler:
                 result = self.resampler.run(data, main_partial)
             else:
