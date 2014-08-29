@@ -59,10 +59,11 @@ class Parser(object):
                 if temp_params not in uncollected_params:
                     uncollected_params.append(temp_params)
 
+            # Loops through the parameters we're not collecting according
+            # to and build a list for each of these parameter sets
             for params in uncollected_params:
                 def list_filter(datum):
                     datum_params = copy.copy(datum[0])
-                    #print(datum_params.keys())
                     datum_params.pop(collect)
                     return datum_params == params
                 filtered_list = filter(list_filter, temp_parsed_data)
@@ -71,6 +72,8 @@ class Parser(object):
         else:
             self.parsed_data = temp_parsed_data
 
+        # Puts together a proposed results path for use by the model if
+        # necessary
         params = self.parsed_data[0][0].keys()
         self.path_format = "_".join(["{}{{{}}}".format(param, param)
                                      for param in params])
