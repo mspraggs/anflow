@@ -19,11 +19,11 @@ from anflow.utils.debug import debug_message
 
 
 class MetaModel(type):
-
+    # Meta class to create static data member for Model
     def __new__(cls, names, bases, attrs):
         new_class = super(MetaModel, cls).__new__(cls, names, bases, attrs)
         study = attrs['__module__'].split('.')[0]
-
+        # Fail if we're not looking at a class that's in a study
         if not attrs['results_format'] or study == "anflow":
             return new_class
         
@@ -32,6 +32,7 @@ class MetaModel(type):
         results_regex = re.compile(re.sub(r'\{ *(?P<var>\w+) *\}',
                                           '(?P<\g<var>>.+)',
                                           attrs['results_format']))
+        # Loop through results and gather data and parameters
         for directory, dirs, files in os.walk(results_dir):
             for f in files:
                 path = os.path.join(directory, f)
