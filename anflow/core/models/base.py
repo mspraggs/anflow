@@ -41,23 +41,18 @@ class Model(object):
 
     __metaclass__ = MetaModel
     
-    main = None
-    input_stream = None
-    resampler = None
-    parameters = None
-    results_format = None
-    depends_on = None
+    main = None # The function that encapsulates the model behaviour
+    input_stream = None # The raw data to feed into the model
+    parameters = None # A list of additional parameters to feed the model
+    results_format = None # The template for the model filename
+    depends_on = None # A list of models this model depends on
+    resampler = None # The resampler object that'll do the resampling
 
     def __init__(self):
         """Set up empty results list"""
         self.new_results = DataSet()
 
         self.mainargspec = inspect.getargspec(self.main)
-        self.main_has_args = (True
-                              if self.mainargspec.args
-                              or self.mainargspec.varargs
-                              or self.mainargspec.keywords
-                              else False)
         if not self.results_format:
             try:
                 self.results_format = self.input_stream.path_format
@@ -66,8 +61,6 @@ class Model(object):
                 raise AttributeError("Member results_format not specified and "
                                      "input_stream has no member path_format")
 
-        self.results_format_args = re.findall(r'\{ *(\w+) *\}',
-                                              self.results_format)
         self.study_name = self.__module__.split('.')[0]
 
     def run(self, *args, **kwargs):
