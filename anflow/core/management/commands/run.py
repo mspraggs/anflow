@@ -37,13 +37,13 @@ def run_model(model_class):
     return models_run
 
 def main(argv):
-    
+
+    models = []    
     for study in settings.ACTIVE_STUDIES:
         module = import_module(settings.COMPONENT_TEMPLATE
                                .format(component='models',
                                        study_name=study)
                                .replace('/', '.'))
-        models = []
         for name in dir(module):
             member = getattr(module, name)
             try:
@@ -52,7 +52,7 @@ def main(argv):
             except TypeError as e:
                 debug_message(e)
 
-        while len(models) > 0:
-            models_run = run_model(models[0])
-            for model in models_run:
-                models.remove(model)                
+    while len(models) > 0:
+        models_run = run_model(models[0])
+        for model in models_run:
+            models.remove(model)
