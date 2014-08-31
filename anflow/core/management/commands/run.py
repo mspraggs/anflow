@@ -38,7 +38,8 @@ def run_model(model_class):
 
 def main(argv):
 
-    models = []    
+    models = []
+    views = []
     for study in settings.ACTIVE_STUDIES:
         module = import_module(settings.COMPONENT_TEMPLATE
                                .format(component='models',
@@ -51,8 +52,18 @@ def main(argv):
                     models.append(member)
             except TypeError as e:
                 debug_message(e)
+                
+    for study in settings.ACTIVE_STUDIES:
+        module = import_module(settings.COMPONENT_TEMPLATE
+                               .format(component='views',
+                                       study_name=study)
+                               .replace('/', '.'))
+        views.extend(module.view_functions)
 
     while len(models) > 0:
         models_run = run_model(models[0])
         for model in models_run:
             models.remove(model)
+
+    for view in views:
+        view()
