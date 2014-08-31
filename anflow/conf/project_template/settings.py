@@ -17,7 +17,7 @@ LOGGING_FILE = "output_{}".format(datetime)
 COMPONENT_TEMPLATE = "{study_name}/{component}"
 RAWDATA_TEMPLATE = "rawdata"
 RESULTS_TEMPLATE = "{study_name}/results"
-PLOTS_TEMPLATE = "{study_name}/plots"
+REPORTS_TEMPLATE = "{study_name}/reports"
 
 ACTIVE_STUDIES = [
     ]
