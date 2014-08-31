@@ -15,7 +15,7 @@ from anflow.utils.debug import debug_message
 
 class Datum(object):
 
-    def __init__(self, params, data, filename=None):
+    def __init__(self, params, data, filename=None, timestamp=None):
 
         for key, value in params.items():
             setattr(self, key, value)
@@ -23,6 +23,11 @@ class Datum(object):
         self.value = data
         self._filename = filename
         self._params = params
+        try:
+            self._timestamp = timestamp or os.path.getmtime(filename)
+        except OSError as e:
+            debug_message(e)
+            self._timestamp = None
 
     def paramsdict(self):
         return self._params
