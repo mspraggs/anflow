@@ -11,13 +11,36 @@ from anflow.utils.debug import debug_message
 
 import settings
 
-def main(argv):
+def run_model(model_class):
 
-    components = ['models', 'views']
+    model = model_class()
+    models_run = []
+    if model.depends_on:
+        for dependency in model.depends_on:
+            models_run.extend(run_model(model_class))
+
+    if model.parameters:
+        for params in model.parameters:
+            try:
+                model.run(*params[0], **params[1])
+            except (IndexError, TypeError) as e:
+                debug_message(e)
+            try:
+                model.run(**params)
+            except TypeError as e:
+                debug_message(e)
+                model.run(*params)
+    else:
+        model.run()
+    model.save()
+    models_run.append(model_class)
+    return models_run
+
+def main(argv):
     
-    for component, study in product(components, settings.ACTIVE_STUDIES):
+    for study in settings.ACTIVE_STUDIES:
         module = import_module(settings.COMPONENT_TEMPLATE
-                               .format(component=component,
+                               .format(component='models',
                                        study_name=study)
                                .replace('/', '.'))
         models = []
@@ -29,20 +52,7 @@ def main(argv):
             except TypeError as e:
                 debug_message(e)
 
-        for model in models:
-            themodel = model()
-            if themodel.parameters:
-                for params in themodel.parameters:
-                    try:
-                        themodel.run(*params[0], **params[1])
-                    except (IndexError, TypeError) as e:
-                        debug_message(e)
-                    try:
-                        themodel.run(**params)
-                    except TypeError as e:
-                        debug_message(e)
-                        themodel.run(*params)
-            else:
-                themodel.run()
-            themodel.save()
-                
+        while len(models) > 0:
+            models_run = run_model(models[0])
+            for model in models_run:
+                models.remove(model)                

@@ -46,6 +46,7 @@ class Model(object):
     resampler = None
     parameters = None
     results_format = None
+    depends_on = None
 
     def __init__(self):
         """Set up empty results list"""
@@ -74,7 +75,6 @@ class Model(object):
         input_stream"""
 
         main_partial = partial(self.main, *args, **kwargs)
-        
         for datum in self.input_stream:
             # Combine parameters
             all_params = dict(zip(self.mainargspec.args, args))
