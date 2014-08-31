@@ -39,6 +39,9 @@ def run_model(model_class, run_dependencies=True):
 
 def main(argv):
 
+    # TODO: Some arguments here to filter models, studies,
+    # override running of dependencies, etc.
+    
     models = []
     views = []
     for study in settings.ACTIVE_STUDIES:
