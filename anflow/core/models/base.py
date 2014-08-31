@@ -32,7 +32,7 @@ class MetaModel(type):
         for directory, dirs, files in os.walk(results_dir):
             for f in files:
                 path = os.path.join(directory, f)
-                if results_regex.search(path).groupdict():
+                if results_regex.search(path):
                     results.append(Datum.load(path))
         new_class.data = results
         return new_class
