@@ -8,6 +8,7 @@ import logging
 import datetime
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+CACHE_PATH = 'cache'
 
 LOGGING_LEVEL = logging.INFO
 LOGGING_FORMAT = "%(asctime)s : %(name)s : %(levelname)s : %(message)s"
