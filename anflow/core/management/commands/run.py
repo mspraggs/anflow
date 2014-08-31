@@ -12,7 +12,8 @@ from anflow.utils.debug import debug_message
 import settings
 
 def run_model(model_class, run_dependencies=True):
-
+    """Recursively run a model and its dependencies, returning a list of the
+    models run"""
     model = model_class()
     models_run = []
     if model.depends_on and run_dependencies:
