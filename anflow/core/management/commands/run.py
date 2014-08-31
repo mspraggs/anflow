@@ -17,7 +17,7 @@ def run_model(model_class, run_dependencies=True):
     models_run = []
     if model.depends_on and run_dependencies:
         for dependency in model.depends_on:
-            models_run.extend(run_model(model_class))
+            models_run.extend(run_model(model_class, run_dependencies))
 
     if model.parameters:
         for params in model.parameters:
