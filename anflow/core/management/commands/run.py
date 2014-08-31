@@ -11,11 +11,11 @@ from anflow.utils.debug import debug_message
 
 import settings
 
-def run_model(model_class):
+def run_model(model_class, run_dependencies=True):
 
     model = model_class()
     models_run = []
-    if model.depends_on:
+    if model.depends_on and run_dependencies:
         for dependency in model.depends_on:
             models_run.extend(run_model(model_class))
 
