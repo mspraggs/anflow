@@ -9,6 +9,9 @@ import os
 import re
 
 from anflow.conf import settings
+from anflow.core.data import DataSet, Datum
+
+
 
 class Parser(object):
     """Base parser for parsing raw data"""
@@ -17,7 +20,7 @@ class Parser(object):
         """Create the parser and compile the regular expression"""
 
         self.populated = False
-        self.parsed_data = []
+        self.parsed_data = DataSet()
         self.parser = parser
 
         if not study:
@@ -53,8 +56,8 @@ class Parser(object):
             
             uncollected_params = []
             # Get the unique parameters after the collect parameter is removed
-            for params, datum in temp_parsed_data:
-                temp_params = copy.copy(params)
+            for datum in temp_parsed_data:
+                temp_params = copy.copy(datum.paramsdict())
                 temp_params.pop(collect)
                 if temp_params not in uncollected_params:
                     uncollected_params.append(temp_params)
@@ -63,18 +66,19 @@ class Parser(object):
             # to and build a list for each of these parameter sets
             for params in uncollected_params:
                 def list_filter(datum):
-                    datum_params = copy.copy(datum[0])
+                    datum_params = copy.copy(datum.paramsdict())
                     datum_params.pop(collect)
                     return datum_params == params
                 filtered_list = filter(list_filter, temp_parsed_data)
-                self.parsed_data.append((params, map(lambda item: item[1],
-                                                     filtered_list)))
+                collected_datum = Datum(params, map(lambda item: item.value,
+                                                    filtered_list))
+                self.parsed_data.append(collected_datum)
         else:
-            self.parsed_data = temp_parsed_data
+            self.parsed_data = DataSet(temp_parsed_data)
 
         # Puts together a proposed results path for use by the model if
         # necessary
-        params = self.parsed_data[0][0].keys()
+        params = self.parsed_data[0].paramsdict()
         self.path_format = "_".join(["{}{{{}}}".format(param, param)
                                      for param in params])
         self.path_format += ".pkl"
