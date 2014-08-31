@@ -78,7 +78,7 @@ class Model(object):
                 all_params[key] = getattr(self, key)(value)
 
             if self.resampler:
-                result = self.resampler.run(datum.value, main_partial)
+                result = self.resampler(datum)
             else:
                 result = main_partial(datum.value)
                 
