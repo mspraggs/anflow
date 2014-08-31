@@ -8,7 +8,7 @@ import inspect
 import os
 import re
 
-import settings
+from anflow.conf import settings
 
 class Parser(object):
     """Base parser for parsing raw data"""
