@@ -56,7 +56,7 @@ class Datum(object):
         save_object = tuple(save_object)
             
         with open(self._filename, 'wb') as f:
-            pickle.dump(save_object, f)
+            pickle.dump(save_object, f, 2)
 
     @classmethod
     def load(cls, filename):
