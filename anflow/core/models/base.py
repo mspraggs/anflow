@@ -78,15 +78,27 @@ class Model(object):
                 all_params[key] = getattr(self, key)(value)
 
             if self.resampler:
-                result = self.resampler(datum, main_partial)
+                results = self.resampler(datum, main_partial)
+                result = results[0]
+                centre = results[1]
+                try:
+                    error = results[2]
+                except IndexError as e:
+                    debug_message(e)
             else:
                 result = main_partial(datum.value)
                 
             filename = os.path.join(settings.RESULTS_TEMPLATE
                                     .format(study_name=self.study_name),
                                     self.results_format.format(**all_params))
+            new_datum = Datum(all_params, result, filename)
+            try:
+                new_datum.central_value = centre
+                new_datum.error = error
+            except NameError as e:
+                debug_message(e)
 
-            self.new_results.append(Datum(all_params, result, filename))
+            self.new_results.append(new_datum)
 
     def save(self):
         """Saves the result defined by the specified parameters"""
