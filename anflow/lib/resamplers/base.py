@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-import md5
+import hashlib
 import os
 try:
     import cPickle as pickle
@@ -39,7 +39,7 @@ class Resampler(object):
         entry point"""
         # Create a unique filename for the cached resampled copies
         hash_object = (data.paramsdict(), data.value)
-        hash_value = md5.md5(pickle.dumps(hash_object, 2)).hexdigest()
+        hash_value = hashlib.md5(pickle.dumps(hash_object, 2)).hexdigest()
         filename = os.path.join(settings.CACHE_PATH,
                                 "{}.{}.binsize{}.pkl"
                                 .format(hash_value, self.__class__.__name__,
