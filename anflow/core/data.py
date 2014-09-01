@@ -30,7 +30,7 @@ class Datum(object):
             self._timestamp = None
 
     def paramsdict(self):
-        return dict([(key, getattr(key)) for key in self._params])
+        return dict([(key, getattr(self, key)) for key in self._params])
 
     def __getattribute__(self, attr):
         return object.__getattribute__(self, attr)
