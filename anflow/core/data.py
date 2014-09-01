@@ -47,12 +47,12 @@ class Datum(object):
         except OSError as e:
             debug_message(e)
 
-        with open(self._filename, 'w') as f:
+        with open(self._filename, 'wb') as f:
             pickle.dump((self.paramsdict(), self.value), f)
 
     @classmethod
     def load(cls, filename):
-        with open(filename) as f:
+        with open(filename, 'rb') as f:
             params, data = pickle.load(f)
         return cls(params, data, filename)
 
