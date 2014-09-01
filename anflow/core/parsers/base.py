@@ -71,11 +71,10 @@ class Parser(object):
                     datum_params.pop(collect)
                     return datum_params == params
                 filtered_list = filter(list_filter, temp_parsed_data)
+                timestamps = map(lambda item: item._timestamp, filtered_list)
                 collected_datum = Datum(params, map(lambda item: item.value,
                                                     filtered_list),
-                                        timestamp=max(lambda item:
-                                                      item._timestamp,
-                                        filtered_list))
+                                        timestamp=max(timestamps))
                 self.parsed_data.append(collected_datum)
         else:
             self.parsed_data = DataSet(temp_parsed_data)
