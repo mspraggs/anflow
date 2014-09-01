@@ -69,13 +69,14 @@ class Model(object):
 
         main_partial = partial(self.main, *args, **kwargs)
         for datum in self.input_stream:
+            # Convert parsed to types indicated by parameters
+            for key in datum.paramsdict().keys():
+                param_type = getattr(self, key)
+                setattr(datum, key, param_type(getattr(datum, key)))
             # Combine parameters
             all_params = dict(zip(self.mainargspec.args, args))
             all_params.update(kwargs)
             all_params.update(datum.paramsdict())
-
-            for key, value in all_params.items():
-                all_params[key] = getattr(self, key)(value)
 
             if self.resampler:
                 results = self.resampler(datum, main_partial)
