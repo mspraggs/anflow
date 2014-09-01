@@ -47,14 +47,28 @@ class Datum(object):
         except OSError as e:
             debug_message(e)
 
+        save_object = [self.paramsdict(), self.value]
+        try:
+            save_object.append(self.central_value)
+            save_object.append(self.error)
+        except AttributeError as e:
+            debug_message(e)
+        save_object = tuple(save_object)
+            
         with open(self._filename, 'wb') as f:
-            pickle.dump((self.paramsdict(), self.value), f)
+            pickle.dump(save_object, f)
 
     @classmethod
     def load(cls, filename):
         with open(filename, 'rb') as f:
-            params, data = pickle.load(f)
-        return cls(params, data, filename)
+            file_contents = pickle.load(f)
+        datum = cls(file_contents[0], file_contents[1], filename)
+        try:
+            datum.central_value = file_contents[2]
+            datum.error = file_contents[3]
+        except IndexError as e:
+            debug_message(e)
+        return datum
 
 class DataSet(list):
 
