@@ -22,7 +22,7 @@ class Datum(object):
 
         self.value = data
         self._filename = filename
-        self._params = params
+        self._params = params.keys()
         try:
             self._timestamp = timestamp or os.path.getmtime(filename)
         except OSError as e:
@@ -30,7 +30,7 @@ class Datum(object):
             self._timestamp = None
 
     def paramsdict(self):
-        return self._params
+        return dict([(key, getattr(key)) for key in self._params])
 
     def __getattribute__(self, attr):
         return object.__getattribute__(self, attr)
