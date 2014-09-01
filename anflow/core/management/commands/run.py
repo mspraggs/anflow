@@ -5,21 +5,24 @@ from __future__ import print_function
 
 from itertools import product
 from importlib import import_module
+import sys
 
+from anflow.conf import settings
 from anflow.core.models import Model
 from anflow.utils.debug import debug_message
-
-import settings
 
 def run_model(model_class, run_dependencies=True):
     """Recursively run a model and its dependencies, returning a list of the
     models run"""
-    model = model_class()
     models_run = []
-    if model.depends_on and run_dependencies:
-        for dependency in model.depends_on:
+    if model_class.depends_on and run_dependencies:
+        for dependency in model_class.depends_on:
             models_run.extend(run_model(dependency, run_dependencies))
-
+        del sys.modules[model_class.__module__]
+        module = import_module(model_class.__module__)
+        reload(module)
+    
+    model = model_class()
     if model.parameters:
         for params in model.parameters:
             try:
