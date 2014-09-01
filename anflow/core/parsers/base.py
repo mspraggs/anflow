@@ -24,6 +24,7 @@ class Parser(object):
         self.parser = parser
 
         if not study:
+            # THIS METHOD IS NOT INDEPENDENT OF THE PROJECT LAYOUT!
             stack = inspect.stack()
             for frame in stack:
                 relative_path = os.path.relpath(frame[1], settings.PROJECT_ROOT)

@@ -9,6 +9,7 @@ def reports_path(filename):
 
     stack = inspect.stack()
     for frame in stack:
+        # THIS METHOD IS NOT INDEPENDENT OF THE PROJECT LAYOUT
         relative_path = os.path.relpath(frame[1], settings.PROJECT_ROOT)
         study = os.path.split(relative_path)[0]
         if study in settings.ACTIVE_STUDIES:
