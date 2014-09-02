@@ -41,7 +41,7 @@ def main(argv):
 
     for template in [settings.RAWDATA_TEMPLATE,
                      settings.RESULTS_TEMPLATE,
-                     settings.PLOTS_TEMPLATE]:
+                     settings.REPORTS_TEMPLATE]:
         try:
             os.makedirs(template.format(study_name=study_name))
         except OSError as e:
