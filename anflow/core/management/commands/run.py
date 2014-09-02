@@ -23,6 +23,10 @@ def run_model(model_class, run_dependencies=True):
         reload(module)
     
     model = model_class()
+    try:
+        model.input_stream.populate()
+    except AttributeError as e:
+        debug_message(e)
     if model.parameters:
         for params in model.parameters:
             try:
