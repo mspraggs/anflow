@@ -28,4 +28,4 @@ class Jackknife(Resampler):
 
         N = len(data)
         deviations = map(lambda datum: (datum - central_value)**2, data)
-        return np.sqrt((N - 1) / N * sum(deviations))
+        return ((N - 1) / N * sum(deviations))**0.5
