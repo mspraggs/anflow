@@ -27,7 +27,7 @@ def run_model(model_class, run_dependencies=True):
         for params in model.parameters:
             try:
                 model.run(*params[0], **params[1])
-            except (IndexError, TypeError) as e:
+            except (IndexError, KeyError, TypeError) as e:
                 debug_message(e)
             try:
                 model.run(**params)
