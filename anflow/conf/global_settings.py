@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import os
 
-DEBUG = True
+DEBUG = False
 
 ANFLOW_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 PROJECT_TEMPLATE = os.path.join(ANFLOW_ROOT, "conf/project_template")
