@@ -19,10 +19,7 @@ def run_model(model_class, run_dependencies=True):
     if model_class.depends_on and run_dependencies:
         for dependency in model_class.depends_on:
             models_run.extend(run_model(dependency, run_dependencies))
-        del sys.modules[model_class.__module__]
-        module = import_module(model_class.__module__)
-        reload(module)
-    
+        
     model = model_class()
     try:
         model.input_stream.populate()
@@ -42,6 +39,11 @@ def run_model(model_class, run_dependencies=True):
     else:
         model.run()
     model.save()
+
+    del sys.modules[model_class.__module__]
+    module = import_module(model_class.__module__)
+    reload(module)
+    
     models_run.append(model_class)
     return models_run
 
