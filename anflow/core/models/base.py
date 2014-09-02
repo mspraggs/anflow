@@ -67,7 +67,6 @@ class Model(object):
         """Runs the measurement on the files returned by the specified
         input_stream"""
 
-        main_partial = partial(self.main, *args, **kwargs)
         for datum in self.input_stream:
             # Convert parsed to types indicated by parameters
             for key in datum.paramsdict().keys():
@@ -77,6 +76,7 @@ class Model(object):
             all_params = dict(zip(self.mainargspec.args, args))
             all_params.update(kwargs)
             all_params.update(datum.paramsdict())
+            main_partial = partial(self.main, **all_params)
 
             if self.resampler:
                 results = self.resampler(datum, main_partial)
