@@ -11,6 +11,7 @@ from functools import partial
 from anflow.conf import settings
 from anflow.core.data import Datum, DataSet
 from anflow.utils.debug import debug_message
+from anflow.utils import get_study
 
 
 
@@ -18,7 +19,7 @@ class MetaModel(type):
     # Meta class to create static data member for Model
     def __new__(cls, names, bases, attrs):
         new_class = super(MetaModel, cls).__new__(cls, names, bases, attrs)
-        study = attrs['__module__'].split('.')[0]
+        study = get_study(attrs['__module__'])
         # Fail if we're not looking at a class that's in a study
         if not attrs['results_format'] or study not in settings.ACTIVE_STUDIES:
             return new_class
@@ -61,7 +62,7 @@ class Model(object):
                 raise AttributeError("Member results_format not specified and "
                                      "input_stream has no member path_format")
 
-        self.study_name = self.__module__.split('.')[0]
+        self.study_name = get_study(self.__module__)
 
     def run(self, *args, **kwargs):
         """Runs the measurement on the files returned by the specified
