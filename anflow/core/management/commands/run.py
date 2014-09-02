@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+from argparse import ArgumentParser
 from itertools import product
 from importlib import import_module
 import sys
@@ -48,10 +49,26 @@ def main(argv):
 
     # TODO: Some arguments here to filter models, studies,
     # override running of dependencies, etc.
+
+    parser = ArgumentParser()
+    parser.add_argument('--study', dest='study', action='store',
+                        default=None)
+    parser.add_argument('--component', dest='component', action='store',
+                        default=None)
+    args = parser.parse_args(argv)
+    if args.study:
+        studies = [args.study]
+    else:
+        studies = settings.ACTIVE_STUDIES
+    if not args.component:
+        run_models = run_views = True
+    else:
+        run_models = args.component == 'models'
+        run_views = args.component == 'views'
     
     models = []
     views = []
-    for study in settings.ACTIVE_STUDIES:
+    for study in studies:
         module = import_module(settings.COMPONENT_TEMPLATE
                                .format(component='models',
                                        study_name=study)
@@ -71,10 +88,13 @@ def main(argv):
                                .replace('/', '.'))
         views.extend(module.view_functions)
 
-    while len(models) > 0:
-        models_run = run_model(models[0])
-        for model in models_run:
-            models.remove(model)
+    if run_models:
+        while len(models) > 0:
+            models_run = run_model(models[0])
+            for model in models_run:
+                models.remove(model)
 
-    for view in views:
-        view()
+    # Might need to reload models here to get the latest data
+    if run_views:
+        for view in views:
+            view()
