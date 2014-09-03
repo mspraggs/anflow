@@ -100,3 +100,42 @@ class TestResampler(object):
         error = self.resampler_class.error(data, data.mean())
         assert error is None
 
+class TestBootstrap(TestResampler):
+
+    resampler_class = Bootstrap
+
+    def check_centre(self, centre):
+
+        pass#assert np.less(centre, )centre is None
+
+    def check_error(self, error):
+        pass
+
+    def check_results(self, data, results, function):
+        pass
+
+    def test_resample(self):
+        pass
+
+    def test_error(self):
+        pass
+
+class TestJackknife(TestResampler):
+
+    resampler_class = Jackknife
+
+    def check_centre(self, centre):
+        pass
+
+    def check_error(self, error):
+        pass
+
+    def check_results(self, data, results, function):
+        pass
+
+    def test_resample(self):
+        pass
+
+    def test_error(self):
+        pass
+
