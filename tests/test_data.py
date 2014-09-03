@@ -49,7 +49,7 @@ class TestDatum(object):
     def test_constructor(self, random_datum):
         datum = random_datum.datum
         assert datum.value == random_datum.randoms
-        assert datum._params == random_datum.params.keys()
+        assert datum._params == set(random_datum.params.keys())
         assert datum._timestamp == random_datum.timestamp
         assert datum._filename == random_datum.filename
         

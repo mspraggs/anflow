@@ -17,12 +17,13 @@ class Datum(object):
 
     def __init__(self, params, data, filename=None, timestamp=None):
 
-        for key, value in params.items():
-            setattr(self, key, value)
-
+        self._params = set(params.keys())
         self.value = data
         self._filename = filename
-        self._params = params.keys()
+        
+        for key, value in params.items():
+            setattr(self, key, value)
+            
         try:
             self._timestamp = timestamp or os.path.getmtime(filename)
         except OSError as e:
@@ -36,6 +37,8 @@ class Datum(object):
         return object.__getattribute__(self, attr)
         
     def __setattr__(self, attr, value):
+        if not attr.startswith('_') and attr != "value":
+            self._params.add(attr)
         return object.__setattr__(self, attr, value)
 
     def delete(self):
