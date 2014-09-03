@@ -22,7 +22,8 @@ def settings(request):
         os.makedirs(project_dir)
     except OSError:
         pass
-    
+
+    settings.DEBUG = True
     settings.PROJECT_ROOT = project_dir
     settings.CACHE_PATH = os.path.join(project_dir, "cache")
     
