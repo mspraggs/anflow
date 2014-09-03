@@ -75,7 +75,7 @@ class TestResampler(object):
             # The measurement function
 
             # Compute the name of the cached resampled file
-            hash_object = (datum.paramsdict(), datum.value)
+            hash_object = (datum.paramsdict(), datum.value, average)
             data_hash = hashlib.md5(pickle.dumps(hash_object, 2)).hexdigest()
             filename = "{}.{}.binsize1.pkl".format(data_hash,
                                                    resampler.__class__.__name__)

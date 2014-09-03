@@ -41,7 +41,7 @@ class Resampler(object):
         """Pulls together all the resampling components - the main resampling
         entry point"""
         # Create a unique filename for the cached resampled copies
-        hash_object = (data.paramsdict(), data.value)
+        hash_object = (data.paramsdict(), data.value, self.average)
         hash_value = hashlib.md5(pickle.dumps(hash_object, 2)).hexdigest()
         filename = os.path.join(settings.CACHE_PATH,
                                 "{}.{}.binsize{}.pkl"
