@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+import copy
 import os
 import random
 import string
@@ -69,3 +70,20 @@ class TestDatum(object):
         datum.delete()
         assert not os.path.exists(random_datum.filename)
         assert loaded_datum.paramsdict() == random_datum.params
+
+class TestDataSet(object):
+
+    def test_constructor(self, random_datum):
+        datum = random_datum.datum
+        dataset = DataSet([datum])
+
+    def test_filter(self, random_datum):
+
+        dataset = DataSet()
+        for i in range(10):
+            datum = copy.copy(random_datum.datum)
+            datum.some_value = i
+            dataset.append(datum)
+
+        for i in range(10):
+            assert len(dataset.filter(some_value=i))
