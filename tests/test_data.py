@@ -44,6 +44,17 @@ def random_datum(settings, request):
     ret.timestamp = None
     
     return ret
+
+@pytest.fixture()
+def random_dataset(random_datum, settings, request):
+    dataset = DataSet()
+    for i in range(10):
+        datum = copy.copy(random_datum.datum)
+        datum.some_value = i
+        datum._filename = os.path.join(settings.PROJECT_ROOT,
+                                       "datum{}.pkl".format(i))
+        dataset.append(datum)
+    return dataset
     
 class TestDatum(object):
 
@@ -77,13 +88,16 @@ class TestDataSet(object):
         datum = random_datum.datum
         dataset = DataSet([datum])
 
-    def test_filter(self, random_datum):
-
-        dataset = DataSet()
+    def test_filter(self, random_dataset):
         for i in range(10):
-            datum = copy.copy(random_datum.datum)
-            datum.some_value = i
-            dataset.append(datum)
+            assert len(random_dataset.filter(some_value=i))
 
+    def test_save_delete(self, settings, random_dataset):
+        random_dataset.save()
         for i in range(10):
-            assert len(dataset.filter(some_value=i))
+            assert os.path.exists(os.path.join(settings.PROJECT_ROOT,
+                                               'datum{}.pkl'.format(i)))
+        random_dataset.delete()
+        for i in range(10):
+            assert not os.path.exists(os.path.join(settings.PROJECT_ROOT,
+                                                   'datum{}.pkl'.format(i)))
