@@ -25,7 +25,8 @@ class Resampler(object):
 
     name = 'base_resampler'
 
-    def __init__(self, resample=True, compute_error=True, binsize=1):
+    def __init__(self, resample=True, compute_error=True, average=False,
+                 binsize=1):
         """Constructor - give the resampler a measurement function, tell it
         the format of the results paths, and whether to average the results
         at the end or just return the measurement on the resampled data"""
@@ -33,6 +34,8 @@ class Resampler(object):
         self.do_resample = resample
         self.compute_error = compute_error
         self.binsize = binsize
+        self.average = average # Determines whether to compute the mean of
+        # the resampled dataset (could save some computing time)
 
     def __call__(self, data, function):
         """Pulls together all the resampling components - the main resampling
@@ -56,26 +59,30 @@ class Resampler(object):
                 raise OSError('Cached jackknives out of date')
             datum = Datum.load(filename)
             working_data = datum.value
-            central_value = datum.central_value
         except (IOError, OSError) as e:
             debug_message(e)
             # If we've been asked to resample, then we compute the resampled
             # data and the central value using the resample function
             if self.do_resample:
-                resampled_data = self.resample(bin_data(data.value,
-                                                        self.binsize))
-                working_data = resampled_data[0]
-                central_value = resampled_data[1]
+                working_data = self.resample(bin_data(data.value, self.binsize))
             else:
                 # Otherwise use the supplied data, binning as necessary
                 working_data = bin_data(data.value, self.binsize)
-                central_value = data.central_value
             datum = Datum(data.paramsdict(), working_data, filename)
-            datum.central_value = central_value
             datum.save()
 
+        try:
+            filename = os.path.join(settings.CACHE_PATH,
+                                "{}.{}.binsize{}.binnums.pkl"
+                                .format(hash_value, self.__class__.__name__,
+                                        self.binsize))
+            with open(filename, 'wb') as f:
+                pickle.dump(self.binset, f, 2)
+        except AttributeError:
+            pass
+
         results = map(function, working_data)
-        centre = function(central_value)
+        centre = self._central_value(data, results, function)
 
         if self.compute_error:
             error = self.error(results, centre)
@@ -83,10 +90,18 @@ class Resampler(object):
         else:
             return results, centre
 
-    @staticmethod
-    def resample(data):
-        return data, sum(data) / len(data)
+    def resample(self, data):
+        return data
 
+    def _central_value(self, datum, results, function):
+        if self.do_resample:
+            if self.average:
+                return function(sum(datum.value) / len(datum.value))
+            else:
+                return function(datum.value)
+        else:
+            return function(datum.central_value)
+    
     @staticmethod
     def error(data, central_value):
         pass

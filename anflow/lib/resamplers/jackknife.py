@@ -13,15 +13,24 @@ class Jackknife(Resampler):
 
     name = 'jackknife'
 
-    @staticmethod
-    def resample(data):
+    def resample(self, data):
 
         N = len(data)
-        data_sum = sum(data)
-        central_value = data_sum / N
+        if self.average:
+            data_sum = sum(data)
+            resampled_data = [(data_sum - datum) / (N - 1) for datum in data]
+        else:
+            resampled_data = [data[:i] + data[i+1:] for i in range(N)]
+        return resampled_data
 
-        resampled_data = [(data_sum - datum) / (N - 1) for datum in data]
-        return resampled_data, central_value
+    def _central_value(self, datum, results, function):
+        if self.do_resample:
+            if self.average:
+                return function(sum(datum.value) / len(datum.value))
+            else:
+                return function(datum.value)
+        else:
+            return function(datum.central_value)
 
     @staticmethod
     def error(data, central_value):
