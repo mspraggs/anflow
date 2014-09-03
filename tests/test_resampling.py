@@ -4,6 +4,11 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import os
+import hashlib
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import random
 
 import numpy as np
@@ -24,48 +29,74 @@ class TestFunctions(object):
 
 class TestResampler(object):
 
+    resampler_class = Resampler
+
+    def check_centre(self, centre):
+        assert np.allclose(np.arange(4.5, 14.0, 1.0) ** 2, centre)
+
+    def check_error(self, error):
+        assert error is None
+
+    def check_results(self, data, results, function):
+        assert len(results) == 10
+        for d, r in zip(data, results):
+            assert np.allclose(function(d), r)
+
     def test_constructor(self):
         # Test the default constructor first
-        resampler = Resampler()
-        attributes = ('do_resample', 'compute_error', 'binsize')
-        for attr, val in zip(attributes, (True, True, 1)):
+        resampler = self.resampler_class()
+        attributes = ('do_resample', 'compute_error', 'average', 'binsize')
+        for attr, val in zip(attributes, (True, True, False, 1)):
             assert getattr(resampler, attr) == val
 
         # Now test some random values
-        do_resample, compute_error = random.sample((True, False), 2)
+        truefalse = [True, False] * 100
+        do_resample, compute_error, average = random.sample(truefalse, 3)
         binsize = random.randint(0, 100)
-        resampler = Resampler(do_resample, compute_error, binsize)
-        for attr, val in zip(attributes, (do_resample, compute_error, binsize)):
+        args = (do_resample, compute_error, average, binsize)
+        resampler = self.resampler_class(*args)
+        for attr, val in zip(attributes, args):
             assert getattr(resampler, attr) == val
 
     def test_call(self, settings):
-        
-        resampler = Resampler()
-        # First we need to set up some data to do the resampling on
-        data = [np.arange(10, dtype=np.float) + i for i in range(10)]
-        params = {'foo': 12, 'bar': random.randint(0, 10)}
-        datum = Datum(params, data, filename="data.pkl")
-        datum.save()
-        # The measurement function
-        def func(x): return x**2
 
-        results, centre, error = resampler(datum, func)
+        functions = [lambda x: x**2, lambda x: (sum(x)/ len(x))**2]
+
+        for average, function in zip((True, False), functions):
         
-        assert np.allclose(np.arange(4.5, 14.0, 1.0) ** 2, centre)
-        assert error is None
-        assert len(results) == 10
-        for d, r in zip(data, results):
-            assert np.allclose(d**2, r)
-        
+            resampler = self.resampler_class(average=average)
+            # First we need to set up some data to do the resampling on
+            data = [np.arange(10, dtype=np.float) + i for i in range(10)]
+            params = {'foo': 12, 'bar': random.randint(0, 10)}
+            datum = Datum(params, data,
+                          filename=os.path.join(settings.PROJECT_ROOT,
+                                                "data.pkl"))
+            datum.save()
+            # The measurement function
+
+            # Compute the name of the cached resampled file
+            hash_object = (datum.paramsdict(), datum.value)
+            data_hash = hashlib.md5(pickle.dumps(hash_object, 2)).hexdigest()
+            filename = "{}.{}.binsize1.pkl".format(data_hash,
+                                                   resampler.__class__.__name__)
+
+            for i in range(2):
+                results, centre, error = resampler(datum, function)
+                self.check_centre(centre)
+                self.check_error(error)
+                self.check_results(data, results, function)
+                assert os.path.exists(os.path.join(settings.CACHE_PATH,
+                                                   filename))
+
     def test_resample(self):
         data = np.random.random(100)
-        resampled_data, central_value = Resampler.resample(data)
+        resampler = self.resampler_class()
+        resampled_data = resampler.resample(data)
 
         assert np.allclose(data, resampled_data)
-        assert np.allclose(central_value, data.mean())
 
     def test_error(self):
         data = np.random.random(100)
-        error = Resampler.error(data, data.mean())
+        error = self.resampler_class.error(data, data.mean())
         assert error is None
 
