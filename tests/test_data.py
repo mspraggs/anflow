@@ -59,3 +59,13 @@ class TestDatum(object):
     def test_paramsdict(self, random_datum):
 
         assert random_datum.datum.paramsdict() == random_datum.params
+
+    def test_save_delete_load(self, random_datum):
+
+        datum = random_datum.datum
+        datum.save()
+        loaded_datum = Datum.load(random_datum.filename)
+        assert os.path.exists(random_datum.filename)
+        datum.delete()
+        assert not os.path.exists(random_datum.filename)
+        assert loaded_datum.paramsdict() == random_datum.params
