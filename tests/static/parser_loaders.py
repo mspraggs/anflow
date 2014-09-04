@@ -21,6 +21,11 @@ def blind_parse(filename):
     else:
         return
 
+def guided_parse(path_template):
+    with open(path_template) as f:
+        data = pickle.load(f)
+    return data
+
 def get_base_parser():
     return BaseParser()
     
