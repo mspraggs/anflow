@@ -94,3 +94,11 @@ class TestBaseParser(object):
             assert datum == sample_datum
 
         assert len(datum_dump) == 10
+
+class TestBlindParser(object):
+
+    def test_populate(self, study_blind_parser):
+
+        study_blind_parser.populate()
+        assert study_blind_parser.populated
+        assert len(study_blind_parser.parsed_data) == 700
