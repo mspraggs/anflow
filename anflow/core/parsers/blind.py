@@ -7,7 +7,7 @@ import copy
 import os
 
 from anflow.core.data import DataSet, Datum
-from anflow.core.parsers import BaseParser
+from anflow.core.parsers.base import BaseParser
 
 
 
