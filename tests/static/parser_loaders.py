@@ -3,6 +3,7 @@ try:
     import cPickle as pickle
 except:
     import pickle
+import re
 
 import numpy as np
     
@@ -12,7 +13,7 @@ from anflow.core.parsers import BlindParser, GuidedParser
 
 def blind_parse(filename):
     params = re.search(r'data_m(?P<mass>\d*\.\d*)\.(?P<config>\d+)\.pkl',
-                       component_file).groupdict()
+                       filename).groupdict()
     with open(filename) as f:
         data = pickle.load(f)
     if params:
