@@ -77,6 +77,7 @@ class TestDatum(object):
         datum.save()
         loaded_datum = Datum.load(random_datum.filename)
         assert os.path.exists(random_datum.filename)
+        assert loaded_datum._timestamp is not None
         datum.delete()
         assert not os.path.exists(random_datum.filename)
         assert loaded_datum.paramsdict() == random_datum.params
