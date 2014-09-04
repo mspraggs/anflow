@@ -51,4 +51,5 @@ class GuidedParser(BaseParser):
             self.parsed_data.append(Datum(paramdict, parsed_data,
                                           timestamp=max(timestamps)))
 
+        self.populated = True
         self.set_path_format()

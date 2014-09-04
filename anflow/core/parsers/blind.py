@@ -70,4 +70,5 @@ class BlindParser(BaseParser):
         else:
             self.parsed_data = DataSet(temp_parsed_data)
 
+        self.populated = True
         self.set_path_format()
