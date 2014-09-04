@@ -24,27 +24,7 @@ from anflow.utils.io import projectify
 
 
 
-@pytest.fixture()
-def study_base_parser(settings, request):
-    component_file = projectify(settings.COMPONENT_TEMPLATE
-                                .format(component='models', study_name='foo')
-                                + ".py")
-    component_directory = os.path.dirname(component_file)
-    os.makedirs(component_directory)
-    loader_path = os.path.join(os.path.dirname(__file__),
-                               "static/parser_loaders.py")
-    shutil.copyfile(loader_path, component_file)
-        
-    for dirpath, dirnames, filenames in os.walk(settings.PROJECT_ROOT):
-        open(os.path.join(dirpath, '__init__.py'), 'w').close()
-
-    module_name = os.path.relpath(component_file)[:-3].replace('/', '.')
-    module = importlib.import_module(module_name, 'test_project')
-
-    return module.get_base_parser()
-
-@pytest.fixture()
-def study_blind_parser(settings, request):
+def common_fixture_setup(attr, settings):
     component_file = projectify(settings.COMPONENT_TEMPLATE
                                 .format(component='models', study_name='foo')
                                 + ".py")
@@ -68,7 +48,19 @@ def study_blind_parser(settings, request):
     module_name = os.path.relpath(component_file)[:-3].replace('/', '.')
     module = importlib.import_module(module_name, 'test_project')
 
-    return module.get_blind_parser()
+    return getattr(module, attr)
+
+@pytest.fixture()
+def study_base_parser(settings, request):
+    return common_fixture_setup('get_base_parser', settings)()
+
+@pytest.fixture()
+def study_blind_parser(settings, request):
+    return common_fixture_setup('get_blind_parser', settings)()
+
+@pytest.fixture()
+def study_guided_parser(settings, request):
+    return common_fixture_setup('get_guided_parser', settings)()
 
 class TestBaseParser(object):
 
