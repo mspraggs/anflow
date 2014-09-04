@@ -31,11 +31,12 @@ class GuidedParser(BaseParser):
         and the path template"""
 
         collect_params = {}
-        for param in self.collect:
-            collect_params[param] = self.params.pop(param)
-            self.path_template = re.sub('{{ *{} *}}'.format(param),
-                                        '{{{{{}}}}}'.format(param),
-                                        self.path_template)
+        if self.collect:
+            for param in self.collect:
+                collect_params[param] = self.params.pop(param)
+                self.path_template = re.sub('{{ *{} *}}'.format(param),
+                                            '{{{{{}}}}}'.format(param),
+                                            self.path_template)
         
         for values in product(*self.params.values()):
             paramdict = dict(zip(self.params.keys(), values))
