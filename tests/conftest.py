@@ -25,7 +25,7 @@ def settings(request):
 
     settings.DEBUG = True
     settings.PROJECT_ROOT = project_dir
-    settings.CACHE_PATH = os.path.join(project_dir, "cache")
+    settings.CACHE_PATH = os.path.join("cache")
     
     settings.LOGGING_LEVEL = logging.INFO
     settings.LOGGING_FORMAT = ("%(asctime)s : %(name)s : "
@@ -33,13 +33,13 @@ def settings(request):
     settings.LOGGING_DATEFMT = "%d/%m/%Y %H:%M:%S"
     settings.LOGGING_FILE = (project_dir, "output_{}".format(datetime))
 
-    settings.COMPONENT_TEMPLATE = os.path.join(project_dir,
-                                               "{study_name}/{component}")
-    settings.RAWDATA_TEMPLATE = os.path.join(project_dir, "rawdata")
-    settings.RESULTS_TEMPLATE = os.path.join(project_dir,
-                                             "{study_name}/results")
-    settings.REPORTS_TEMPLATE = os.path.join(project_dir,
-                                             "{study_name}/reports")
+    settings.COMPONENT_TEMPLATE = "{study_name}/{component}"
+    settings.RAWDATA_TEMPLATE = "rawdata"
+    settings.RESULTS_TEMPLATE = "{study_name}/results"
+    settings.REPORTS_TEMPLATE = "{study_name}/reports"
+
+    settings.ACTIVE_STUDIES = ["foo",
+                               "bar"]
 
     def fin():
         shutil.rmtree(project_dir, ignore_errors=True)
