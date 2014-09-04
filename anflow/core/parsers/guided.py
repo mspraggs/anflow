@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+import copy
 from itertools import product
 import os
 import re
@@ -31,16 +32,18 @@ class GuidedParser(BaseParser):
         and the path template"""
 
         collect_params = {}
+        params_copy = copy.copy(self.params)
+        path_template_copy = self.path_template
         if self.collect:
             for param in self.collect:
-                collect_params[param] = self.params.pop(param)
-                self.path_template = re.sub('{{ *{} *}}'.format(param),
+                collect_params[param] = params_copy.pop(param)
+                path_template_copy = re.sub('{{ *{} *}}'.format(param),
                                             '{{{{{}}}}}'.format(param),
-                                            self.path_template)
+                                            path_template_copy)
         
-        for values in product(*self.params.values()):
-            paramdict = dict(zip(self.params.keys(), values))
-            sub_template = self.path_template.format(**paramdict)
+        for values in product(*params_copy.values()):
+            paramdict = dict(zip(params_copy.keys(), values))
+            sub_template = path_template_copy.format(**paramdict)
             parsed_data = self.parser(sub_template, **collect_params)
 
             timestamps = []
