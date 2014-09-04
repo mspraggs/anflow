@@ -37,7 +37,8 @@ class Datum(object):
         return object.__getattribute__(self, attr)
         
     def __setattr__(self, attr, value):
-        if not attr.startswith('_') and attr != "value":
+        non_params = ["value", "central_value", "error"]
+        if not attr.startswith('_') and attr not in non_params:
             self._params.add(attr)
         return object.__setattr__(self, attr, value)
 
