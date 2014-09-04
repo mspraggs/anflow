@@ -24,8 +24,10 @@ class BaseParser(object):
             for frame in stack:
                 relative_path = os.path.relpath(frame[1], settings.PROJECT_ROOT)
                 result = component_regex.search(relative_path)
-                if study in settings.ACTIVE_STUDIES:
-                    break
+                if result:
+                    study = result.group('study_name')
+                    if study in settings.ACTIVE_STUDIES:
+                        break
         self.study = study
         self.rawdata_dir = settings.RAWDATA_TEMPLATE.format(study_name=study)
 
