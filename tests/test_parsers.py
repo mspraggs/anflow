@@ -105,5 +105,13 @@ class TestBlindParser(object):
     def test_populate(self, study_blind_parser):
 
         study_blind_parser.populate()
+        masses = [str(x) for x in np.arange(0.1, 0.8, 0.1)]
+        configs = [str(x) for x in range(100)]
         assert study_blind_parser.populated
         assert len(study_blind_parser.parsed_data) == 700
+
+        for datum in study_blind_parser.parsed_data:
+            assert datum.paramsdict().keys() == ['mass', 'config']
+            assert datum.paramsdict()['mass'] in masses
+            assert datum.paramsdict()['config'] in configs
+            assert datum.value == range(10)
