@@ -11,6 +11,10 @@ import importlib
 import inspect
 from itertools import product
 import os
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import shutil
 
 import pytest
@@ -53,12 +57,13 @@ def study_blind_parser(settings, request):
     for dirpath, dirnames, filenames in os.walk(settings.PROJECT_ROOT):
         open(os.path.join(dirpath, '__init__.py'), 'w').close()
 
+    os.makedirs(projectify(settings.RAWDATA_TEMPLATE))
     for mass, config in product(np.arange(0.1, 0.8, 0.1), range(100)):
         filename = projectify(os.path.join(settings.RAWDATA_TEMPLATE,
                                            'data_m{}.{}.pkl'
                                            .format(mass, config)))
-        datum = Datum({}, np.arange(10), filename)
-        datum.save()
+        with open(filename, 'w') as f:
+            pickle.dump(range(10), f)
 
     module_name = os.path.relpath(component_file)[:-3].replace('/', '.')
     module = importlib.import_module(module_name, 'test_project')
