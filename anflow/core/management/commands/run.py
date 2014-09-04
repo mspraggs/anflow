@@ -79,7 +79,8 @@ def main(argv):
             member = getattr(module, name)
             try:
                 if issubclass(member, Model):
-                    models.append(member)
+                    if not member.virtual:
+                        models.append(member)
             except TypeError as e:
                 debug_message(e)
                 

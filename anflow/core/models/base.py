@@ -19,7 +19,15 @@ from anflow.utils.io import projectify
 class MetaModel(type):
     # Meta class to create static data member for Model
     def __new__(cls, names, bases, attrs):
+        try:
+            attrs['virtual']
+        except KeyError as e:
+            debug_message(e)
+            attrs['virtual'] = False
         new_class = super(MetaModel, cls).__new__(cls, names, bases, attrs)
+        if attrs['virtual']:
+            return new_class
+
         study = get_study(attrs['__module__'])
         # Fail if we're not looking at a class that's in a study
         if not attrs['results_format'] or study not in settings.ACTIVE_STUDIES:
@@ -43,7 +51,8 @@ class MetaModel(type):
 class Model(object):
 
     __metaclass__ = MetaModel
-    
+
+    virtual = False
     main = None # The function that encapsulates the model behaviour
     input_stream = None # The raw data to feed into the model
     parameters = None # A list of additional parameters to feed the model
