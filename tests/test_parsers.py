@@ -107,3 +107,19 @@ class TestBlindParser(object):
             assert datum.paramsdict()['mass'] in masses
             assert datum.paramsdict()['config'] in configs
             assert datum.value == range(10)
+
+class TestGuidedParser(object):
+
+    def test_populate(self, study_guided_parser):
+
+        study_guided_parser.populate()
+        masses = np.arange(0.1, 0.8, 0.1).tolist()
+        configs = range(100)
+        assert study_guided_parser.populated
+        assert len(study_guided_parser.parsed_data) == 700
+
+        for datum in study_guided_parser.parsed_data:
+            assert datum.paramsdict().keys() == ['mass', 'config']
+            assert datum.paramsdict()['mass'] in masses
+            assert datum.paramsdict()['config'] in configs
+            assert datum.value == range(10)
