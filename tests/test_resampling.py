@@ -15,6 +15,7 @@ import numpy as np
 
 from anflow.core.data import Datum
 from anflow.lib.resamplers import bin_data, Bootstrap, Jackknife, Resampler
+from anflow.utils.io import projectify
 
 class TestFunctions(object):
 
@@ -85,8 +86,9 @@ class TestResampler(object):
                 self.check_centre(centre)
                 self.check_error(error)
                 self.check_results(data, results, function)
-                assert os.path.exists(os.path.join(settings.CACHE_PATH,
-                                                   filename))
+                assert os.path.exists(projectify(os.path.join(settings
+                                                              .CACHE_PATH,
+                                                              filename)))
 
     def test_resample(self):
         data = np.random.random(100)

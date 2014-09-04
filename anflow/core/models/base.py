@@ -12,6 +12,7 @@ from anflow.conf import settings
 from anflow.core.data import Datum, DataSet
 from anflow.utils.debug import debug_message
 from anflow.utils import get_study
+from anflow.utils.io import projectify
 
 
 
@@ -25,7 +26,8 @@ class MetaModel(type):
             return new_class
         
         results = DataSet()            
-        results_dir = settings.RESULTS_TEMPLATE.format(study_name=study)
+        results_dir = projectify(settings.RESULTS_TEMPLATE
+                                 .format(study_name=study))
         results_regex = re.compile(re.sub(r'\{ *(?P<var>\w+) *\}',
                                           '(?P<\g<var>>.+)',
                                           attrs['results_format']))
@@ -93,7 +95,7 @@ class Model(object):
             filename = os.path.join(settings.RESULTS_TEMPLATE
                                     .format(study_name=self.study_name),
                                     self.results_format.format(**all_params))
-            new_datum = Datum(all_params, result, filename)
+            new_datum = Datum(all_params, result, projectify(filename))
             try:
                 new_datum.central_value = centre
                 new_datum.error = error

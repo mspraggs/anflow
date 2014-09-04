@@ -13,6 +13,7 @@ except ImportError:
 from anflow.conf import settings
 from anflow.core.data import Datum
 from anflow.utils.debug import debug_message
+from anflow.utils.io import projectify
 
 
 
@@ -43,10 +44,11 @@ class Resampler(object):
         # Create a unique filename for the cached resampled copies
         hash_object = (data.paramsdict(), data.value, self.average)
         hash_value = hashlib.md5(pickle.dumps(hash_object, 2)).hexdigest()
-        filename = os.path.join(settings.CACHE_PATH,
-                                "{}.{}.binsize{}.pkl"
-                                .format(hash_value, self.__class__.__name__,
-                                        self.binsize))
+        filename = projectify(os.path.join(settings.CACHE_PATH,
+                                           "{}.{}.binsize{}.pkl"
+                                            .format(hash_value,
+                                                    self.__class__.__name__,
+                                                    self.binsize)))
         # Make the directory for the cached data
         try:
             os.makedirs(os.path.dirname(filename))
@@ -72,10 +74,11 @@ class Resampler(object):
             datum.save()
 
         try:
-            filename = os.path.join(settings.CACHE_PATH,
-                                "{}.{}.binsize{}.binnums.pkl"
-                                .format(hash_value, self.__class__.__name__,
-                                        self.binsize))
+            filename = projectify(os.path.join(settings.CACHE_PATH,
+                                               "{}.{}.binsize{}.binnums.pkl"
+                                               .format(hash_value,
+                                                       self.__class__.__name__,
+                                                       self.binsize)))
             with open(filename, 'wb') as f:
                 pickle.dump(self.binset, f, 2)
         except AttributeError:

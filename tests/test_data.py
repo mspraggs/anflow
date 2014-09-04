@@ -11,6 +11,7 @@ import string
 import pytest
 
 from anflow.core.data import Datum, DataSet
+from anflow.utils.io import projectify
 
 
 
@@ -25,8 +26,7 @@ def random_datum(settings, request):
                     random.choice(randoms))
                     for i in range(10)])
     random.shuffle(randoms)
-    filename = os.path.join(settings.PROJECT_ROOT,
-                            "".join(random.sample(string.lowercase, 10)))
+    filename = projectify("".join(random.sample(string.lowercase, 10)))
     datum = Datum(params, randoms, filename)
 
     def fin():
@@ -51,8 +51,7 @@ def random_dataset(random_datum, settings, request):
     for i in range(10):
         datum = copy.copy(random_datum.datum)
         datum.some_value = i
-        datum._filename = os.path.join(settings.PROJECT_ROOT,
-                                       "datum{}.pkl".format(i))
+        datum._filename = projectify("datum{}.pkl".format(i))
         dataset.append(datum)
     return dataset
     

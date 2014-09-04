@@ -26,3 +26,7 @@ def reports_path(filename):
     
     return os.path.join(settings.REPORTS_TEMPLATE.format(study_name=study),
                         filename)
+
+def projectify(path):
+    """Prepends path with the project root"""
+    return os.path.join(settings.PROJECT_ROOT, path)

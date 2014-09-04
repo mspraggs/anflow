@@ -9,6 +9,7 @@ import re
 
 from anflow.conf import settings
 from anflow.core.data import DataSet
+from anflow.utils.io import projectify
 
 
 
@@ -29,7 +30,8 @@ class BaseParser(object):
                     if study in settings.ACTIVE_STUDIES:
                         break
         self.study = study
-        self.rawdata_dir = settings.RAWDATA_TEMPLATE.format(study_name=study)
+        self.rawdata_dir = projectify(settings.RAWDATA_TEMPLATE
+                                      .format(study_name=study))
 
         self.parsed_data = DataSet()
         self.populated = False
