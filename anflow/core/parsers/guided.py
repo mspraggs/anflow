@@ -8,7 +8,7 @@ import os
 import re
 
 from anflow.core.data import Datum
-from anflow.core.parsers import BaseParser
+from anflow.core.parsers.base import BaseParser
 
 
 
