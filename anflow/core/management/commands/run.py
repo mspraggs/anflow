@@ -22,7 +22,8 @@ def run_model(model_class, run_dependencies=True):
         
     model = model_class()
     try:
-        model.input_stream.populate()
+        if not model.input_stream.populated:
+            model.input_stream.populate()
     except AttributeError as e:
         debug_message(e)
     if model.parameters:
