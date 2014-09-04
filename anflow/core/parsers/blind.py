@@ -12,7 +12,7 @@ from anflow.core.parsers.base import BaseParser
 
 
 class BlindParser(BaseParser):
-    """Parses all data according to arser for parsing raw data"""
+    """Parses all data according to parser for parsing raw data"""
     
     def __init__(self, parser, collect=None, study=None):
         """Create the parser and compile the regular expression"""
