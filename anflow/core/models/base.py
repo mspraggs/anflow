@@ -20,17 +20,21 @@ class MetaModel(type):
     # Meta class to create static data member for Model
     def __new__(cls, names, bases, attrs):
         try:
-            attrs['virtual']
+            attrs['abstract']
         except KeyError as e:
             debug_message(e)
-            attrs['virtual'] = False
+            attrs['abstract'] = False
         new_class = super(MetaModel, cls).__new__(cls, names, bases, attrs)
-        if attrs['virtual']:
+        return MetaModel.reload(new_class)
+    
+    def reload(cls):
+        new_class = cls
+        if new_class.abstract:
             return new_class
 
-        study = get_study(attrs['__module__'])
+        study = get_study(new_class.__module__)
         # Fail if we're not looking at a class that's in a study
-        if not attrs['results_format'] or study not in settings.ACTIVE_STUDIES:
+        if not new_class.results_format or study not in settings.ACTIVE_STUDIES:
             return new_class
         
         results = DataSet()            
@@ -38,7 +42,7 @@ class MetaModel(type):
                                  .format(study_name=study))
         results_regex = re.compile(re.sub(r'\{ *(?P<var>\w+) *\}',
                                           '(?P<\g<var>>.+)',
-                                          attrs['results_format']))
+                                          new_class.results_format))
         # Loop through results and gather data and parameters
         for directory, dirs, files in os.walk(results_dir):
             for f in files:
@@ -52,7 +56,7 @@ class Model(object):
 
     __metaclass__ = MetaModel
 
-    virtual = False
+    abstract = False
     main = None # The function that encapsulates the model behaviour
     input_stream = None # The raw data to feed into the model
     parameters = None # A list of additional parameters to feed the model

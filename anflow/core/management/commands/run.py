@@ -40,11 +40,8 @@ def run_model(model_class, run_dependencies=True):
     else:
         model.run()
     model.save()
-
-    del sys.modules[model_class.__module__]
-    module = import_module(model_class.__module__)
-    reload(module)
     
+    model_class.reload()
     models_run.append(model_class)
     return models_run
 
@@ -80,7 +77,7 @@ def main(argv):
             member = getattr(module, name)
             try:
                 if issubclass(member, Model):
-                    if not member.virtual:
+                    if not member.abstract:
                         models.append(member)
             except TypeError as e:
                 debug_message(e)
