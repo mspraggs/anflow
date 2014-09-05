@@ -82,7 +82,7 @@ def main(argv):
             except TypeError as e:
                 debug_message(e)
                 
-    for study in settings.ACTIVE_STUDIES:
+    for study in studies:
         module = import_module(settings.COMPONENT_TEMPLATE
                                .format(component='views',
                                        study_name=study)
