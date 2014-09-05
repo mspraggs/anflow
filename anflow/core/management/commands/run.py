@@ -12,14 +12,15 @@ from anflow.conf import settings
 from anflow.core.models import Model
 from anflow.utils.debug import debug_message
 
-def run_model(model_class, run_dependencies=True):
+def run_model(model_class, models_run, run_dependencies=True):
     """Recursively run a model and its dependencies, returning a list of the
     models run"""
-    models_run = []
+    my_models_run = []
     if model_class.depends_on and run_dependencies:
         for dependency in model_class.depends_on:
-            models_run.extend(run_model(dependency, run_dependencies))
-        
+            if dependency not in models_run + my_models_run:
+                my_models_run.extend(run_model(dependency, my_models_run,
+                                               run_dependencies))
     model = model_class()
     try:
         if not model.input_stream.populated:
@@ -42,8 +43,8 @@ def run_model(model_class, run_dependencies=True):
     model.save()
     
     model_class.reload()
-    models_run.append(model_class)
-    return models_run
+    my_models_run.append(model_class)
+    return my_models_run
 
 def main(argv):
 
@@ -89,11 +90,13 @@ def main(argv):
                                .replace('/', '.'))
         views.extend(module.view_functions)
 
+    models_run = []
     if run_models:
         while len(models) > 0:
-            models_run = run_model(models[0])
-            for model in models_run:
+            new_models_run = run_model(models[0], models_run)
+            for model in new_models_run:
                 models.remove(model)
+            models_run.extend(new_models_run)
 
     # Might need to reload models here to get the latest data
     if run_views:
