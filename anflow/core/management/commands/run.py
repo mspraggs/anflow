@@ -69,15 +69,15 @@ def main(argv):
     models = []
     views = []
     for study in studies:
-        module = import_module(settings.COMPONENT_TEMPLATE
-                               .format(component='models',
-                                       study_name=study)
-                               .replace('/', '.'))
+        module_name = (settings.COMPONENT_TEMPLATE
+                       .format(component='models', study_name=study)
+                       .replace('/', '.'))
+        module = import_module(module_name)
         for name in dir(module):
             member = getattr(module, name)
             try:
                 if issubclass(member, Model):
-                    if not member.abstract:
+                    if not member.abstract and member.__module__ == module_name:
                         models.append(member)
             except TypeError as e:
                 debug_message(e)
