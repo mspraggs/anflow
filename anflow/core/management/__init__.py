@@ -7,6 +7,7 @@ import sys
 import os
 import inspect
 import importlib
+import logging
 
 from anflow.conf import ENVIRONMENT_VARIABLE, settings
 from anflow.utils.debug import debug_message
@@ -26,6 +27,11 @@ class Manager(object):
             os.environ[ENVIRONMENT_VARIABLE] = "anflow.conf.global_settings"
         # Now configure the settings
         settings.configure()
+
+        logging.basicConfig(level=settings.LOGGING_LEVEL,
+                            format=settings.LOGGING_FORMAT,
+                            datefmt=settings.LOGGING_DATEFMT,
+                            filename=settings.LOGGING_FILE)
         
         # Look for commands in the commands sub-directory
         commands_dir = os.path.join(os.path.dirname(__file__), "commands")

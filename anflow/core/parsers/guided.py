@@ -10,6 +10,7 @@ import re
 
 from anflow.core.data import Datum
 from anflow.core.parsers.base import BaseParser
+from anflow.utils.logging import logger
 
 
 
@@ -30,7 +31,8 @@ class GuidedParser(BaseParser):
     def populate(self):
         """Loop through all parameters and load the data using the parameters
         and the path template"""
-
+        log = logger()
+        log.info("Populating GuidedParser")
         collect_params = {}
         params_copy = copy.copy(self.params)
         path_template_copy = self.path_template

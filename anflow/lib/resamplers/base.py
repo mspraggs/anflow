@@ -14,6 +14,7 @@ from anflow.conf import settings
 from anflow.core.data import Datum
 from anflow.utils.debug import debug_message
 from anflow.utils.io import projectify
+from anflow.utils.logging import logger
 
 
 
@@ -41,6 +42,7 @@ class Resampler(object):
     def __call__(self, data, function):
         """Pulls together all the resampling components - the main resampling
         entry point"""
+        log = logger()
         # Create a unique filename for the cached resampled copies
         hash_object = (data.paramsdict(), data.value, self.average)
         hash_value = hashlib.md5(pickle.dumps(hash_object, 2)).hexdigest()
@@ -57,12 +59,16 @@ class Resampler(object):
         # Check whether the cached data is older than the raw data. If so, we
         # need to resample and update the cache
         try:
+            log.info("Checking for cached resampled data file {}"
+                     .format(filename))
             if data._timestamp > os.path.getmtime(filename):
                 raise OSError('Cached jackknives out of date')
             datum = Datum.load(filename)
+            log.info("Found cached data")
             working_data = datum.value
         except (IOError, OSError) as e:
             debug_message(e)
+            log.info("Cached resampling data not found. Resampling...")
             # If we've been asked to resample, then we compute the resampled
             # data and the central value using the resample function
             if self.do_resample:
@@ -72,6 +78,7 @@ class Resampler(object):
                 working_data = bin_data(data.value, self.binsize)
             datum = Datum(data.paramsdict(), working_data, filename)
             datum.save()
+            log.info("Data resampled and cached")
 
         try:
             filename = projectify(os.path.join(settings.CACHE_PATH,
@@ -84,10 +91,13 @@ class Resampler(object):
         except AttributeError:
             pass
 
+        log.info("Running model function across resampled data")
         results = map(function, working_data)
+        log.info("Running model function on central value")
         centre = self._central_value(data, results, function)
 
         if self.compute_error:
+            log.info("Computing error")
             error = self.error(results, centre)
             return results, centre, error
         else:

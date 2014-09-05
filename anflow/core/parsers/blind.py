@@ -23,7 +23,8 @@ class BlindParser(BaseParser):
 
     def populate(self):
         """Loop through all files in the rawdata directory and parse the data"""
-
+        log = logger()
+        log.info("Populating BlindParser")
         result_paths = []
         for directory, dirs, files in os.walk(self.rawdata_dir):
             for f in files:

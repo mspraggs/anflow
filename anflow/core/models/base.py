@@ -12,6 +12,7 @@ from anflow.conf import settings
 from anflow.core.data import Datum, DataSet
 from anflow.utils.debug import debug_message
 from anflow.utils import get_study
+from anflow.utils.logging import Log
 from anflow.utils.io import projectify
 
 
@@ -92,7 +93,10 @@ class Model(object):
             all_params = dict(zip(self.mainargspec.args, args))
             all_params.update(kwargs)
             all_params.update(datum.paramsdict())
-            main_partial = partial(self.main, **all_params)
+            main_partial = partial(Log("Running model function {}.main"
+                                       .format(self.__class__.__name__))
+                                   (self.main),
+                                   **all_params)
 
             if self.resampler:
                 results = self.resampler(datum, main_partial)
