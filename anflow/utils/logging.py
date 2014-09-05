@@ -30,17 +30,6 @@ def logger():
     names.append(obj[1])
     return logging.getLogger(".".join(names))
 
-def make_func_logger(f, args):
-
-    # First construct a logger based on module, class and function names
-    mod = inspect.getmodule(f).__name__
-    names = [mod] if mod != "__main__" else []
-    if (inspect.isclass(args[0].__class__)
-        and "self" in inspect.getargspec(f).args):
-        names.append(args[0].__class__.__name__)
-    names.append(f.__name__)
-    return logging.getLogger(".".join(names))
-
 def merge_arguments(argspec, args, kwargs):
 
     if argspec.defaults == None:
@@ -69,10 +58,10 @@ class _Log(object):
         @wraps(f)
         def _wrapper(*args, **kwargs):
 
-            logger = make_func_logger(f, args)
+            log = logger()
 
             if self.init_message:
-                logger.info(self.init_message)
+                log.info(self.init_message)
             
             argspec = inspect.getargspec(f)
             # List the arguments that don't have defaults
@@ -80,7 +69,7 @@ class _Log(object):
 
             # Now merge any default values with the kwargs and list these
             kwargs = merge_arguments(argspec, args, kwargs)
-            self.print_args(kwargs.items(), logger)
+            self.print_args(kwargs.items(), log)
 
             return f(*args, **kwargs)
 
