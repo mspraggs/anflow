@@ -74,6 +74,14 @@ class Datum(object):
             debug_message(e)
         return datum
 
+    def __repr__(self):
+        output = object.__repr__(self) + "\n"
+        output += "Datum Parameters\n"
+        output += "================\n"
+        output += "\n".join(["{}: {}".format(key, value)
+                             for key, value in self.paramsdict().items()])
+        return output
+
 class DataSet(list):
 
     def __init__(self, *args):
