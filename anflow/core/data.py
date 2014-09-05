@@ -95,7 +95,11 @@ class DataSet(list):
             def filter_function(datum):
                 return getattr(datum, key) == value
             out = filter(filter_function, out)
-        return DataSet(out)
+
+        if len(out) != 1:
+            return DataSet(out)
+        else:
+            return out[0]
 
     def delete(self):
 
