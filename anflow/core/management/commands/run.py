@@ -5,7 +5,8 @@ from __future__ import print_function
 
 from argparse import ArgumentParser
 from itertools import product
-from importlib import import_module
+import importlib
+import imp
 import sys
 
 from anflow.conf import settings
@@ -27,6 +28,11 @@ def run_model(model_class, models_run, run_dependencies=True):
                                                run_dependencies))
 
     log.info("Initialising model")
+    # We need to reload the model module to update any input_data parameters
+    module = importlib.import_module(model_class.__module__)
+    module = imp.reload(module)
+    old_model_class = model_class
+    model_class = getattr(module, model_class.__name__)
     model = model_class()
     try:
         if not model.input_stream.populated:
@@ -62,8 +68,7 @@ def run_model(model_class, models_run, run_dependencies=True):
     model.save()
 
     log.info("Loading results back into model")
-    model_class.reload()
-    my_models_run.append(model_class)
+    my_models_run.append(old_model_class)
     return my_models_run
 
 def main(argv):
@@ -101,7 +106,7 @@ def main(argv):
         module_name = (settings.COMPONENT_TEMPLATE
                        .format(component='models', study_name=study)
                        .replace('/', '.'))
-        module = import_module(module_name)
+        module = importlib.import_module(module_name)
         for name in dir(module):
             member = getattr(module, name)
             try:
@@ -114,9 +119,9 @@ def main(argv):
                 debug_message(e)
                 
     for study in studies:
-        module = import_module(settings.COMPONENT_TEMPLATE
-                               .format(component='views',
-                                       study_name=study)
+        module = importlib.import_module(settings.COMPONENT_TEMPLATE
+                                         .format(component='views',
+                                                 study_name=study)
                                .replace('/', '.'))
         new_views = module.view_functions
         for view in new_views:
