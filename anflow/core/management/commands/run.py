@@ -35,8 +35,7 @@ def run_model(model_class, models_run, run_dependencies=True):
     model_class = getattr(module, model_class.__name__)
     model = model_class()
     try:
-        if not model.input_stream.populated:
-            model.input_stream.populate()
+        model.input_stream.populate()
     except AttributeError as e:
         debug_message(e)
     if model.parameters:

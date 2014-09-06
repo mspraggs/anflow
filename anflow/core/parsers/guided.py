@@ -31,6 +31,8 @@ class GuidedParser(BaseParser):
     def populate(self):
         """Loop through all parameters and load the data using the parameters
         and the path template"""
+        if self.populated:
+            return
         log = logger()
         log.info("Populating GuidedParser")
         collect_params = {}
