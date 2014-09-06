@@ -28,10 +28,20 @@ class Manager(object):
         # Now configure the settings
         settings.configure()
 
-        logging.basicConfig(level=settings.LOGGING_LEVEL,
-                            format=settings.LOGGING_FORMAT,
-                            datefmt=settings.LOGGING_DATEFMT,
-                            filename=settings.LOGGING_FILE)
+        logger = logging.getLogger()
+        logger.setLevel(settings.LOGGING_LEVEL)
+        formatter = logging.Formatter(settings.LOGGING_FORMAT,
+                                      settings.LOGGING_DATEFMT)
+        if settings.LOGGING_CONSOLE:
+            ch = logging.StreamHandler()
+            ch.setLevel(settings.LOGGING_LEVEL)
+            ch.setFormatter(formatter)
+            logger.addHandler(ch)
+        if settings.LOGGING_FILE:
+            fh = logging.FileHandler(settings.LOGGING_FILE)
+            fh.setLevel(settings.LOGGING_LEVEL)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
         
         # Look for commands in the commands sub-directory
         commands_dir = os.path.join(os.path.dirname(__file__), "commands")
