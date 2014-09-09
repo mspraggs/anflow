@@ -9,7 +9,7 @@ import re
 from functools import partial
 
 from anflow.conf import settings
-from anflow.core.data import Datum, DataSet
+from anflow.db.data import DataSet
 from anflow.utils.debug import debug_message
 from anflow.utils import get_study
 from anflow.utils.logging import Log
