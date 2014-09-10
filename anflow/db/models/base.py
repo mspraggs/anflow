@@ -137,3 +137,14 @@ class Model(Base):
         session = DBSession()
         session.add(self)
         session.commit()
+
+    def paramsdict(self):
+
+        excluded_names = ['value', 'central_value', 'error']
+        out = {}
+
+        for name in dir(self):
+            member = getattr(self, name)
+            if isinstance(member, Column) and name not in excluded_names:
+                out.update(dict(name=member))
+        return out
