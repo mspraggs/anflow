@@ -65,9 +65,9 @@ class Model(Base):
     id = Column(Integer, primary_key=True)
     model_name = Column(String(40))
 
-    value = PickleType
-    central_value = PickleType
-    error = PickleType
+    value = Column(PickleType)
+    central_value = Column(PickleType)
+    error = Column(PickleType)
 
     def __init__(self):
         """Set up empty results list"""
