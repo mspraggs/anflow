@@ -8,8 +8,15 @@ import inspect
 import re
 from functools import partial
 
+from sqlalchemy import create_engine, Column, Integer, String, PickleType
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from sqlalchemy.orm import sessionmaker
+
 from anflow.conf import settings
 from anflow.db.data import DataSet
+from anflow.db.models.manager import Manager
 from anflow.utils.debug import debug_message
 from anflow.utils import get_study
 from anflow.utils.logging import Log
@@ -17,7 +24,9 @@ from anflow.utils.io import projectify
 
 
 
-class MetaModel(type):
+Base = declarative_base()
+
+class MetaModel(DeclarativeMeta):
     # Meta class to create static data member for Model
     def __new__(cls, names, bases, attrs):
         try:
@@ -25,35 +34,23 @@ class MetaModel(type):
         except KeyError as e:
             debug_message(e)
             attrs['abstract'] = False
+            
         new_class = super(MetaModel, cls).__new__(cls, names, bases, attrs)
-        return MetaModel.reload(new_class)
-    
-    def reload(cls):
-        new_class = cls
-        if new_class.abstract:
-            return new_class
+        tablename = "table_{}".format(new_class.__name__)
 
-        study = get_study(new_class.__module__)
-        # Fail if we're not looking at a class that's in a study
-        if not new_class.results_format or study not in settings.ACTIVE_STUDIES:
-            return new_class
-        
-        results = DataSet()            
-        results_dir = projectify(settings.RESULTS_TEMPLATE
-                                 .format(study_name=study))
-        results_regex = re.compile(re.sub(r'\{ *(?P<var>\w+) *\}',
-                                          '(?P<\g<var>>.+)',
-                                          new_class.results_format))
-        # Loop through results and gather data and parameters
-        for directory, dirs, files in os.walk(results_dir):
-            for f in files:
-                path = os.path.join(directory, f)
-                if results_regex.search(path):
-                    results.append(Datum.load(path))
-        new_class.data = results
+        if names == "Model":
+            new_class.__tablename__ = tablename
+            new_class.__mapper_args__ = {'polymorphic_on': new_class.model_name}
+        else:
+            new_class.__mapper_args__ = {'polymorphic_identity': tablename}
+                
         return new_class
 
-class Model(object):
+class classproperty(property):
+    def __get__(self, cls, owner):
+        return self.fget.__get__(None, owner)()
+
+class Model(Base):
 
     __metaclass__ = MetaModel
 
@@ -65,9 +62,15 @@ class Model(object):
     depends_on = None # A list of models this model depends on
     resampler = None # The resampler object that'll do the resampling
 
+    id = Column(Integer, primary_key=True)
+    model_name = Column(String(40))
+
+    value = PickleType
+    central_value = PickleType
+    error = PickleType
+
     def __init__(self):
         """Set up empty results list"""
-        self.new_results = DataSet()
 
         self.mainargspec = inspect.getargspec(self.main)
         if not self.results_format:
@@ -79,6 +82,11 @@ class Model(object):
                                      "input_stream has no member path_format")
 
         self.study_name = get_study(self.__module__)
+
+    @classproperty
+    @classmethod
+    def data(cls):
+        return Manager(cls)
 
     def run(self, *args, **kwargs):
         """Runs the measurement on the files returned by the specified
@@ -123,4 +131,9 @@ class Model(object):
 
     def save(self):
         """Saves the result defined by the specified parameters"""
-        self.new_results.save()
+        engine = create_engine(settings.DB_PATH)
+        Base.metadata.bind = engine
+        DBSession = sessionmaker(bind=engine)
+        session = DBSession()
+        session.add(self)
+        session.commit()
