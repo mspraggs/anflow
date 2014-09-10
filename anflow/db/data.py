@@ -13,7 +13,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from anflow.conf import settings
-from anflow.db.models.base import Base
 from anflow.utils.debug import debug_message
 
 
@@ -22,11 +21,11 @@ class DataSet(object):
 
     def __init__(self, query, model_class):
 
-        self.query = query
+        self.query = query.add_entity(model_class)
         self.model_class = model_class
 
-    def any(self):
-        return self.query.any()
+    def all(self):
+        return self.query.all()
 
     def filter(self, **kwargs):
         """Filter the data"""
