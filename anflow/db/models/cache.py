@@ -23,7 +23,7 @@ class CachedData(Model):
         """Create a cache datum, using the specified object to create the value
         for hash"""
         hash_value = cls.hashgen(hash_object)
-        return cls(hash=hash_object, value=value, central_value=central_value,
+        return cls(hash=hash_value, value=value, central_value=central_value,
                    error=error)
 
     @staticmethod
