@@ -7,8 +7,10 @@ import os
 import inspect
 import re
 from functools import partial
+import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, PickleType
+from sqlalchemy import (create_engine, Column, DateTime,
+                        Integer, String, PickleType)
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
@@ -68,6 +70,8 @@ class Model(Base):
     value = Column(PickleType)
     central_value = Column(PickleType)
     error = Column(PickleType)
+
+    time_saved = Column(DateTime, default=datetime.datetime.now)
 
     def __init__(self):
         """Set up empty results list"""
