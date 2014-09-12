@@ -18,10 +18,13 @@ from anflow.utils.debug import debug_message
 
 
 class Datum(object):
-    def __init__(self, params, data, filename=None, timestamp=None):
+    def __init__(self, params, data, central_value=None, error=None,
+                 filename=None, timestamp=None):
         self._params = set(params.keys())
         self.value = data
         self._filename = filename
+        self.central_value = central_value
+        self.error = error
         for key, value in params.items():
             setattr(self, key, value)
 
@@ -51,26 +54,18 @@ class Datum(object):
             os.makedirs(os.path.dirname(self._filename))
         except OSError as e:
             debug_message(e)
-        save_object = [self.paramsdict(), self.value]
-        
-        try:
-            save_object.append(self.central_value)
-            save_object.append(self.error)
-        except AttributeError as e:
-            debug_message(e)
-        save_object = tuple(save_object)
-        
+        save_object = (self.paramsdict(), self.value, self.central_value,
+                       self.error)        
         with open(self._filename, 'wb') as f:
             pickle.dump(save_object, f, 2)
             
     @classmethod
     def load(cls, filename):
         with open(filename, 'rb') as f:
-            file_contents = pickle.load(f)
-        datum = cls(file_contents[0], file_contents[1], filename)
-        try:
-            datum.central_value = file_contents[2]
-            datum.error = file_contents[3]
+            params, value, central_value, error = pickle.load(f)
+        datum = cls(params, value, central_value, error, filename)
+        datum.central_value = file_contents[2]
+        datum.error = file_contents[3]
         except IndexError as e:
             debug_message(e)
         return datum
