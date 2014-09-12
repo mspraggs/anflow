@@ -29,10 +29,10 @@ class Datum(object):
             setattr(self, key, value)
 
         try:
-            self._timestamp = timestamp or os.path.getmtime(filename)
+            self.timestamp = timestamp or os.path.getmtime(filename)
         except OSError as e:
             debug_message(e)
-            self._timestamp = None
+            self.timestamp = None
             
     def paramsdict(self):
         return dict([(key, getattr(self, key)) for key in self._params])
@@ -41,7 +41,7 @@ class Datum(object):
         return object.__getattribute__(self, attr)
     
     def __setattr__(self, attr, value):
-        non_params = ["value", "central_value", "error"]
+        non_params = ["value", "central_value", "error", "timestamp"]
         if not attr.startswith('_') and attr not in non_params:
             self._params.add(attr)
         return object.__setattr__(self, attr, value)
