@@ -73,19 +73,6 @@ class Model(Base):
 
     time_saved = Column(DateTime, default=datetime.datetime.now)
 
-    def __init__(self):
-        """Set up empty results list"""
-
-        self.mainargspec = inspect.getargspec(self.main)
-        if not self.results_format:
-            try:
-                self.results_format = self.input_stream.path_format
-            except AttributeError as e:
-                debug_message(e)
-                raise AttributeError("Member results_format not specified and "
-                                     "input_stream has no member path_format")
-
-        self.study_name = get_study(self.__module__)
 
     @classproperty
     @classmethod
