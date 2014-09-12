@@ -71,8 +71,7 @@ class Model(Base):
     central_value = Column(PickleType)
     error = Column(PickleType)
 
-    time_saved = Column(DateTime, default=datetime.datetime.now)
-
+    timestamp = Column(DateTime, default=datetime.datetime.now)
 
     @classproperty
     @classmethod
