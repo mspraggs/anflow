@@ -64,8 +64,8 @@ class Resampler(object):
 
     name = 'base_resampler'
 
-    def __init__(self, resample=True, compute_error=True, average=False,
-                 binsize=1):
+    def __init__(self, resample=True, average=False, binsize=1, cache='file',
+                 cache_path=None):
         """Constructor - give the resampler a measurement function, tell it
         the format of the results paths, and whether to average the results
         at the end or just return the measurement on the resampled data"""
@@ -73,72 +73,55 @@ class Resampler(object):
         self.do_resample = resample
         self.compute_error = compute_error
         self.binsize = binsize
-        self.average = average # Determines whether to compute the mean of
-        # the resampled dataset (could save some computing time)
+        self.average = average
+        if cache == 'file':
+            self.cache_lookup = file_cache_lookup
+            self.cache_dump = file_cache_dump
+            if not cache_path:
+                self.cache_path = projectify(settings.CACHE_PATH)
+            else:
+                self.cache_path = projectify(self.cache_path)
+            try:
+                os.makedirs(self.cache_path)
+            except OSError as e:
+                debug_message(e)
+        elif cache == 'db':
+            self.cache_lookup = db_cache_lookup
+            self.cache_dump = db_cache_dump
+        else:
+            self.cache_lookup = None
+            self.cache_dump = None
 
     def __call__(self, data, function):
         """Pulls together all the resampling components - the main resampling
         entry point"""
         log = logger()
         # Create a unique filename for the cached resampled copies
-        hash_object = (data.paramsdict(), data.value, self.average)
-        hash_value = hashlib.md5(pickle.dumps(hash_object, 2)).hexdigest()
-        filename = projectify(os.path.join(settings.CACHE_PATH,
-                                           "{}.{}.binsize{}.pkl"
-                                            .format(hash_value,
-                                                    self.__class__.__name__,
-                                                    self.binsize)))
-        # Make the directory for the cached data
-        try:
-            os.makedirs(os.path.dirname(filename))
-        except OSError as e:
-            debug_message(e)
-        # Check whether the cached data is older than the raw data. If so, we
-        # need to resample and update the cache
-        try:
-            log.info("Checking for cached resampled data file {}"
-                     .format(filename))
-            if data._timestamp > os.path.getmtime(filename):
-                raise OSError('Cached jackknives out of date')
-            datum = Datum.load(filename)
-            log.info("Found cached data")
-            working_data = datum.value
-        except (IOError, OSError) as e:
-            debug_message(e)
-            log.info("Cached resampling data not found. Resampling...")
-            # If we've been asked to resample, then we compute the resampled
-            # data and the central value using the resample function
+        hash_object = (data.paramsdict(), self.average, self.binsize,
+                       self.__class__.__name__)
+        log.info("Checking for cached data")
+        working_data = self.cache_lookup(hash_object, self.cache_path,
+                                         data.timestamp)
+        if not working_data:
+            log.info("No cached data found")
             if self.do_resample:
+                log.info("Resampling")
                 working_data = self.resample(bin_data(data.value, self.binsize))
             else:
-                # Otherwise use the supplied data, binning as necessary
+                log.info("No need to resample")
                 working_data = bin_data(data.value, self.binsize)
-            datum = Datum(data.paramsdict(), working_data, filename)
-            datum.save()
-            log.info("Data resampled and cached")
-
-        try:
-            filename = projectify(os.path.join(settings.CACHE_PATH,
-                                               "{}.{}.binsize{}.binnums.pkl"
-                                               .format(hash_value,
-                                                       self.__class__.__name__,
-                                                       self.binsize)))
-            with open(filename, 'wb') as f:
-                pickle.dump(self.binset, f, 2)
-        except AttributeError:
-            pass
+            log.info("Saving new data to cache")
+            self.cache_dump(hash_object, self.base_path,
+                            Datum(data.paramsdict(), working_data))
 
         log.info("Running model function across resampled data")
         results = map(function, working_data)
         log.info("Running model function on central value")
         centre = self._central_value(data, results, function)
 
-        if self.compute_error:
-            log.info("Computing error")
-            error = self.error(results, centre)
-            return results, centre, error
-        else:
-            return results, centre
+        log.info("Computing error")
+        error = self.error(results, centre)
+        return results, centre, error
 
     def resample(self, data):
         return data
