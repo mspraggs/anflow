@@ -78,46 +78,33 @@ class Model(Base):
     def data(cls):
         return Manager(cls)
 
-    def run(self, *args, **kwargs):
+    @classmethod
+    def run(cls, *args, **kwargs):
         """Runs the measurement on the files returned by the specified
         input_stream"""
 
-        for datum in self.input_stream:
-            # Convert parsed to types indicated by parameters
-            for key in datum.paramsdict().keys():
-                param_type = getattr(self, key)
-                setattr(datum, key, param_type(getattr(datum, key)))
+        mainargspec = inspect.getargspec(cls.main)
+        results = []
+        study_name = get_study(cls.__module__)
+
+        for datum in cls.input_stream:
             # Combine parameters
-            all_params = dict(zip(self.mainargspec.args, args))
+            all_params = dict(zip(mainargspec.args, args))
             all_params.update(kwargs)
             all_params.update(datum.paramsdict())
             main_partial = partial(Log("Running model function {}.main"
-                                       .format(self.__class__.__name__))
-                                   (self.main),
-                                   **all_params)
+                                       .format(cls.__class__.__name__))
+                                   cls.main, **all_params)
 
-            if self.resampler:
-                results = self.resampler(datum, main_partial)
-                result = results[0]
-                centre = results[1]
-                try:
-                    error = results[2]
-                except IndexError as e:
-                    debug_message(e)
+            if cls.resampler:
+                result, centre, error = cls.resampler(datum, main_partial)
+                results.append(cls(value=result, central_value=centre,
+                                   error=error, **all_params))
             else:
                 result = main_partial(datum.value)
-                
-            filename = os.path.join(settings.RESULTS_TEMPLATE
-                                    .format(study_name=self.study_name),
-                                    self.results_format.format(**all_params))
-            new_datum = Datum(all_params, result, projectify(filename))
-            try:
-                new_datum.central_value = centre
-                new_datum.error = error
-            except NameError as e:
-                debug_message(e)
+                results.append(cls(value=result, **all_params))
 
-            self.new_results.append(new_datum)
+        return results
 
     def save(self):
         """Saves the result defined by the specified parameters"""
