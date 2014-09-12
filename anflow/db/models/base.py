@@ -130,7 +130,8 @@ class Model(Base):
 
     def paramsdict(self):
 
-        excluded_names = ['value', 'central_value', 'error']
+        excluded_names = ['value', 'central_value', 'error', 'id',
+                          'model_name', 'timestamp']
         out = {}
 
         for name in dir(self):
