@@ -20,6 +20,41 @@ from anflow.utils.logging import logger
 
 
 
+def hashgen(hash_object):
+    """Generate an md5 hash using the pickle value of the specified object"""
+    pickle_value = pickle.dumps(hash_object, 2)
+    return hashlib.md5(pickle_value).hexdigest()
+
+def file_cache_lookup(hash_object, base_path, timestamp=None):
+    hash_value = hashgen(hash_object)
+    file_path = os.path.join(base_path, hash_value + ".pkl")
+    if os.path.exists(file_path):
+        if timestamp:
+            file_timestamp = datetime.fromtimestamp(os.path.getmtime(file_path))
+            if file_timestamp > timestamp:
+                return Datum.load(file_path)
+    return
+
+def file_cache_dump(hash_object, base_path, datum):
+    hash_value = hashgen(hash_object)
+    file_path = os.path.join(base_path, hash_value + ".pkl")
+    datum.save()
+
+def db_cache_lookup(hash_object, base_path, timestamp=None):
+    hash_value = hashgen(hash_object)
+    latest = (CachedData.data.filter(hash=hash_value, label='')
+              .order_by('-timestamp').first())
+    if latest:
+        if latest.timestamp < timestamp:
+            return latest
+
+def db_cache_dump(hash_object, base_path, datum):
+    hash_value = hashgen(hash_object)
+    cached_data = CachedData(hash=hash_value, value=datum.value,
+                             central_value=datum.central_value,
+                             error=datum.error)
+    cached_data.save()
+
 def bin_data(data, binsize):
     return [sum(data[i:i+binsize]) / binsize
             for i in range(0, len(data) - binsize + 1, binsize)]
