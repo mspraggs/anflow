@@ -73,7 +73,7 @@ class BlindParser(BaseParser):
                                         timestamp=max(timestamps))
                 self.parsed_data.append(collected_datum)
         else:
-            self.parsed_data = DataSet(temp_parsed_data)
+            self.parsed_data = temp_parsed_data
 
         self.populated = True
         self.set_path_format()
