@@ -32,7 +32,7 @@ def file_cache_lookup(hash_object, base_path, timestamp=None):
         if timestamp:
             file_timestamp = datetime.fromtimestamp(os.path.getmtime(file_path))
             if file_timestamp > timestamp:
-                return Datum.load(file_path)
+                return Datum.load(file_path).value
     return
 
 def file_cache_dump(hash_object, base_path, datum):
@@ -46,7 +46,8 @@ def db_cache_lookup(hash_object, base_path, timestamp=None):
               .order_by('-timestamp').first())
     if latest:
         if latest.timestamp < timestamp:
-            return latest
+            return latest.value
+    return
 
 def db_cache_dump(hash_object, base_path, datum):
     hash_value = hashgen(hash_object)
