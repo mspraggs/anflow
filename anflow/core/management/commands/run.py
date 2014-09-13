@@ -28,12 +28,7 @@ def run_model(model_class, models_run, run_dependencies=True):
                                                run_dependencies))
 
     log.info("Initialising model")
-    # We need to reload the model module to update any input_data parameters
-    module = importlib.import_module(model_class.__module__)
-    module = imp.reload(module)
     old_model_class = model_class
-    model_class = getattr(module, model_class.__name__)
-    model = model_class()
     try:
         model.input_stream.populate()
     except AttributeError as e:
