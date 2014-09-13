@@ -67,7 +67,7 @@ class BlindParser(BaseParser):
                     datum_params.pop(self.collect)
                     return datum_params == params
                 filtered_list = filter(list_filter, temp_parsed_data)
-                timestamps = map(lambda item: item._timestamp, filtered_list)
+                timestamps = map(lambda item: item.timestamp, filtered_list)
                 collected_datum = Datum(params, map(lambda item: item.value,
                                                     filtered_list),
                                         timestamp=max(timestamps))

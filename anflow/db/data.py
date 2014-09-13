@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+from datetime import datetime
 import os
 try:
     import cPickle as pickle
@@ -29,8 +30,10 @@ class Datum(object):
             setattr(self, key, value)
 
         try:
-            self.timestamp = timestamp or os.path.getmtime(filename)
-        except OSError as e:
+            self.timestamp = (timestamp or
+                              datetime.fromtimestamp(os.path
+                                                     .getmtime(filename)))
+        except (TypeError, OSError) as e:
             debug_message(e)
             self.timestamp = None
             
