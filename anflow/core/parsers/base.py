@@ -8,7 +8,6 @@ import os
 import re
 
 from anflow.conf import settings
-from anflow.core.data import DataSet
 from anflow.utils.io import projectify
 
 

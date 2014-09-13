@@ -10,7 +10,7 @@ import imp
 import sys
 
 from anflow.conf import settings
-from anflow.core.models import Model
+from anflow.db.models import Model
 from anflow.utils.debug import debug_message
 from anflow.utils.logging import logger
 
