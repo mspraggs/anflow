@@ -65,7 +65,7 @@ class _Log(object):
             
             argspec = inspect.getargspec(f)
             # List the arguments that don't have defaults
-            self.print_args(zip(argspec.args, args), logger)
+            self.print_args(zip(argspec.args, args), log)
 
             # Now merge any default values with the kwargs and list these
             kwargs = merge_arguments(argspec, args, kwargs)
@@ -75,12 +75,12 @@ class _Log(object):
 
         return _wrapper
 
-    def print_args(self, args, logger):
+    def print_args(self, args, log):
 
         for key, val in args:
             if key in self.ignore or len(val.__repr__()) > 500:
                 continue
-            logger.info("{}: {}".format(key, val))
+            log.info("{}: {}".format(key, val))
 
 def Log(message=None, ignore=()):
     """Decorates a function so that its arguments are logged and outputted."""
