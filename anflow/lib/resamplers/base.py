@@ -73,7 +73,6 @@ class Resampler(object):
         at the end or just return the measurement on the resampled data"""
 
         self.do_resample = resample
-        self.compute_error = compute_error
         self.binsize = binsize
         self.average = average
         if cache == 'file':
