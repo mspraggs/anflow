@@ -45,7 +45,7 @@ class MetaModel(DeclarativeMeta):
             new_class.__mapper_args__ = {'polymorphic_on': new_class.model_name}
         else:
             new_class.__mapper_args__ = {'polymorphic_identity': tablename}
-                
+
         return new_class
 
 class classproperty(property):
@@ -94,7 +94,7 @@ class Model(Base):
             all_params.update(datum.paramsdict())
             main_partial = partial(Log("Running model function {}.main"
                                        .format(cls.__class__.__name__))
-                                   cls.main, **all_params)
+                                   (cls.main), **all_params)
 
             if cls.resampler:
                 result, centre, error = cls.resampler(datum, main_partial)
