@@ -9,6 +9,8 @@ import importlib
 import imp
 import sys
 
+import IPython
+
 from anflow.conf import settings
 from anflow.db.models import Model
 from anflow.utils.debug import debug_message
@@ -30,39 +32,44 @@ def run_model(model_class, models_run, run_dependencies=True):
     log.info("Initialising model")
     old_model_class = model_class
     try:
-        model.input_stream.populate()
+        model_class.input_stream.populate()
     except AttributeError as e:
         debug_message(e)
-    if model.parameters:
-        for params in model.parameters:
+    if model_class.parameters:
+        for params in model_class.parameters:
             log.info("Running model {} with following parameters:"
-                     .format(model.__class__.__name__))
+                     .format(model_class.__name__))
             for key, value in params.items():
                 log.info("{}: {}".format(key, value))
             try:
-                model.run(*params[0], **params[1])
+                models = model_class.run(*params[0], **params[1])
             except (IndexError, KeyError, TypeError) as e:
                 debug_message(e)
             try:
-                model.run(**params)
+                models = model_class.run(**params)
             except TypeError as e:
                 debug_message(e)
-                model.run(*params)
+                models = model_class.run(*params)
 
             log.info("Finished this {} parameter run"
-                     .format(model.__class__.__name__))
+                     .format(model_class.__name__))
+            log.info("Saving results for this run")
+            for model in models:
+                model.save()
     else:
         log.info("Running model {} without parameters"
-                 .format(model.__class__.__name__))
-        model.run()
+                 .format(model_class.__name__))
+        models = model_class.run()
         log.info("Finished running {} without parameters"
-                 .format(model.__class__.__name__))
-    log.info("Finished running model {}".format(model.__class__.__name__))
+                 .format(model_class.__name__))
+        log.info("Saving results")
+        for model in models:
+            model.save()
+    log.info("Finished running model {}".format(model_class.__name__))
     log.info("Saving model results")
-    model.save()
 
     log.info("Loading results back into model")
-    my_models_run.append(old_model_class)
+    my_models_run.append(model_class)
     return my_models_run
 
 def main(argv):
