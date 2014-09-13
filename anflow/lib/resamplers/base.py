@@ -38,6 +38,7 @@ def file_cache_lookup(hash_object, base_path, timestamp=None):
 def file_cache_dump(hash_object, base_path, datum):
     hash_value = hashgen(hash_object)
     file_path = os.path.join(base_path, hash_value + ".pkl")
+    datum._filename = file_path
     datum.save()
 
 def db_cache_lookup(hash_object, base_path, timestamp=None):
