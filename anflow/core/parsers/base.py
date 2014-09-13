@@ -32,7 +32,7 @@ class BaseParser(object):
         self.rawdata_dir = projectify(settings.RAWDATA_TEMPLATE
                                       .format(study_name=study))
 
-        self.parsed_data = DataSet()
+        self.parsed_data = []
         self.populated = False
 
     def set_path_format(self):
