@@ -112,7 +112,7 @@ class Resampler(object):
                 log.info("No need to resample")
                 working_data = bin_data(data.value, self.binsize)
             log.info("Saving new data to cache")
-            self.cache_dump(hash_object, self.base_path,
+            self.cache_dump(hash_object, self.cache_path,
                             Datum(data.paramsdict(), working_data))
 
         log.info("Running model function across resampled data")
