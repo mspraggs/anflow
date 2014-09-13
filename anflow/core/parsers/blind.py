@@ -55,7 +55,7 @@ class BlindParser(BaseParser):
             # Get the unique parameters after the collect parameter is removed
             for datum in temp_parsed_data:
                 temp_params = copy.copy(datum.paramsdict())
-                temp_params.pop(collect)
+                temp_params.pop(self.collect)
                 if temp_params not in uncollected_params:
                     uncollected_params.append(temp_params)
 
@@ -64,7 +64,7 @@ class BlindParser(BaseParser):
             for params in uncollected_params:
                 def list_filter(datum):
                     datum_params = copy.copy(datum.paramsdict())
-                    datum_params.pop(collect)
+                    datum_params.pop(self.collect)
                     return datum_params == params
                 filtered_list = filter(list_filter, temp_parsed_data)
                 timestamps = map(lambda item: item._timestamp, filtered_list)
