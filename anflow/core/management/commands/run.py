@@ -4,17 +4,22 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 from argparse import ArgumentParser
+from datetime import datetime
 from itertools import product
 import importlib
 import imp
 import sys
 
-import IPython
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from anflow.conf import settings
 from anflow.db.models import Model
+from anflow.db.history import Base, History
 from anflow.utils.debug import debug_message
 from anflow.utils.logging import logger
+
+
 
 def run_model(model_class, models_run, run_dependencies=True):
     """Recursively run a model and its dependencies, returning a list of the
@@ -99,6 +104,8 @@ def main(argv):
     else:
         run_models = args.component == 'models'
         run_views = args.component == 'views'
+
+    start = datetime.now()
     
     models = []
     views = []
@@ -151,3 +158,15 @@ def main(argv):
             except AttributeError:
                 log.info("Running view {}".format(view.func.__name__))
             view()
+
+    end = datetime.now()
+    history = History(studies=studies, run_models=run_models,
+                      run_views=run_views,
+                      run_dependencies=args.run_dependencies,
+                      start_time=start, end_time=end)
+    engine = create_engine(settings.DB_PATH)
+    Base.metadata.bind = engine
+    DBSession = sessionmaker(bind=engine)
+    session = DBSession()
+    session.add(history)
+    session.commit()
