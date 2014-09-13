@@ -36,9 +36,10 @@ class BlindParser(BaseParser):
 
         temp_parsed_data = []
         for result_path in result_paths:
-            datum = self.parser(result_path)
-            if datum:
-                temp_parsed_data.append(datum)
+            result = self.parser(result_path)
+            if result:
+                temp_parsed_data.append(Datum(result[0], result[1],
+                                              filename=result_path))
 
         if self.collect:
             # This block is executed if the user wants to group the data
