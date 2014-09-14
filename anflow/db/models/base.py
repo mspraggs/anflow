@@ -17,6 +17,7 @@ from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from sqlalchemy.orm import sessionmaker
 
 from anflow.conf import settings
+from anflow.db import Base
 from anflow.db.data import DataSet
 from anflow.db.models.manager import Manager
 from anflow.utils.debug import debug_message
@@ -25,8 +26,6 @@ from anflow.utils.logging import Log
 from anflow.utils.io import projectify
 
 
-
-Base = declarative_base()
 
 class MetaModel(DeclarativeMeta):
     # Meta class to create static data member for Model

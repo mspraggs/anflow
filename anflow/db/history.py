@@ -6,7 +6,7 @@ from __future__ import print_function
 from sqlalchemy import (Boolean, Column, DateTime, Integer, PickleType)
 from sqlalchemy.ext.declarative import declarative_base
 
-from anflow.db.models.base import Base
+from anflow.db import Base
 
 
 
