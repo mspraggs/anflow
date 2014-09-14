@@ -75,13 +75,10 @@ class Resampler(object):
         self.do_resample = resample
         self.binsize = binsize
         self.average = average
+        self.cache_path = projectify(cache_path or settings.CACHE_PATH)
         if cache == 'file':
             self.cache_lookup = file_cache_lookup
             self.cache_dump = file_cache_dump
-            if not cache_path:
-                self.cache_path = projectify(settings.CACHE_PATH)
-            else:
-                self.cache_path = projectify(self.cache_path)
             try:
                 os.makedirs(self.cache_path)
             except OSError as e:
