@@ -12,9 +12,9 @@ import datetime
 from sqlalchemy import (create_engine, Column, DateTime,
                         Integer, String, PickleType)
 from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.attributes import QueryableAttribute
 
 from anflow.conf import settings
 from anflow.db import Base
@@ -45,6 +45,15 @@ class MetaModel(DeclarativeMeta):
         else:
             new_class.__mapper_args__ = {'polymorphic_identity': tablename}
 
+        new_class._params = []
+        excluded_names = ['value', 'central_value', 'data', 'error', 'id',
+                          'model_name', 'timestamp']
+        for name in dir(new_class):
+            if name in excluded_names:
+                continue
+            if isinstance(getattr(new_class, name),
+                          (Column, QueryableAttribute)):
+                new_class._params.append(name)
         return new_class
 
 class classproperty(property):
@@ -115,13 +124,7 @@ class Model(Base):
         session.commit()
 
     def paramsdict(self):
-
-        excluded_names = ['value', 'central_value', 'error', 'id',
-                          'model_name', 'timestamp']
         out = {}
-
-        for name in dir(self):
-            member = getattr(self, name)
-            if isinstance(member, Column) and name not in excluded_names:
-                out.update(dict(name=member))
+        for name in self._params:
+            out.update({name: getattr(self, name)})
         return out
