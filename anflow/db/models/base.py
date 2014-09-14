@@ -68,7 +68,6 @@ class Model(Base):
     main = None # The function that encapsulates the model behaviour
     input_stream = None # The raw data to feed into the model
     parameters = None # A list of additional parameters to feed the model
-    results_format = None # The template for the model filename
     depends_on = None # A list of models this model depends on
     resampler = None # The resampler object that'll do the resampling
 
