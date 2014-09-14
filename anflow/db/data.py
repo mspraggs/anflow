@@ -91,7 +91,17 @@ class DataSet(object):
 
         binops = []
         for key, value in kwargs.items():
-            binops.append(getattr(self.model_class, key) == value)
+            if key.endswith('__gt'):
+                binop = getattr(self.model_class, key[:-4]) > value
+            elif key.endswith('__gte'):
+                binop = getattr(self.model_class, key[:-5]) >= value
+            elif key.endswith('__lt'):
+                binop = getattr(self.model_class, key[:-4]) < value
+            elif key.endswith('__lte'):
+                binop = getattr(self.model_class, key[:-5]) <= value
+            else:
+                binop = getattr(self.model_class, key) == value
+            binops.append(binop)
         new_query = self.query.filter(*binops)
         return DataSet(new_query, self.model_class)
 
