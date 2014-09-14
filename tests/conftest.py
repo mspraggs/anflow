@@ -25,9 +25,10 @@ def settings(request):
 
     settings.DEBUG = True
     settings.PROJECT_ROOT = project_dir
-    settings.CACHE_PATH = os.path.join("cache")
+    settings.CACHE_PATH = os.path.join(project_dir, "cache")
     
     settings.LOGGING_LEVEL = logging.INFO
+    settings.LOGGING_CONSOLE = True
     settings.LOGGING_FORMAT = ("%(asctime)s : %(name)s : "
                                "%(levelname)s : %(message)s")
     settings.LOGGING_DATEFMT = "%d/%m/%Y %H:%M:%S"
@@ -37,6 +38,8 @@ def settings(request):
     settings.RAWDATA_TEMPLATE = "rawdata"
     settings.RESULTS_TEMPLATE = "{study_name}/results"
     settings.REPORTS_TEMPLATE = "{study_name}/reports"
+
+    settings.DB_PATH='sqlite:///{}/sqlite.db'.format(project_dir)
 
     settings.ACTIVE_STUDIES = ["foo",
                                "bar"]

@@ -7,7 +7,7 @@ import re
 
 import numpy as np
     
-from anflow.core.data import Datum
+from anflow.db.data import Datum
 from anflow.core.parsers.base import BaseParser
 from anflow.core.parsers import BlindParser, GuidedParser
 
@@ -17,7 +17,7 @@ def blind_parse(filename):
     with open(filename) as f:
         data = pickle.load(f)
     if params:
-        return Datum(params, data, filename)
+        return params, data
     else:
         return
 

@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from anflow.core.data import DataSet, Datum
+from anflow.db.data import DataSet, Datum
 from anflow.core.parsers.base import BaseParser
 from anflow.core.parsers import BlindParser, GuidedParser
 
@@ -69,7 +69,7 @@ class TestBaseParser(object):
         assert study_base_parser.study == 'foo'
         assert study_base_parser.rawdata_dir.endswith(settings.RAWDATA_TEMPLATE
                                                       .format(study_name='foo'))
-        assert isinstance(study_base_parser.parsed_data, DataSet)
+        assert isinstance(study_base_parser.parsed_data, list)
         assert study_base_parser.populated == False
 
     def test_set_path_format(self, settings, study_base_parser):
@@ -119,7 +119,7 @@ class TestGuidedParser(object):
         assert len(study_guided_parser.parsed_data) == 700
 
         for datum in study_guided_parser.parsed_data:
-            assert datum.paramsdict().keys() == ['mass', 'config']
+            assert datum.paramsdict().keys() == ['config', 'mass']
             assert datum.paramsdict()['mass'] in masses
             assert datum.paramsdict()['config'] in configs
             assert datum.value == range(10)

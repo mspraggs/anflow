@@ -13,7 +13,7 @@ import random
 
 import numpy as np
 
-from anflow.core.data import Datum
+from anflow.db.data import Datum
 from anflow.lib.resamplers import bin_data, Bootstrap, Jackknife, Resampler
 from anflow.utils.io import projectify
 
@@ -43,11 +43,11 @@ class TestResampler(object):
         for d, r in zip(data, results):
             assert np.allclose(function(d), r)
 
-    def test_constructor(self):
+    def test_constructor(self, settings):
         # Test the default constructor first
         resampler = self.resampler_class()
-        attributes = ('do_resample', 'compute_error', 'average', 'binsize')
-        for attr, val in zip(attributes, (True, True, False, 1)):
+        attributes = ('do_resample', 'average', 'binsize')
+        for attr, val in zip(attributes, (True, False, 1)):
             assert getattr(resampler, attr) == val
 
         # Now test some random values
@@ -76,10 +76,10 @@ class TestResampler(object):
             # The measurement function
 
             # Compute the name of the cached resampled file
-            hash_object = (datum.paramsdict(), datum.value, average)
+            hash_object = (datum.paramsdict(), average, resampler.binsize,
+                           resampler.__class__.__name__)
             data_hash = hashlib.md5(pickle.dumps(hash_object, 2)).hexdigest()
-            filename = "{}.{}.binsize1.pkl".format(data_hash,
-                                                   resampler.__class__.__name__)
+            filename = "{}.pkl".format(data_hash)
 
             for i in range(2):
                 results, centre, error = resampler(datum, function)
