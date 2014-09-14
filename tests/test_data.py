@@ -10,7 +10,7 @@ import string
 
 import pytest
 
-from anflow.core.data import Datum, DataSet
+from anflow.db.data import Datum, DataSet
 from anflow.utils.io import projectify
 
 
@@ -27,7 +27,7 @@ def random_datum(settings, request):
                     for i in range(10)])
     random.shuffle(randoms)
     filename = projectify("".join(random.sample(string.lowercase, 10)))
-    datum = Datum(params, randoms, filename)
+    datum = Datum(params, randoms, filename=filename)
 
     def fin():
         try:
@@ -61,7 +61,7 @@ class TestDatum(object):
         datum = random_datum.datum
         assert datum.value == random_datum.randoms
         assert datum._params == set(random_datum.params.keys())
-        assert datum._timestamp == random_datum.timestamp
+        assert datum.timestamp == random_datum.timestamp
         assert datum._filename == random_datum.filename
         
         for key, value in random_datum.params.items():
@@ -77,27 +77,7 @@ class TestDatum(object):
         datum.save()
         loaded_datum = Datum.load(random_datum.filename)
         assert os.path.exists(random_datum.filename)
-        assert loaded_datum._timestamp is not None
+        assert loaded_datum.timestamp is not None
         datum.delete()
         assert not os.path.exists(random_datum.filename)
         assert loaded_datum.paramsdict() == random_datum.params
-
-class TestDataSet(object):
-
-    def test_constructor(self, random_datum):
-        datum = random_datum.datum
-        dataset = DataSet([datum])
-
-    def test_filter(self, random_dataset):
-        for i in range(10):
-            assert len(random_dataset.filter(some_value=i))
-
-    def test_save_delete(self, settings, random_dataset):
-        random_dataset.save()
-        for i in range(10):
-            assert os.path.exists(os.path.join(settings.PROJECT_ROOT,
-                                               'datum{}.pkl'.format(i)))
-        random_dataset.delete()
-        for i in range(10):
-            assert not os.path.exists(os.path.join(settings.PROJECT_ROOT,
-                                                   'datum{}.pkl'.format(i)))
