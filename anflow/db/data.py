@@ -10,7 +10,7 @@ try:
 except ImportError:
     import pickle
 
-from sqlalchemy import create_engine
+from sqlalchemy import asc, create_engine, desc
 from sqlalchemy.orm import sessionmaker
 
 from anflow.conf import settings
@@ -95,5 +95,21 @@ class DataSet(object):
         new_query = self.query.filter(*binops)
         return DataSet(new_query, self.model_class)
 
+    def order_by(self, *args):
+
+        sqlalchemy_args = []
+        for arg in args:
+            if arg.startswith('-'):
+                attr = arg[1:]
+                order = desc
+            else:
+                attr = arg
+                order = asc
+            sqlalchemy_args.append(order(getattr(self.model_class, attr)))
+        return DataSet(self.query.order_by(*sqlalchemy_args), self.model_class)
+
+    def first(self):
+        return self.query.first()
+                                   
     def delete(self):
         self.query.delete()
