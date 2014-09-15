@@ -29,15 +29,20 @@ def common_fixture_setup(attr, settings):
                                 .format(component='models', study_name='foo')
                                 + ".py")
     component_directory = os.path.dirname(component_file)
-    os.makedirs(component_directory)
+    try:
+        os.makedirs(component_directory)
+    except OSError:
+        pass
     loader_path = os.path.join(os.path.dirname(__file__),
                                "static/parser_loaders.py")
     shutil.copyfile(loader_path, component_file)
         
     for dirpath, dirnames, filenames in os.walk(settings.PROJECT_ROOT):
         open(os.path.join(dirpath, '__init__.py'), 'w').close()
-
-    os.makedirs(projectify(settings.RAWDATA_TEMPLATE))
+    try:
+        os.makedirs(projectify(settings.RAWDATA_TEMPLATE))
+    except OSError:
+        pass
     for mass, config in product(np.arange(0.1, 0.8, 0.1), range(100)):
         filename = projectify(os.path.join(settings.RAWDATA_TEMPLATE,
                                            'data_m{}.{}.pkl'
