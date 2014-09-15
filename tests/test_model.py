@@ -49,3 +49,9 @@ class TestModel(object):
         assert isinstance(MyModel.data, Manager)
         assert (MyModel.__mapper_args__['polymorphic_identity']
                 == 'table_MyModel')
+
+    def test_constructor(self, MyModel):
+
+        model_instance = MyModel(foo="blah", bar=0.5)
+        assert model_instance.foo == "blah"
+        assert model_instance.bar == 0.5
