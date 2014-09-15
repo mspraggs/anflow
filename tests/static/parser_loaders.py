@@ -12,8 +12,11 @@ from anflow.core.parsers.base import BaseParser
 from anflow.core.parsers import BlindParser, GuidedParser
 
 def blind_parse(filename):
-    params = re.search(r'data_m(?P<mass>\d*\.\d*)\.(?P<config>\d+)\.pkl',
-                       filename).groupdict()
+    result = re.search(r'data_m(?P<mass>\d*\.\d*)\.(?P<config>\d+)\.pkl',
+                       filename)
+    if not result:
+        return result
+    params = result.groupdict()
     with open(filename) as f:
         data = pickle.load(f)
     if params:
