@@ -8,7 +8,8 @@ import importlib
 from sqlalchemy import create_engine
 
 from anflow.conf import settings
-from anflow.db.models.base import Base, Model
+from anflow.db import Base
+from anflow.db.models import Model
 from anflow.db.history import History
 from anflow.db.models.cache import CachedData
 from anflow.utils.debug import debug_message
