@@ -3,10 +3,11 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from sqlalchemy import Column, String, Float
+import random
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Column, Float, Integer, String
+from sqlalchemy.orm import sessionmaker
 
 from anflow.db import Base, models
 from anflow.db.models.cache import CachedData
@@ -20,14 +21,15 @@ def MyModel(settings, request):
 
     class MyModel(models.Model):
 
-        input_stream = [Datum({'foo': i, 'bar': 2 * i}, i**2)
+        input_stream = [Datum({'foo': str(i), 'bar': 2 * i}, i**2)
                         for i in range(10)]
         foo = Column(String)
         bar = Column(Float)
+        some_var = Column(Integer)
 
         @staticmethod
-        def main(data, foo, bar):
-            return data / 2
+        def main(data, foo, bar, some_var):
+            return data // some_var
 
     Base.metadata.create_all(engine)
     request.addfinalizer(lambda: Base.metadata.drop_all(engine))
@@ -52,6 +54,41 @@ class TestModel(object):
 
     def test_constructor(self, MyModel):
 
-        model_instance = MyModel(foo="blah", bar=0.5)
+        model_instance = MyModel(foo="blah", bar=0.5, some_var=5)
         assert model_instance.foo == "blah"
         assert model_instance.bar == 0.5
+        assert model_instance.some_var == 5
+
+    def test_paramsdict(self, MyModel):
+
+        model = MyModel(foo="blah", bar=0.5, some_var=5)
+        params = model.paramsdict()
+        assert params == {'foo': 'blah', 'bar': 0.5, 'some_var': 5}
+
+    def test_run(self, MyModel):
+
+        div = random.randint(1, 10)
+        models = MyModel.run(some_var=div)
+
+        assert len(models) == len(MyModel.input_stream)
+        for i, result in enumerate(models):
+            assert result.value == i**2 // div
+            assert result.foo == str(i)
+            assert result.bar == 2 * i
+            assert result.some_var == div
+
+    def test_save(self, settings, MyModel):
+
+        model = MyModel(foo="blahblah", bar=10.0)
+        model.save()
+
+        engine = create_engine(settings.DB_PATH)
+        Base.metadata.bind = engine
+        DBSession = sessionmaker(bind=engine)
+        session = DBSession()
+        query = session.query(MyModel)
+
+        assert len(query.all()) == 1
+        assert query.first().foo == "blahblah"
+        assert query.first().bar == 10.0
+        assert query.first().timestamp
