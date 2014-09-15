@@ -10,7 +10,7 @@ import shutil
 
 import pytest
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def settings(request):
     from anflow.conf import settings, ENVIRONMENT_VARIABLE
     os.environ[ENVIRONMENT_VARIABLE] = 'anflow.conf.global_settings'
