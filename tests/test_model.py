@@ -6,13 +6,17 @@ from __future__ import print_function
 from sqlalchemy import Column, String, Float
 
 import pytest
+from sqlalchemy import create_engine
 
-from anflow.db import models
+from anflow.db import Base, models
+from anflow.db.models.cache import CachedData
 from anflow.db.data import Datum
 from anflow.db.models.manager import Manager
 
-@pytest.fixture()
-def MyModel(settings):
+@pytest.fixture(scope='session')
+def MyModel(settings, request):
+
+    engine = create_engine(settings.DB_PATH)
 
     class MyModel(models.Model):
 
@@ -24,6 +28,9 @@ def MyModel(settings):
         @staticmethod
         def main(data, foo, bar):
             return data / 2
+
+    Base.metadata.create_all(engine)
+    request.addfinalizer(lambda: Base.metadata.drop_all(engine))
 
     return MyModel
 
