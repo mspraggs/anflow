@@ -36,6 +36,13 @@ def MyModel(settings, request):
 
     return MyModel
 
+def my_resampler(datum, func):
+
+    result = map(func, datum.value)
+    centre = func(sum(datum.value))
+    error = 0.0
+    return result, centre, error
+
 class TestModel(object):
 
     def test_meta(self, MyModel):
@@ -76,6 +83,15 @@ class TestModel(object):
             assert result.foo == str(i)
             assert result.bar == 2 * i
             assert result.some_var == div
+
+        MyModel.input_stream = [Datum({'foo': str(i), 'bar': 2 * i},
+                                      [j + i for j in range(10)])
+                                for i in range(10)]
+        MyModel.resampler = staticmethod(my_resampler)
+
+        models = MyModel.run(some_var=div)
+
+        assert len(models) == len(MyModel.input_stream)
 
     def test_save(self, settings, MyModel):
 
