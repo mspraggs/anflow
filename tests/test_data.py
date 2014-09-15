@@ -10,7 +10,7 @@ import string
 
 import pytest
 
-from anflow.db.data import Datum, DataSet
+from anflow.db.data import Datum
 from anflow.utils.io import projectify
 
 
@@ -18,7 +18,7 @@ from anflow.utils.io import projectify
 class Obj(object):
     pass
 
-@pytest.fixture()
+@pytest.fixture
 def random_datum(settings, request):
     randoms = ([random.randint(0, 100) for i in range(10)]
                 + [10 * random.random() for i in range(10)])
@@ -44,16 +44,6 @@ def random_datum(settings, request):
     ret.timestamp = None
     
     return ret
-
-@pytest.fixture()
-def random_dataset(random_datum, settings, request):
-    dataset = DataSet()
-    for i in range(10):
-        datum = copy.copy(random_datum.datum)
-        datum.some_value = i
-        datum._filename = projectify("datum{}.pkl".format(i))
-        dataset.append(datum)
-    return dataset
     
 class TestDatum(object):
 
