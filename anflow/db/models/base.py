@@ -27,7 +27,7 @@ from anflow.db.data import DataSet
 from anflow.db.models.manager import Manager
 from anflow.utils.debug import debug_message
 from anflow.utils import get_study
-from anflow.utils.logging import Log
+from anflow.utils.logging import Log, logger
 from anflow.utils.io import projectify
 
 
