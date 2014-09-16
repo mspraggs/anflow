@@ -5,9 +5,14 @@ from __future__ import print_function
 
 import os
 import inspect
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import re
 from functools import partial
 import datetime
+import sys
 
 from sqlalchemy import (create_engine, Column, DateTime,
                         Integer, String, PickleType)
