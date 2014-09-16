@@ -15,7 +15,7 @@ import datetime
 import sys
 
 from sqlalchemy import (create_engine, Column, DateTime,
-                        Integer, String, PickleType)
+                        ForeignKey, Integer, String, PickleType)
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from sqlalchemy.orm import sessionmaker
@@ -44,11 +44,17 @@ class MetaModel(DeclarativeMeta):
         new_class = super(MetaModel, cls).__new__(cls, names, bases, attrs)
         tablename = "table_{}".format(new_class.__name__)
 
+        new_class.__tablename__ = tablename
         if names == "Model":
-            new_class.__tablename__ = tablename
             new_class.__mapper_args__ = {'polymorphic_on': new_class.model_name}
         else:
+            for base in bases:
+                if issubclass(base, Base):
+                    foreign_key_name = "table_{}.id".format(base.__name__)
+                    break
             new_class.__mapper_args__ = {'polymorphic_identity': tablename}
+            new_class.id = Column(Integer, ForeignKey(foreign_key_name),
+                                  primary_key=True)
 
         new_class._params = []
         excluded_names = ['value', 'central_value', 'data', 'error', 'id',
