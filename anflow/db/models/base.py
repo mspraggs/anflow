@@ -101,6 +101,8 @@ class Model(Base):
         """Runs the measurement on the files returned by the specified
         input_stream"""
 
+        log = logger()
+
         mainargspec = inspect.getargspec(cls.main)
         results = []
         study_name = get_study(cls.__module__)
@@ -115,11 +117,22 @@ class Model(Base):
                                    (cls.main), **all_params)
 
             if cls.resampler:
-                result, centre, error = cls.resampler(datum, main_partial)
+                try:
+                    result, centre, error = cls.resampler(datum, main_partial)
+                except:
+                    log.critical("Oh noes! "
+                                 "Your main function or resampler raised an "
+                                 "exception!")
+                    raise
                 results.append(cls(value=result, central_value=centre,
                                    error=error, **all_params))
             else:
-                result = main_partial(datum.value)
+                try:
+                    result = main_partial(datum.value)
+                except:
+                    log.critical("Oh noes! "
+                                 "Your main function raised an exception!")
+                    raise
                 results.append(cls(value=result, **all_params))
 
         return results
