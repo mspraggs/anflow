@@ -3,15 +3,15 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-import os
+import datetime
+from functools import partial
 import inspect
+import os
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 import re
-from functools import partial
-import datetime
 import sys
 
 from sqlalchemy import (create_engine, Column, DateTime,
