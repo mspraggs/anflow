@@ -10,7 +10,7 @@ try:
 except ImportError:
     import pickle
 
-from sqlalchemy import asc, create_engine, desc
+from sqlalchemy import and_, asc, create_engine, desc
 from sqlalchemy.orm import sessionmaker
 
 from anflow.conf import settings
@@ -100,6 +100,14 @@ class DataSet(object):
                 binop = getattr(self.model_class, key[:-4]) < value
             elif key.endswith('__lte'):
                 binop = getattr(self.model_class, key[:-5]) <= value
+            elif key.endswith('__aprx'):
+                absval = value if value >= 0 else -value
+                attr = getattr(self.model_class, key[:-6])
+                abs_lte = attr - value <= 1e-7
+                abs_gte = attr - value >= -1e-7
+                rel_lte = attr - value <= 1e-5 * absval
+                rel_gte = attr - value >= -1e-5 * absval
+                binop = and_(abs_lte, abs_gte, rel_lte, rel_gte)
             else:
                 binop = getattr(self.model_class, key) == value
             binops.append(binop)
