@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import copy
+from datetime import datetime
 from itertools import product
 import os
 import re
@@ -56,8 +57,9 @@ class GuidedParser(BaseParser):
                                                 collected_values))
                 filename = sub_template.format(**collected_paramsdict)
                 timestamps.append(os.path.getmtime(filename))
+            timestamp = datetime.fromtimestamp(max(timestamps))
             self.parsed_data.append(Datum(paramdict, parsed_data,
-                                          timestamp=max(timestamps)))
+                                          timestamp=timestamp))
 
         self.populated = True
         self.set_path_format()

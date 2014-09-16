@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import copy
+from datetime import datetime
 import os
 
 from anflow.db.data import DataSet, Datum
@@ -68,9 +69,10 @@ class BlindParser(BaseParser):
                     return datum_params == params
                 filtered_list = filter(list_filter, temp_parsed_data)
                 timestamps = map(lambda item: item.timestamp, filtered_list)
+                timestamp = datetime.fromtimestamp(max(timestamps))
                 collected_datum = Datum(params, map(lambda item: item.value,
                                                     filtered_list),
-                                        timestamp=max(timestamps))
+                                        timestamp=timestamp)
                 self.parsed_data.append(collected_datum)
         else:
             self.parsed_data = temp_parsed_data
