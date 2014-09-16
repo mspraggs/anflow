@@ -80,7 +80,8 @@ class DataSet(object):
 
     def __init__(self, query, model_class):
 
-        self.query = query.add_entity(model_class)
+        self.query = (query if query._entities
+                      else query.add_entity(model_class))            
         self.model_class = model_class
 
     def all(self):
