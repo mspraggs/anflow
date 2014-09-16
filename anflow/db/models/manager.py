@@ -51,6 +51,3 @@ class Manager(DataSet):
             results = new_query.all()
 
         return DataSet(new_query, self.model_class)
-
-    def __iter__(self):
-        return self.query.__iter__()

@@ -132,3 +132,6 @@ class DataSet(object):
                                    
     def delete(self):
         self.query.delete()
+
+    def __iter__(self):
+        return self.query.__iter__()
