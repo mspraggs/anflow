@@ -3,20 +3,15 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from sqlalchemy import create_engine, desc
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import desc
 
 from anflow.conf import settings
-from anflow.db.history import Base, History
+from anflow.db.history import History
 
 
 
 def main(argv):
-    engine = create_engine(settings.DB_PATH)
-    Base.metadata.bind = engine
-    DBSession = sessionmaker(bind=engine)
-    session = DBSession()
-    query = session.query(History)
+    query = settings.session.query(History)
 
     history = query.order_by(desc(History.end_time)).all()
 

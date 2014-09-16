@@ -6,8 +6,7 @@ from __future__ import print_function
 import random
 
 import pytest
-from sqlalchemy import create_engine, Column, Float, Integer, String
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Float, Integer, String
 
 from anflow.db import Base, models
 from anflow.db.models.cache import CachedData
@@ -16,8 +15,6 @@ from anflow.db.models.manager import Manager
 
 @pytest.fixture(scope='session')
 def MyModel(settings, request):
-
-    engine = create_engine(settings.DB_PATH)
 
     class MyModel(models.Model):
 
@@ -31,8 +28,8 @@ def MyModel(settings, request):
         def main(data, foo, bar, some_var):
             return data // some_var
 
-    Base.metadata.create_all(engine)
-    request.addfinalizer(lambda: Base.metadata.drop_all(engine))
+    Base.metadata.create_all(settings.engine)
+    request.addfinalizer(lambda: Base.metadata.drop_all(settings.engine))
 
     return MyModel
 
@@ -98,11 +95,7 @@ class TestModel(object):
         model = MyModel(foo="blahblah", bar=10.0)
         model.save()
 
-        engine = create_engine(settings.DB_PATH)
-        Base.metadata.bind = engine
-        DBSession = sessionmaker(bind=engine)
-        session = DBSession()
-        query = session.query(MyModel)
+        query = settings.session.query(MyModel)
 
         assert len(query.all()) == 1
         assert query.first().foo == "blahblah"

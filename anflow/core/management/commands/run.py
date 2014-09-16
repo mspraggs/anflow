@@ -10,12 +10,9 @@ import importlib
 import imp
 import sys
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 from anflow.conf import settings
 from anflow.db.models import Model
-from anflow.db.history import Base, History
+from anflow.db.history import History
 from anflow.utils.debug import debug_message
 from anflow.utils.logging import logger
 
@@ -164,9 +161,5 @@ def main(argv):
                       run_views=run_views,
                       run_dependencies=args.run_dependencies,
                       start_time=start, end_time=end)
-    engine = create_engine(settings.DB_PATH)
-    Base.metadata.bind = engine
-    DBSession = sessionmaker(bind=engine)
-    session = DBSession()
-    session.add(history)
-    session.commit()
+    settings.session.add(history)
+    settings.session.commit()

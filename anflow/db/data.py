@@ -10,8 +10,7 @@ try:
 except ImportError:
     import pickle
 
-from sqlalchemy import and_, asc, create_engine, desc
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import and_, asc, desc
 
 from anflow.conf import settings
 from anflow.utils.debug import debug_message
@@ -132,6 +131,7 @@ class DataSet(object):
                                    
     def delete(self):
         self.query.delete()
+        settings.session.commit()
 
     def __iter__(self):
         return self.query.__iter__()

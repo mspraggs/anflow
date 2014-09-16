@@ -6,7 +6,10 @@ from __future__ import print_function
 import os
 from importlib import import_module
 
+from sqlalchemy import create_engine
+
 from anflow.conf import global_settings
+from anflow.db import Base, Session
 
 ENVIRONMENT_VARIABLE = "ANFLOW_SETTINGS_MODULE"
 
@@ -31,6 +34,14 @@ class Settings(object):
         for variable in dir(mod):
             if variable.isupper():
                 setattr(self, variable, getattr(mod, variable))
+
+        try:
+            self.engine = create_engine(settings.DB_PATH)
+            Base.metadata.bind = self.engine
+            Session.configure(bind=self.engine)
+            self.session = Session()
+        except AttributeError:
+            pass
 
     def __getattribute__(self, attr):
         return object.__getattribute__(self, attr)

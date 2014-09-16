@@ -44,6 +44,8 @@ def settings(request):
     settings.ACTIVE_STUDIES = ["foo",
                                "bar"]
 
+    settings.configure()
+
     def fin():
         shutil.rmtree(project_dir, ignore_errors=True)
     request.addfinalizer(fin)

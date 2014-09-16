@@ -18,7 +18,7 @@ from sqlalchemy import (create_engine, Column, DateTime,
                         ForeignKey, Integer, String, PickleType)
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
-from sqlalchemy.orm import sessionmaker, deferred
+from sqlalchemy.orm import deferred
 from sqlalchemy.orm.attributes import QueryableAttribute
 
 from anflow.conf import settings
@@ -147,13 +147,9 @@ class Model(Base):
             size += len(pickle.dumps(item))
         log = logger()
         log.info("Saving {} bytes, {} MB".format(size, size / 1024**2))
-        
-        engine = create_engine(settings.DB_PATH)
-        Base.metadata.bind = engine
-        DBSession = sessionmaker(bind=engine)
-        session = DBSession()
-        session.add(self)
-        session.commit()
+
+        settings.session.add(self)
+        settings.session.commit()
 
     def paramsdict(self):
         out = {}

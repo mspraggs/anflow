@@ -9,9 +9,7 @@ import inspect
 import re
 from functools import partial
 
-from sqlalchemy import create_engine, desc
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import desc
 
 from anflow.conf import settings
 from anflow.db.data import DataSet
@@ -20,22 +18,16 @@ from anflow.utils.debug import debug_message
 
 
 
-Base = declarative_base()
-
 class Manager(DataSet):
 
     def __init__(self, model_class):
-
-        engine = create_engine(settings.DB_PATH)
-        Base.metadata.bind = engine
-        DBSession = sessionmaker(bind=engine)
-        self.session = DBSession()
-        query = self.session.query()
+        query = settings.session.query()
         super(Manager, self).__init__(query, model_class)
 
     def latest(self):
 
-        history = self.session.query(History).order_by(desc(History.end_time))
+        history = (settings.session.query(History)
+                   .order_by(desc(History.end_time)))
         history = history.__iter__()
         results = []
 

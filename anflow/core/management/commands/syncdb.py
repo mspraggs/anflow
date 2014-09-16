@@ -16,8 +16,6 @@ from anflow.utils.debug import debug_message
 
 def main(argv):
 
-    engine = create_engine(settings.DB_PATH)
-
     models = []
     for study in settings.ACTIVE_STUDIES:
         module_name = (settings.COMPONENT_TEMPLATE
@@ -33,4 +31,4 @@ def main(argv):
             except TypeError as e:
                 debug_message(e)
 
-    Base.metadata.create_all(engine)
+    Base.metadata.create_all(settings.engine)
