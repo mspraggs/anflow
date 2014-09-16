@@ -135,7 +135,7 @@ class DataSet(object):
         self.query.delete()
         for base in self.model_class.__bases__:
             if issubclass(base, Model):
-                query = base.data.query.filter(Model.id.in_(ids))
+                query = base.data.query.filter(base.id.in_(ids))
                 query.delete(synchronize_session='fetch')
         settings.session.commit()
 
