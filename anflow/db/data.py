@@ -130,7 +130,13 @@ class DataSet(object):
         return self.query.first()
                                    
     def delete(self):
+        from anflow.db.models import Model
+        ids = [item.id for item in self.query]
         self.query.delete()
+        for base in self.model_class.__bases__:
+            if issubclass(base, Model):
+                query = base.data.query.filter(Model.id.in_(ids))
+                query.delete(synchronize_session='fetch')
         settings.session.commit()
 
     def __iter__(self):
