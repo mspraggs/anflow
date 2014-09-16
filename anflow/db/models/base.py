@@ -18,7 +18,7 @@ from sqlalchemy import (create_engine, Column, DateTime,
                         ForeignKey, Integer, String, PickleType)
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, deferred
 from sqlalchemy.orm.attributes import QueryableAttribute
 
 from anflow.conf import settings
@@ -85,9 +85,9 @@ class Model(Base):
     id = Column(Integer, primary_key=True)
     model_name = Column(String(40))
 
-    value = Column(PickleType)
-    central_value = Column(PickleType)
-    error = Column(PickleType)
+    value = deferred(Column(PickleType))
+    central_value = deferred(Column(PickleType))
+    error = deferred(Column(PickleType))
 
     timestamp = Column(DateTime, default=datetime.datetime.now)
 
