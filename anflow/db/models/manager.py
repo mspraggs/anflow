@@ -50,7 +50,7 @@ class Manager(DataSet):
                                           > run.end_time)
             results = new_query.all()
 
-        return new_query
+        return DataSet(new_query, self.model_class)
 
     def __iter__(self):
-        return self.latest().all().__iter__()
+        return self.query.__iter__()
