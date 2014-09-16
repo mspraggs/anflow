@@ -115,6 +115,15 @@ class Model(Base):
 
     def save(self):
         """Saves the result defined by the specified parameters"""
+
+        size = 0
+        for value in self.paramsdict().values():
+            size += sys.getsizeof(value)
+        for item in [self.value, self.central_value, self.error]:
+            size += len(pickle.dumps(item))
+        log = logger()
+        log.info("Saving {} bytes, {} MB".format(size, size / 1024**2))
+        
         engine = create_engine(settings.DB_PATH)
         Base.metadata.bind = engine
         DBSession = sessionmaker(bind=engine)
