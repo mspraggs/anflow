@@ -136,7 +136,7 @@ class DataSet(object):
         for base in self.model_class.__bases__:
             if issubclass(base, Model):
                 query = base.data.query.filter(base.id.in_(ids))
-                query.delete(synchronize_session='fetch')
+                DataSet(query, base).delete(synchronize_session='fetch')
         settings.session.commit()
 
     def __iter__(self):
