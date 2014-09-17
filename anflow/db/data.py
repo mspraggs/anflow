@@ -17,6 +17,15 @@ from anflow.utils.debug import debug_message
 
 
 
+def _recurse_delete(model_class, ids):
+    from anflow.db.models import Model
+    query = settings.session.query(model_class).filter(model_class.id.in_(ids))
+    query.delete(synchronize_session=False)
+    settings.session.expire_all()
+    for base in model_class.__bases__:
+        if issubclass(base, Model):
+            _recurse_delete(base, ids)
+
 class Datum(object):
     def __init__(self, params, data, central_value=None, error=None,
                  filename=None, timestamp=None):
@@ -129,14 +138,10 @@ class DataSet(object):
     def first(self):
         return self.query.first()
                                    
-    def delete(self):
+    def delete(self, *args, **kwargs):
         from anflow.db.models import Model
         ids = [item.id for item in self.query]
-        self.query.delete()
-        for base in self.model_class.__bases__:
-            if issubclass(base, Model):
-                query = base.data.query.filter(base.id.in_(ids))
-                DataSet(query, base).delete(synchronize_session='fetch')
+        _recurse_delete(self.model_class, ids)
         settings.session.commit()
 
     def __iter__(self):
