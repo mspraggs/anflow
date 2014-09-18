@@ -8,6 +8,7 @@ from datetime import datetime
 from itertools import product
 import importlib
 import imp
+import os
 import sys
 
 from anflow.conf import settings
@@ -17,6 +18,26 @@ from anflow.utils.debug import debug_message
 from anflow.utils.logging import logger
 
 
+
+def set_term_handler(func):
+
+    if os.name == "nt":
+        try:
+            import win32api
+            win32api.SetConsoleCtrlHandler(func, True)
+        except ImportError:
+            version = '.'.join(map(str, sys.version_info[:2]))
+            raise Exception("pywin32 not installed for Python {}"
+                            .format(version))
+    else:
+        import signal
+        signal.signal(signal.SIGTERM, func)
+
+def cleanup(model_classes, start_time):
+    log = logger()
+    log.info("Cleaning up ")
+    for model_class in model_classes:
+        model_class.data.filter(timestamp__gte=start_time).delete()
 
 def run_model(model_class, models_run, run_dependencies=True):
     """Recursively run a model and its dependencies, returning a list of the
@@ -76,9 +97,6 @@ def run_model(model_class, models_run, run_dependencies=True):
 
 def main(argv):
 
-    # TODO: Some arguments here to filter models, studies,
-    # override running of dependencies, etc.
-
     log = logger()
 
     parser = ArgumentParser()
@@ -122,6 +140,8 @@ def main(argv):
                         models.append(member)
             except TypeError as e:
                 debug_message(e)
+
+    set_term_handler(lambda: cleanup(models, start))
                 
     for study in studies:
         module = importlib.import_module(settings.COMPONENT_TEMPLATE
@@ -139,13 +159,17 @@ def main(argv):
         views.extend(new_views)
 
     models_run = []
-    if run_models:
-        while len(models) > 0:
-            new_models_run = run_model(models[0], models_run,
-                                       args.run_dependencies)
-            for model in new_models_run:
-                models.remove(model)
-            models_run.extend(new_models_run)
+    models_to_run = models[:]
+    try:
+        if run_models:
+            while len(models_to_run) > 0:
+                new_models_run = run_model(models_to_run[0], models_run,
+                                           args.run_dependencies)
+                for model in new_models_run:
+                    models_to_run.remove(model)
+                models_run.extend(new_models_run)
+    except:
+        cleanup(models, start)
 
     # Might need to reload models here to get the latest data
     if run_views:
