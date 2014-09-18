@@ -13,6 +13,7 @@ except ImportError:
 from sqlalchemy import and_, asc, desc
 
 from anflow.conf import settings
+from anflow.db.history import History
 from anflow.utils.debug import debug_message
 
 

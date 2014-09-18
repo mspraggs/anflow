@@ -13,7 +13,6 @@ from sqlalchemy import desc
 
 from anflow.conf import settings
 from anflow.db.data import DataSet
-from anflow.db.history import History
 from anflow.utils.debug import debug_message
 
 
