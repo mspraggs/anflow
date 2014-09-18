@@ -43,7 +43,7 @@ def file_cache_dump(hash_object, base_path, datum):
 
 def db_cache_lookup(hash_object, base_path, timestamp=None):
     hash_value = hashgen(hash_object)
-    latest = (CachedData.data.filter(hash=hash_value, label='')
+    latest = (CachedData.data.filter(hash=hash_value, label=None)
               .order_by('-timestamp').first())
     if latest:
         if latest.timestamp < timestamp:
