@@ -140,33 +140,34 @@ class DataSet(object):
 
         history = (settings.session.query(History)
                    .order_by(desc(History.end_time)))
-        history = history.__iter__()
-        results = []
-
-        while not results:
-            try:
-                run = history.next()
-            except StopIteration as e:
-                debug_message(e)
-                new_query = self.query
-                break
-            new_query = self.query.filter(self.model_class.timestamp
-                                          > run.end_time)
-            results = new_query.all()
-
-        return DataSet(new_query, self.model_class)
+        if not history.first():
+            return self
+        else:
+            return self.history(-1)
 
     def history(self, id):
-        """Return all the data that was saved during the specified run"""
+        """Return the query for set of data that was saved during the specified
+        run. If no data was saved during the specified run, return the query
+        for the next most recent set of data saved."""
 
         num_runs = settings.session.query(History).count()
-        id = id % num_runs
+        history = (settings.session.query(History)
+                   .order_by(desc(History.end_time)).all())
+        if id < 1:
+            id = history[id].id
 
-        run = settings.session.query(History).filter(id=id).first()
-        start = run.start_time
-        end = run.end_time
+        results = []
+        while not results and id > 0:
+            run = (settings.session.query(History).filter(History.id == id)
+                   .first())
+            start = run.start_time
+            end = run.end_time
+            new_query = self.filter(timestamp__gte=start,
+                                    timestamp__lte=end).query
+            results = new_query.all()
+            id -= 1
 
-        return self.query.filter(timestamp__gte=start, timestamp__lte=end)
+        return DataSet(new_query, self.model_class)
 
     def first(self):
         return self.query.first()
