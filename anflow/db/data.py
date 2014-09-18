@@ -135,6 +135,26 @@ class DataSet(object):
             sqlalchemy_args.append(order(getattr(self.model_class, attr)))
         return DataSet(self.query.order_by(*sqlalchemy_args), self.model_class)
 
+    def latest(self):
+
+        history = (settings.session.query(History)
+                   .order_by(desc(History.end_time)))
+        history = history.__iter__()
+        results = []
+
+        while not results:
+            try:
+                run = history.next()
+            except StopIteration as e:
+                debug_message(e)
+                new_query = self.query
+                break
+            new_query = self.query.filter(self.model_class.timestamp
+                                          > run.end_time)
+            results = new_query.all()
+
+        return DataSet(new_query, self.model_class)
+
     def first(self):
         return self.query.first()
                                    
