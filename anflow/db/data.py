@@ -155,6 +155,18 @@ class DataSet(object):
 
         return DataSet(new_query, self.model_class)
 
+    def history(self, id):
+        """Return all the data that was saved during the specified run"""
+
+        num_runs = settings.session.query(History).count()
+        id = id % num_runs
+
+        run = settings.session.query(History).filter(id=id).first()
+        start = run.start_time
+        end = run.end_time
+
+        return self.query.filter(timestamp__gte=start, timestamp__lte=end)
+
     def first(self):
         return self.query.first()
                                    
