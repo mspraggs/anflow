@@ -33,13 +33,14 @@ def set_term_handler(func):
         import signal
         signal.signal(signal.SIGTERM, func)
 
-def cleanup(model_classes, start_time):
-    log = logger()
-    log.info("Cleaning up ")
-    for model_class in model_classes:
-        model_class.data.filter(timestamp__gte=start_time).delete()
+def cleanup(model_classes, start_time, dry_run):
+    if not dry_run:
+        log = logger()
+        log.info("Cleaning up ")
+        for model_class in model_classes:
+            model_class.data.filter(timestamp__gte=start_time).delete()
 
-def run_model(model_class, models_run, run_dependencies=True):
+def run_model(model_class, models_run, run_dependencies=True, dry_run=False):
     """Recursively run a model and its dependencies, returning a list of the
     models run"""
     log = logger()
@@ -76,9 +77,10 @@ def run_model(model_class, models_run, run_dependencies=True):
 
             log.info("Finished this {} parameter run"
                      .format(model_class.__name__))
-            log.info("Saving results for this run")
-            for model in models:
-                model.save()
+            if not dry_run:
+                log.info("Saving results for this run")
+                for model in models:
+                    model.save()
     else:
         log.info("Running model {} without parameters"
                  .format(model_class.__name__))
@@ -108,7 +110,8 @@ def main(argv):
                         action='store_true')
     parser.add_argument('--no-dependencies', dest='run_dependencies',
                         action='store_false')
-    parser.set_defaults(run_dependencies=True)
+    parser.add_argument('--dry-run', dest="dry_run", action="store_true")
+    parser.set_defaults(run_dependencies=True, dry_run=False)
     args = parser.parse_args(argv)
     if args.study:
         studies = [args.study]
@@ -141,7 +144,7 @@ def main(argv):
             except TypeError as e:
                 debug_message(e)
 
-    set_term_handler(lambda: cleanup(models, start))
+    set_term_handler(lambda: cleanup(models, start, args.dry_run))
                 
     for study in studies:
         module = importlib.import_module(settings.COMPONENT_TEMPLATE
@@ -164,12 +167,13 @@ def main(argv):
         if run_models:
             while len(models_to_run) > 0:
                 new_models_run = run_model(models_to_run[0], models_run,
-                                           args.run_dependencies)
+                                           args.run_dependencies,
+                                           args.dry_run)
                 for model in new_models_run:
                     models_to_run.remove(model)
                 models_run.extend(new_models_run)
     except:
-        cleanup(models, start)
+        cleanup(models, start, args.dry_run)
 
     # Might need to reload models here to get the latest data
     if run_views:
