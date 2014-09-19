@@ -37,12 +37,13 @@ def main(argv):
         studies = (settings.ACTIVE_STUDIES
                    if args.studies == 'all'
                    else args.studies.split(","))
-            
-    ids = (settings.session.query(History.id).all()
-           if args.run_ids == 'all'
-           else [int(i) for i in args.run_ids.split()])
-    if confirmation != "yes":
-        sys.exit()
+
+    if not args.run_ids:
+        ids = []
+    else:
+        ids = (settings.session.query(History.id).all()
+               if args.run_ids == 'all'
+               else [int(i) for i in args.run_ids.split()])
 
     models = gather_models(studies)
 
