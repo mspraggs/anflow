@@ -11,6 +11,7 @@ except ImportError:
     import pickle
 
 from sqlalchemy import and_, asc, desc
+from sqlalchemy.sql import false
 
 from anflow.conf import settings
 from anflow.db.history import History
@@ -160,6 +161,9 @@ class DataSet(object):
         while not results and id > 0:
             run = (settings.session.query(History).filter(History.id == id)
                    .first())
+            if not run:
+                new_query = self.query.filter(false())
+                break
             start = run.start_time
             end = run.end_time
             new_query = self.filter(timestamp__gte=start,
