@@ -120,6 +120,7 @@ def gather_models(studies):
 
 def gather_views(studies):
     """Goes through the supplied studies and """
+    log = logger()
     views = []
     for study in studies:
         module = importlib.import_module(settings.COMPONENT_TEMPLATE
@@ -165,15 +166,12 @@ def main(argv):
 
     start = datetime.now()
     
-    models = gather_models(studies)
-    views = gather_views(studies)
-
-    set_term_handler(lambda: cleanup(models, start, args.dry_run))
-
-    models_run = []
-    models_to_run = models[:]
-    try:
-        if run_models:
+    if run_models:
+        models = gather_models(studies)
+        models_run = []
+        models_to_run = models[:]
+        set_term_handler(lambda: cleanup(models, start, args.dry_run))
+        try:
             while len(models_to_run) > 0:
                 new_models_run = run_model(models_to_run[0], models_run,
                                            args.run_dependencies,
@@ -181,11 +179,13 @@ def main(argv):
                 for model in new_models_run:
                     models_to_run.remove(model)
                 models_run.extend(new_models_run)
-    except:
-        cleanup(models, start, args.dry_run)
+        except:
+            cleanup(models, start, args.dry_run)
+            raise
 
     # Might need to reload models here to get the latest data
     if run_views:
+        views = gather_views(studies)
         for view in views:
             try:
                 log.info("Running view {}".format(view.__name__))
