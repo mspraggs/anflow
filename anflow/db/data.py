@@ -137,14 +137,19 @@ class DataSet(object):
             sqlalchemy_args.append(order(getattr(self.model_class, attr)))
         return DataSet(self.query.order_by(*sqlalchemy_args), self.model_class)
 
-    def latest(self):
+    def latest(self, orphans_only=False):
 
         history = (settings.session.query(History)
                    .order_by(desc(History.end_time)))
         if not history.first():
             return self
         else:
-            return self.history(-1)
+            end = history.first().end_time
+            orphans = self.filter(timestamp__gte=end)
+            if len(orphans.all()) > 0 or orphans_only:
+                return orphans
+            else:
+                return self.history(-1)
 
     def history(self, id, exact_match=False):
         """Return the query for set of data that was saved during the specified
