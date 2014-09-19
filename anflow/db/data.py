@@ -173,9 +173,9 @@ class DataSet(object):
             end = run.end_time
             new_query = self.filter(timestamp__gte=start,
                                     timestamp__lte=end).query
-            results = new_query.all()
             if exact_match:
                 break
+            results = new_query.all()
             id -= 1
 
         return DataSet(new_query, self.model_class)
