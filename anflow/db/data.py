@@ -157,27 +157,29 @@ class DataSet(object):
         False, return the query for the next most recent set of data saved."""
 
         num_runs = settings.session.query(History).count()
-        history = (settings.session.query(History)
-                   .order_by(desc(History.end_time)).all())
-        if id < 1:
-            id = history[id].id
+        if num_runs == 0:
+            return DataSet(self.query.filter(false()), self.model_class)
 
-        results = []
-        while not results and id > 0:
-            run = (settings.session.query(History).filter(History.id == id)
+        if id < 0:
+            # If id < 0, we'll move back in the history through each run
+            end = (settings.session.query(History).filter(History.id == id)
                    .first())
-            if not run:
-                new_query = self.query.filter(false())
-                break
+            history = (settings.session.query(History)
+                       .order_by(desc(History.end_time)).all())[-1 - id:]
+        elif id > 0:
+            history = (settings.session.query(History)
+                       .filter(History.end_time <= end)
+                       .order_by(desc(History.end_time)).all())
+        else:
+            return DataSet(self.query.filter(false()), self.model_class)
+
+        for run in history:
             start = run.start_time
             end = run.end_time
             new_query = self.filter(timestamp__gte=start,
                                     timestamp__lte=end).query
-            if exact_match:
+            if exact_match or new_query.all():
                 break
-            results = new_query.all()
-            id -= 1
-
         return DataSet(new_query, self.model_class)
 
     def first(self):
