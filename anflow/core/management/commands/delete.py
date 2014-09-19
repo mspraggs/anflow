@@ -30,6 +30,8 @@ def main(argv):
 
     confirmation = raw_input("This action cannot be undone. Are you sure? "
                              "[yes/no] ")
+    if confirmation.lower() != "yes":
+        sys.exit()
 
     if not args.studies:
         studies = []
