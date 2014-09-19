@@ -23,8 +23,13 @@ def main(argv):
     parser.add_argument('--cache', dest='clear_cache', action='store_true')
     parser.add_argument('--run-ids', dest='run_ids', action='store')
     parser.add_argument('--studies', dest='studies', action='store')
+    parser.add_argument('--orphans', dest='clear_orphans', action='store_true')
     parser.set_defaults(clear_cache=False)
+    parser.set_defaults(clear_orphans=False)
     args = parser.parse_args(argv)
+
+    confirmation = raw_input("This action cannot be undone. Are you sure? "
+                             "[yes/no] ")
 
     if not args.studies:
         studies = []
@@ -32,16 +37,20 @@ def main(argv):
         studies = (settings.ACTIVE_STUDIES
                    if args.studies == 'all'
                    else args.studies.split(","))
+            
     ids = (settings.session.query(History.id).all()
            if args.run_ids == 'all'
            else [int(i) for i in args.run_ids.split()])
-
-    confirmation = raw_input("This action cannot be undone. Are you sure? "
-                             "[yes/no] ")
     if confirmation != "yes":
         sys.exit()
 
     models = gather_models(studies)
+
+    if args.clear_orphans:
+        for model in models:
+            log.info("Deleting orphaned data for model {}"
+                     .format(model.__name__))
+            model.data.latest(orphans_only=True).delete()
     
     for id in ids:
         for model in models:
