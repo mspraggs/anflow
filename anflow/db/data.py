@@ -145,10 +145,10 @@ class DataSet(object):
         else:
             return self.history(-1)
 
-    def history(self, id):
+    def history(self, id, exact_match=False):
         """Return the query for set of data that was saved during the specified
-        run. If no data was saved during the specified run, return the query
-        for the next most recent set of data saved."""
+        run. If no data was saved during the specified run and exact_match is
+        False, return the query for the next most recent set of data saved."""
 
         num_runs = settings.session.query(History).count()
         history = (settings.session.query(History)
@@ -165,6 +165,8 @@ class DataSet(object):
             new_query = self.filter(timestamp__gte=start,
                                     timestamp__lte=end).query
             results = new_query.all()
+            if exact_match:
+                break
             id -= 1
 
         return DataSet(new_query, self.model_class)
