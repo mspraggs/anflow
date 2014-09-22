@@ -151,7 +151,7 @@ def main(argv):
                         action='store_true')
     parser.add_argument('--no-dependencies', dest='run_dependencies',
                         action='store_false')
-    parser.add_argument('--comment', '-m', dest="comment", action='store',
+    parser.add_argument('--comment', '-c', dest="comment", action='store',
                         default=None)
     parser.add_argument('--dry-run', dest="dry_run", action="store_true")
     parser.set_defaults(run_dependencies=True, dry_run=False)
@@ -200,6 +200,7 @@ def main(argv):
     history = History(studies=studies, run_models=run_models,
                       run_views=run_views,
                       run_dependencies=args.run_dependencies,
-                      start_time=start, end_time=end)
+                      start_time=start, end_time=end,
+                      comment = comment)
     settings.session.add(history)
     settings.session.commit()
