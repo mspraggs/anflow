@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from sqlalchemy import (Boolean, Column, DateTime, Integer, PickleType)
+from sqlalchemy import (Boolean, Column, DateTime, Integer, PickleType, String)
 from sqlalchemy.ext.declarative import declarative_base
 
 from anflow.db import Base
@@ -21,3 +21,4 @@ class History(Base):
     run_dependencies = Column(Boolean)
     start_time = Column(DateTime)
     end_time = Column(DateTime)
+    comment = Column(String(200))

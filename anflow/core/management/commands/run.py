@@ -151,6 +151,8 @@ def main(argv):
                         action='store_true')
     parser.add_argument('--no-dependencies', dest='run_dependencies',
                         action='store_false')
+    parser.add_argument('--comment', '-m', dest="comment", action='store',
+                        default=None)
     parser.add_argument('--dry-run', dest="dry_run", action="store_true")
     parser.set_defaults(run_dependencies=True, dry_run=False)
     args = parser.parse_args(argv)
@@ -163,6 +165,7 @@ def main(argv):
     else:
         run_models = args.component == 'models'
         run_views = args.component == 'views'
+    comment = args.comment or raw_input("Please enter a comment for this run: ")
 
     start = datetime.now()
     
