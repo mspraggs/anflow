@@ -194,7 +194,11 @@ def main(argv):
                 log.info("Running view {}".format(view.__name__))
             except AttributeError:
                 log.info("Running view {}".format(view.func.__name__))
-            view()
+            try:
+                view()
+            except:
+                log.info("Oh noes! Your view raised an exception!")
+                raise
 
     end = datetime.now()
     history = History(studies=studies, run_models=run_models,
