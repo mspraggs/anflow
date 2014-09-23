@@ -13,8 +13,6 @@ import pytest
 @pytest.fixture(scope="session")
 def settings(request):
     from anflow.conf import settings, ENVIRONMENT_VARIABLE
-    os.environ[ENVIRONMENT_VARIABLE] = 'anflow.conf.global_settings'
-    settings.configure()
 
     project_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                "test_project")
