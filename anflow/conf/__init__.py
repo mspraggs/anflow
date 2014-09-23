@@ -22,18 +22,14 @@ class Settings(object):
             if variable.isupper():
                 setattr(self, variable, getattr(defaults, variable))
 
-        try:
-            if not self.settings_module:
-                raise ImportError
+        if not self.settings_module:
+            warnings.warn("{} environment variable not set, relying on default "
+                          "settings only".format(ENVIRONMENT_VARIABLE))
+        else:
             mod = import_module(self.settings_module)
-        except ImportError as e:
-            raise ImportError("Could not import settings in '{}'. Is the "
-                              "module on your path? Are there import errors "
-                              "in the file?".format(self.settings_module))
-        
-        for variable in dir(mod):
-            if variable.isupper():
-                setattr(self, variable, getattr(mod, variable))
+            for variable in dir(mod):
+                if variable.isupper():
+                    setattr(self, variable, getattr(mod, variable))
 
         try:
             self.engine = create_engine(settings.DB_PATH)
