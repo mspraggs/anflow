@@ -5,3 +5,4 @@ from __future__ import print_function
 
 from anflow.db.models.model import Model
 from anflow.db.models.cache import CachedData
+from anflow.db.models.history import History

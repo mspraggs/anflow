@@ -3,31 +3,19 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-import datetime
-from functools import partial
-import inspect
-import os
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
-import re
 import sys
 
-from sqlalchemy import (Column, DateTime, ForeignKey, Integer, String,
-                        PickleType)
-from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
-from sqlalchemy.orm import backref, deferred, relationship
 from sqlalchemy.orm.attributes import QueryableAttribute
 
 from anflow.conf import settings
 from anflow.db import Base
-from anflow.db.models.manager import Manager
-from anflow.utils.debug import debug_message
-from anflow.utils import get_study
-from anflow.utils.logging import Log, logger
-from anflow.utils.io import projectify
+from anflow.utils.logging import logger
 
 
 
@@ -79,6 +67,7 @@ class BaseModel(Base):
     @classproperty
     @classmethod
     def data(cls):
+        from anflow.db.query.manager import Manager
         return Manager(cls)
 
     def save(self):

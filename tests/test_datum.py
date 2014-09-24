@@ -10,7 +10,7 @@ import string
 
 import pytest
 
-from anflow.db.data import Datum
+from anflow.core.wrappers import Datum
 from anflow.utils.io import projectify
 
 

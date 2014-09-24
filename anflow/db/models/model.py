@@ -3,7 +3,16 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+import datetime
+from functools import partial
+import inspect
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, PickleType
+from sqlalchemy.orm import deferred
+
 from anflow.db.models.base import BaseModel
+from anflow.db.models.history import History
+from anflow.utils.logging import Log, logger
 
 
 
@@ -34,7 +43,6 @@ class Model(BaseModel):
 
         mainargspec = inspect.getargspec(cls.main)
         results = []
-        study_name = get_study(cls.__module__)
 
         for datum in cls.input_stream:
             # Combine parameters

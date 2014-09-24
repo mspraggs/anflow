@@ -10,7 +10,8 @@ import warnings
 from sqlalchemy import create_engine
 
 from anflow.conf import global_settings
-from anflow.db import Base, Session
+from anflow.db import Session
+from anflow.db import Base
 
 ENVIRONMENT_VARIABLE = "ANFLOW_SETTINGS_MODULE"
 

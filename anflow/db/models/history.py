@@ -3,8 +3,8 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from sqlalchemy import (Boolean, Column, DateTime, Integer, PickleType, String)
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Boolean, Column, DateTime, PickleType, String
+from sqlalchemy.orm import relationship
 
 from anflow.db.models.base import BaseModel
 

@@ -3,14 +3,10 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-import os
-
 from sqlalchemy import and_, asc, desc
 from sqlalchemy.sql import false
 
 from anflow.conf import settings
-from anflow.db.models.history import History
-from anflow.utils.debug import debug_message
 
 
 
@@ -24,6 +20,7 @@ def _recurse_delete(model_class, ids):
             _recurse_delete(base, ids)
 
 class DataSet(object):
+    from anflow.db.models.history import History
 
     def __init__(self, query, model_class):
 
@@ -123,7 +120,6 @@ class DataSet(object):
         return self.query.first()
                                    
     def delete(self, *args, **kwargs):
-        from anflow.db.models import Model
         ids = [item.id for item in self.query]
         _recurse_delete(self.model_class, ids)
         settings.session.commit()

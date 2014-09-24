@@ -8,7 +8,7 @@ import random
 import pytest
 from sqlalchemy import Column, Float, Integer, String
 
-from anflow.db.models.manager import Manager
+from anflow.db.query.manager import Manager
 from anflow.db import Base, models
 from anflow.core.wrappers import Datum
 

@@ -3,15 +3,11 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-import hashlib
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
 from sqlalchemy import Column, String
 
 from anflow.db.models import Model
+
+
 
 class CachedData(Model):
 
