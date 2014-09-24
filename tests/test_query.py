@@ -31,3 +31,8 @@ def populatedb(MyModel, settings, request):
 @pytest.fixture
 def dataset(populatedb, MyModel, settings):
     return DataSet(settings.session.query(), MyModel)
+
+class TestManager(object):
+    
+    def test_constructor(self, MyModel):
+        manager = Manager(MyModel)
