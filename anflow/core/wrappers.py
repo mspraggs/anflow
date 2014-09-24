@@ -63,11 +63,3 @@ class Datum(object):
         with open(filename, 'rb') as f:
             params, value, central_value, error = pickle.load(f)
         return cls(params, value, central_value, error, filename)
-    
-    def __repr__(self):
-        output = object.__repr__(self) + "\n"
-        output += "Datum Parameters\n"
-        output += "================\n"
-        output += "\n".join(["{}: {}".format(key, value)
-                             for key, value in self.paramsdict().items()])
-        return output
