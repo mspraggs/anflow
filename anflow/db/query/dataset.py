@@ -7,6 +7,7 @@ from sqlalchemy import and_, asc, desc
 from sqlalchemy.sql import false
 
 from anflow.conf import settings
+from anflow.db.models.history import History
 
 
 
@@ -20,7 +21,6 @@ def _recurse_delete(model_class, ids):
             _recurse_delete(base, ids)
 
 class DataSet(object):
-    from anflow.db.models.history import History
 
     def __init__(self, query, model_class):
 
