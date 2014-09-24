@@ -44,4 +44,5 @@ class TestDataSet(object):
         assert MyModel in dataset.query._entities[0].entities
 
     def test_all(self, dataset):
-        assert len(dataset.all()) == 10
+        results = dataset.all()
+        assert len(set(results)) == 10
