@@ -6,15 +6,14 @@ from __future__ import print_function
 from sqlalchemy import (Boolean, Column, DateTime, Integer, PickleType, String)
 from sqlalchemy.ext.declarative import declarative_base
 
-from anflow.db import Base
+from anflow.db.models.base import BaseModel
 
 
 
-class History(Base):
+class History(BaseModel):
 
     __tablename__ = "project_history"
 
-    id = Column(Integer, primary_key=True)
     studies = Column(PickleType)
     run_models = Column(Boolean)
     run_views = Column(Boolean)

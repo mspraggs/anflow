@@ -12,7 +12,7 @@ from functools import partial
 from sqlalchemy import desc
 
 from anflow.conf import settings
-from anflow.db.data import DataSet
+from anflow.db.query.dataset import DataSet
 from anflow.utils.debug import debug_message
 
 

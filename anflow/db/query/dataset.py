@@ -9,7 +9,7 @@ from sqlalchemy import and_, asc, desc
 from sqlalchemy.sql import false
 
 from anflow.conf import settings
-from anflow.db.history import History
+from anflow.db.models.history import History
 from anflow.utils.debug import debug_message
 
 
