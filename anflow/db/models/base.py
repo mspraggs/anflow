@@ -61,7 +61,7 @@ class BaseModel(Base):
     @classproperty
     @classmethod
     def data(cls):
-        from anflow.db.query.manager import Manager
+        from anflow.db.query import Manager
         return Manager(cls)
 
     def save(self):
