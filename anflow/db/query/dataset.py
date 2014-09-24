@@ -124,5 +124,10 @@ class DataSet(object):
         _recurse_delete(self.model_class, ids)
         settings.session.commit()
 
+    def update(self, values, synchronize_session='evaluate'):
+        """Updates the objects specified by the query"""
+        new_query = self.query.update(values, synchronize_session)
+        settings.session.commit()
+
     def __iter__(self):
         return self.query.__iter__()
