@@ -29,9 +29,6 @@ class Model(BaseModel):
     central_value = deferred(Column(PickleType))
     error = deferred(Column(PickleType))
     history_id = Column(Integer, ForeignKey('anflowHistory.id'))
-    history = relationship("History", backref=backref('anflowHistory',
-                                                      order_by=id))
-
     timestamp = Column(DateTime, default=datetime.datetime.now)
 
     @classmethod

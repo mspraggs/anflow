@@ -21,3 +21,5 @@ class History(BaseModel):
     start_time = Column(DateTime)
     end_time = Column(DateTime)
     comment = Column(String(200))
+    models = relationship("Model", foreign_keys="Model.history_id",
+                          backref="anflowModel")

@@ -41,10 +41,10 @@ class MetaModel(DeclarativeMeta):
             new_class.__mapper_args__ = {'polymorphic_identity': tablename}
             new_class.id = Column(Integer, ForeignKey(foreign_key_name),
                                   primary_key=True)
-
+            
         new_class._params = []
         excluded_names = ['value', 'central_value', 'data', 'error', 'id',
-                          'model_name', 'timestamp']
+                          'model_name', 'timestamp', 'history_id']
         for name in dir(new_class):
             if name in excluded_names:
                 continue
