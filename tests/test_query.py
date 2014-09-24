@@ -90,3 +90,21 @@ class TestDataSet(object):
         for result in results.query:
             assert result.some_var > 1
             assert np.allclose(result.bar, 2.5)
+
+    def test_order_by(self, dataset):
+
+        results = dataset.order_by('some_var')
+        for result in results.query:
+            try:
+                assert last_result.some_var <= result.some_var
+            except NameError:
+                pass
+            last_result = result
+            
+        results = dataset.order_by('-some_var')
+        for result in results.query:
+            try:
+                assert last_result.some_var >= result.some_var
+            except NameError:
+                pass
+            last_result = result
