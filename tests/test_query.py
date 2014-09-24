@@ -78,3 +78,15 @@ class TestDataSet(object):
         results = dataset.filter(bar__aprx=0.5)
         assert len(results.query.all()) == 1
         assert np.allclose(results.query.first().bar, 0.5)
+
+        # Try a couple of filters in parallel
+        results = dataset.filter(some_var__gte=1, some_var__lt=9)
+        assert len(results.query.all()) == 8
+        for result in results.query:
+            assert 1 <= result.some_var < 9
+
+        results = dataset.filter(some_var__gt=1, bar__aprx=2.5)
+        assert len(results.query.all()) == 1
+        for result in results.query:
+            assert result.some_var > 1
+            assert np.allclose(result.bar, 2.5)
