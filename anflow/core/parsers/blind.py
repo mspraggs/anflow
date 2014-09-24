@@ -7,7 +7,7 @@ import copy
 from datetime import datetime
 import os
 
-from anflow.db.data import DataSet, Datum
+from anflow.core.wrappers import Datum
 from anflow.core.parsers.base import BaseParser
 from anflow.utils.logging import logger
 

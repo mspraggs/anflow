@@ -12,7 +12,7 @@ except ImportError:
     import pickle
 
 from anflow.conf import settings
-from anflow.db.data import Datum
+from anflow.core.wrappers import Datum
 from anflow.db.models import CachedData
 from anflow.utils.debug import debug_message
 from anflow.utils.io import projectify

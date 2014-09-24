@@ -9,7 +9,7 @@ from itertools import product
 import os
 import re
 
-from anflow.db.data import Datum
+from anflow.core.wrappers import Datum
 from anflow.core.parsers.base import BaseParser
 from anflow.utils.logging import logger
 

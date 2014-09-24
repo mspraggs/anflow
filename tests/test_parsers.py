@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from anflow.db.data import DataSet, Datum
+from anflow.core.wrappers import Datum
 from anflow.core.parsers.base import BaseParser
 from anflow.core.parsers import BlindParser, GuidedParser
 

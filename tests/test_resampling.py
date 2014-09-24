@@ -13,7 +13,7 @@ import random
 
 import numpy as np
 
-from anflow.db.data import Datum
+from anflow.core.wrappers import Datum
 from anflow.lib.resamplers import bin_data, Bootstrap, Jackknife, Resampler
 from anflow.utils.io import projectify
 
