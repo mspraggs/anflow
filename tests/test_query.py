@@ -5,8 +5,8 @@ from __future__ import print_function
 
 import pytest
 
-from anflow.db.query import Manager
 from anflow.conf import settings
+from anflow.db.query import DataSet, Manager
 
 
 
@@ -27,3 +27,7 @@ def populatedb(MyModel, settings, request):
         settings.session.commit()
         
     request.addfinalizer(fin)
+
+@pytest.fixture
+def dataset(populatedb, MyModel, settings):
+    return DataSet(settings.session.query(), MyModel)
