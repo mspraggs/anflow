@@ -3,10 +3,13 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+from datetime import datetime
+
 import numpy as np
 import pytest
 
 from anflow.conf import settings
+from anflow.db.models import History
 from anflow.db.query import DataSet, Manager
 
 
@@ -14,13 +17,19 @@ from anflow.db.query import DataSet, Manager
 @pytest.fixture(scope='session')
 def populatedb(MyModel, settings, request):
 
+    run = History(start_time=datetime.now())
     models = []
     for i in range(10):
         new_model = MyModel(foo="tortoise{}".format(i),
                             bar=float(i) / 2,
-                            some_var=i)
+                            some_var=i,
+                            history=run)
         new_model.save()
         models.append(new_model)
+
+        if i == 3:
+            run.end_time = datetime.now()
+            run.save()
 
     def fin():
         for model in models:
