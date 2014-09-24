@@ -36,3 +36,12 @@ class TestManager(object):
     
     def test_constructor(self, MyModel):
         manager = Manager(MyModel)
+
+class TestDataSet(object):
+
+    def test_constructor(self, dataset, MyModel):
+        assert dataset.model_class == MyModel
+        assert MyModel in dataset.query._entities[0].entities
+
+    def test_all(self, dataset):
+        assert len(dataset.all()) == 10
