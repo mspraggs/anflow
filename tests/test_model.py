@@ -8,10 +8,9 @@ import random
 import pytest
 from sqlalchemy import Column, Float, Integer, String
 
-from anflow.db import Base, models
-from anflow.db.models.cache import CachedData
-from anflow.db.data import Datum
 from anflow.db.models.manager import Manager
+from anflow.db import Base, models
+from anflow.core.wrappers import Datum
 
 @pytest.fixture(scope='session')
 def MyModel(settings, request):
@@ -54,7 +53,7 @@ class TestModel(object):
         assert 'bar' in MyModel._params
         assert isinstance(MyModel.data, Manager)
         assert (MyModel.__mapper_args__['polymorphic_identity']
-                == 'table_MyModel')
+                == 'anflowMyModel')
 
     def test_constructor(self, MyModel):
 
