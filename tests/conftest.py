@@ -48,3 +48,23 @@ def settings(request):
         shutil.rmtree(project_dir, ignore_errors=True)
     request.addfinalizer(fin)
     return settings
+
+@pytest.fixture(scope='session')
+def MyModel(settings, request):
+
+    class MyModel(models.Model):
+
+        input_stream = [Datum({'foo': str(i), 'bar': 2 * i}, i**2)
+                        for i in range(10)]
+        foo = Column(String)
+        bar = Column(Float)
+        some_var = Column(Integer)
+
+        @staticmethod
+        def main(data, foo, bar, some_var):
+            return data // some_var
+
+    Base.metadata.create_all(settings.engine)
+    request.addfinalizer(lambda: Base.metadata.drop_all(settings.engine))
+
+    return MyModel
