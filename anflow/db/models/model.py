@@ -6,6 +6,11 @@ from __future__ import print_function
 import datetime
 from functools import partial
 import inspect
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+import sys
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, PickleType
 from sqlalchemy.orm import deferred
@@ -70,6 +75,19 @@ class Model(BaseModel):
                 results.append(cls(value=result, **all_params))
 
         return results
+
+    def save(self):
+        """Save the model to the database"""
+
+        size = 0
+        for value in self.paramsdict().values():
+            size += sys.getsizeof(value)
+        for item in [self.value, self.central_value, self.error]:
+            size += len(pickle.dumps(item))
+        log = logger()
+        log.info("Saving {} bytes, {} MB".format(size, size / 1024**2))
+
+        BaseModel.save(self)
 
     def paramsdict(self):
         out = {}

@@ -3,12 +3,6 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-import sys
-
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from sqlalchemy.orm.attributes import QueryableAttribute
@@ -72,14 +66,6 @@ class BaseModel(Base):
 
     def save(self):
         """Saves the result defined by the specified parameters"""
-
-        size = 0
-        for value in self.paramsdict().values():
-            size += sys.getsizeof(value)
-        for item in [self.value, self.central_value, self.error]:
-            size += len(pickle.dumps(item))
-        log = logger()
-        log.info("Saving {} bytes, {} MB".format(size, size / 1024**2))
 
         settings.session.add(self)
         settings.session.commit()
