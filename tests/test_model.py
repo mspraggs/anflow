@@ -6,9 +6,7 @@ from __future__ import print_function
 import random
 
 import pytest
-from sqlalchemy import Column, Float, Integer, String
 
-from anflow.db import Base, models
 from anflow.db.query import Manager
 from anflow.core.wrappers import Datum
 
