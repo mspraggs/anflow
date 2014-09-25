@@ -156,3 +156,7 @@ class TestDataSet(object):
 
         latest = dataset.latest(orphans_only=True)
         assert len(latest.query.all()) == 0
+
+    def test_first(self, dataset):
+
+        assert dataset.first() is not None
