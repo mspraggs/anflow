@@ -136,3 +136,23 @@ class TestDataSet(object):
         assert len(dataset.history(1).query.all()) == 3
         assert len(dataset.history(-2).query.all()) == 2
         assert len(dataset.history(-1).query.all()) == 3
+
+    def test_latest(self, dataset, MyModel):
+
+        latest = dataset.latest()
+        assert len(latest.query.all()) == 5
+        for result in latest.query:
+            assert result.some_var > 3
+
+        new_run = History(start_time=datetime.now())
+        for datum in dataset.query.filter(MyModel.history == None):
+            datum.history = new_run
+        new_run.save()
+
+        latest = dataset.latest()
+        assert len(latest.query.all()) == 5
+        for result in latest.query:
+            assert result.some_var > 3
+
+        latest = dataset.latest(orphans_only=True)
+        assert len(latest.query.all()) == 0
