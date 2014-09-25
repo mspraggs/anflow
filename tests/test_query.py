@@ -134,5 +134,5 @@ class TestDataSet(object):
         history = History.data.all()
         assert len(dataset.history(0).query.all()) == 2
         assert len(dataset.history(1).query.all()) == 3
-        assert len(dataset.history(-2).query.all()) == 3
-        assert len(dataset.history(-1).query.all()) == 2
+        assert len(dataset.history(-2).query.all()) == 2
+        assert len(dataset.history(-1).query.all()) == 3
