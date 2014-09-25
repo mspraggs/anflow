@@ -64,6 +64,9 @@ class TestDataSet(object):
     def test_all(self, dataset):
         results = dataset.all()
         assert len(set(results)) == 10
+
+    def test_count(self, dataset):
+        assert dataset.count() == 10
             
     def test_filter(self, dataset):
 

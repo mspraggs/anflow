@@ -31,6 +31,9 @@ class DataSet(object):
     def all(self):
         return self.query.all()
 
+    def count(self):
+        return self.query.count()
+
     def filter(self, **kwargs):
         """Filter the data"""
 
