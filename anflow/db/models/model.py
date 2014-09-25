@@ -34,7 +34,12 @@ class Model(BaseModel):
     central_value = deferred(Column(PickleType))
     error = deferred(Column(PickleType))
     history_id = Column(Integer, ForeignKey('anflowHistory.id'))
-    timestamp = Column(DateTime, default=datetime.datetime.now)
+    timestamp = Column(DateTime)
+
+    def __init__(self, *args, **kwargs):
+
+        self.timestamp = datetime.datetime.now()
+        super(BaseModel, self).__init__(*args, **kwargs)
 
     @classmethod
     def run(cls, *args, **kwargs):
