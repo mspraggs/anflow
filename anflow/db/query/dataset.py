@@ -88,36 +88,26 @@ class DataSet(object):
             else:
                 return self.history(-1)
 
-    def history(self, id, exact_match=False):
+    def history(self, index, exact_match=False):
         """Return the query for set of data that was saved during the specified
         run. If no data was saved during the specified run and exact_match is
         False, return the query for the next most recent set of data saved."""
 
-        num_runs = settings.session.query(History).count()
+        num_runs = History.data.count()
+        index = index % num_runs
         if num_runs == 0:
             return DataSet(self.query.filter(false()), self.model_class)
 
-        if id < 0:
-            # If id < 0, we'll move back in the history through each run
-            end = (settings.session.query(History).filter(History.id == id)
-                   .first())
-            history = (settings.session.query(History)
-                       .order_by(desc(History.end_time)).all())[-1 - id:]
-        elif id > 0:
-            history = (settings.session.query(History)
-                       .filter(History.end_time <= end)
-                       .order_by(desc(History.end_time)).all())
-        else:
-            return DataSet(self.query.filter(false()), self.model_class)
+        ids = [datum.id for datum in History.data.order_by('end_time')]
 
-        for run in history:
-            start = run.start_time
-            end = run.end_time
-            new_query = self.filter(timestamp__gte=start,
-                                    timestamp__lte=end).query
-            if exact_match or new_query.all():
+        result = []
+        while not result and index > -1:
+            run = History.data.filter(id=ids[index]).first()
+            new_dataset = self.filter(history=run)
+            if exact_match:
                 break
-        return DataSet(new_query, self.model_class)
+            result = new_dataset.all()
+        return new_dataset
 
     def first(self):
         return self.query.first()
