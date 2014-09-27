@@ -162,11 +162,11 @@ class DataSet(object):
 
         if id < 0:
             # If id < 0, we'll move back in the history through each run
-            end = (settings.session.query(History).filter(History.id == id)
-                   .first())
             history = (settings.session.query(History)
                        .order_by(desc(History.end_time)).all())[-1 - id:]
         elif id > 0:
+            end = (settings.session.query(History).filter(History.id == id)
+                   .first())
             history = (settings.session.query(History)
                        .filter(History.end_time <= end)
                        .order_by(desc(History.end_time)).all())
