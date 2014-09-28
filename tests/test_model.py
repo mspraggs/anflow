@@ -80,3 +80,6 @@ class TestModel(object):
         assert query.first().foo == "blahblah"
         assert query.first().bar == 10.0
         assert query.first().timestamp
+
+        settings.session.delete(model)
+        settings.session.commit()

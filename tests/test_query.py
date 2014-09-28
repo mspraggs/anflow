@@ -17,26 +17,28 @@ from anflow.db.query import DataSet, Manager
 @pytest.fixture(scope='session')
 def populatedb(MyModel, settings, request):
 
-    run = History()
+    run1 = History()
     models = []
     for i in range(2):
         new_model = MyModel(foo="tortoise{}".format(i),
                             bar=float(i) / 2,
                             some_var=i,
-                            history=run)
+                            history=run1)
         models.append(new_model)
-    run.save()
-    run = History()
+    run1.save()
+    run2 = History()
     for i in range(2, 5):
         new_model = MyModel(foo="tortoise{}".format(i),
                             bar=float(i) / 2,
                             some_var=i,
-                            history=run)
-    run.save()
+                            history=run2)
+        models.append(new_model)
+    run2.save()
     for i in range(5, 10):
         new_model = MyModel(foo="tortoise{}".format(i),
                             bar=float(i) / 2,
                             some_var=i)
+        models.append(new_model)
         new_model.save()
 
     def fin():
