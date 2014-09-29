@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-import datetime
+from datetime import datetime
 import logging
 import os
 import shutil
@@ -32,7 +32,8 @@ def base_settings():
     settings.LOGGING_FORMAT = ("%(asctime)s : %(name)s : "
                                "%(levelname)s : %(message)s")
     settings.LOGGING_DATEFMT = "%d/%m/%Y %H:%M:%S"
-    settings.LOGGING_FILE = (project_dir, "output_{}".format(datetime))
+    settings.LOGGING_FILE = os.path.join(project_dir,
+                                         "output_{}".format(datetime.now()))
 
     settings.COMPONENT_TEMPLATE = "{study_name}/{component}"
     settings.RAWDATA_TEMPLATE = "rawdata"
