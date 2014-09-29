@@ -17,15 +17,11 @@ from anflow.db import Base, models
 
 
 @pytest.fixture(scope="session")
-def settings(request):
+def base_settings():
     from anflow.conf import settings, ENVIRONMENT_VARIABLE
 
     project_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                "test_project")
-    try:
-        os.makedirs(project_dir)
-    except OSError:
-        pass
 
     settings.DEBUG = True
     settings.PROJECT_ROOT = project_dir
@@ -50,10 +46,19 @@ def settings(request):
 
     settings.configure()
 
-    def fin():
-        shutil.rmtree(project_dir, ignore_errors=True)
-    request.addfinalizer(fin)
     return settings
+
+@pytest.fixture(scope="session")
+def settings(base_settings, request):
+    try:
+        os.makedirs(base_settings.PROJECT_ROOT)
+    except OSError:
+        pass
+
+    def fin():
+        shutil.rmtree(base_settings.PROJECT_ROOT, ignore_errors=True)
+    request.addfinalizer(fin)
+    return base_settings
 
 @pytest.fixture(scope='session')
 def MyModel(settings, request):
