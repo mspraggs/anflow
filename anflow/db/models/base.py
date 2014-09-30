@@ -113,7 +113,7 @@ class Model(Base):
             all_params.update(kwargs)
             all_params.update(datum.paramsdict())
             main_partial = partial(Log("Running model function {}.main"
-                                       .format(cls.__class__.__name__))
+                                       .format(cls.__name__))
                                    (cls.main), **all_params)
 
             if cls.resampler:
