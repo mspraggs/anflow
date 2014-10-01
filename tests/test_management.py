@@ -28,3 +28,22 @@ class TestStartProject(object):
                 if filename.endswith(".py"):
                     assert os.path.exists(os.path.join(base_settings.tmp_dir,
                                                        dirpath, filename))
+
+class TestStartStudy(object):
+
+    def test_main(self, settings):
+
+        from anflow.core.management.commands import startstudy
+        study_name = "new_study"
+        startstudy.main([study_name])
+
+        for component in ["models", "views"]:
+            path = os.path.join(settings.PROJECT_ROOT,
+                                settings.COMPONENT_TEMPLATE
+                                .format(study_name=study_name,
+                                        component=(component + ".py")))
+            assert os.path.exists(path)
+
+        for template in [settings.RAWDATA_TEMPLATE, settings.REPORTS_TEMPLATE]:
+            template = os.path.join(settings.PROJECT_ROOT, template)
+            assert os.path.exists(template.format(study_name=study_name))
