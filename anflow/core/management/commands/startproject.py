@@ -16,6 +16,10 @@ from anflow.utils.debug import debug_message
 def main(argv):
     
     project_name = argv[0]
+    try:
+        location = argv[1]
+    except IndexError:
+        location = '.'
     template_args = {'project_name': project_name}
     # Check that the project doesn't already exist
     try:
@@ -32,7 +36,7 @@ def main(argv):
         relative_directory = os.path.relpath(directory,
                                              settings.PROJECT_TEMPLATE)
 
-        new_directory = os.path.join(project_name, relative_directory)
+        new_directory = os.path.join(location, project_name, relative_directory)
         try:
             os.makedirs(new_directory)
             open(os.path.join(new_directory, "__init__.py"), 'a').close()
@@ -40,7 +44,7 @@ def main(argv):
             debug_message(e)
 
         for f in files:
-            template_file_path = os.path.join(directory, f)
+            template_file_path = os.path.join(location, directory, f)
             new_file_path = os.path.join(new_directory, f)
             with open(template_file_path) as file_handle:
                 template = Template(file_handle.read())
