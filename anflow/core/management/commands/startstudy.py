@@ -9,6 +9,7 @@ from jinja2 import Template
 
 from anflow.conf import settings
 from anflow.utils.debug import debug_message
+from anflow.utils.io import projectify
 
 def main(argv):
     study_name = argv[0]
@@ -21,6 +22,7 @@ def main(argv):
         new_path = (settings.COMPONENT_TEMPLATE
                     .format(study_name=study_name,
                             component=(component + ".py")))
+        new_path = projectify(new_path)
         if os.path.exists(new_path):
             return
         paths[component] = new_path
@@ -42,6 +44,7 @@ def main(argv):
     for template in [settings.RAWDATA_TEMPLATE,
                      settings.RESULTS_TEMPLATE,
                      settings.REPORTS_TEMPLATE]:
+        template = projectify(template)
         try:
             os.makedirs(template.format(study_name=study_name))
         except OSError as e:
