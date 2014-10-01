@@ -24,7 +24,7 @@ class TestStartProject(object):
 
         tree = os.walk(base_settings.PROJECT_TEMPLATE)
         for dirpath, dirnames, filenames in tree:
-            for filename in filename:
+            for filename in filenames:
                 if filename.endswith(".py"):
                     assert os.path.exists(os.path.join(base_settings.tmp_dir,
                                                        dirpath, filename))
