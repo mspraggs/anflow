@@ -42,7 +42,6 @@ def main(argv):
             f.write(template.render(**template_args))
 
     for template in [settings.RAWDATA_TEMPLATE,
-                     settings.RESULTS_TEMPLATE,
                      settings.REPORTS_TEMPLATE]:
         template = projectify(template)
         try:
