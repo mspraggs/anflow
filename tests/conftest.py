@@ -20,9 +20,11 @@ from anflow.db import Base, models
 def base_settings():
     from anflow.conf import settings, ENVIRONMENT_VARIABLE
 
-    project_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               "test_project")
+    tmp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp')
 
+    project_dir = os.path.join(tmp_dir, 'test_project')
+
+    settings.tmp_dir = tmp_dir
     settings.DEBUG = True
     settings.PROJECT_ROOT = project_dir
     settings.CACHE_PATH = os.path.join(project_dir, "cache")
@@ -57,7 +59,7 @@ def settings(base_settings, request):
         pass
 
     def fin():
-        shutil.rmtree(base_settings.PROJECT_ROOT, ignore_errors=True)
+        shutil.rmtree(base_settings.tmp_dir, ignore_errors=True)
     request.addfinalizer(fin)
     return base_settings
 
