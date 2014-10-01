@@ -64,8 +64,8 @@ def settings(base_settings, request):
     return base_settings
 
 @pytest.fixture(scope='session')
-def MyModel(settings, request):
-
+def MyModelBase(settings):
+    
     class MyModel(models.Model):
 
         input_stream = [Datum({'foo': str(i), 'bar': 2 * i}, i**2)
@@ -78,7 +78,12 @@ def MyModel(settings, request):
         def main(data, foo, bar, some_var):
             return data // some_var
 
+    return MyModel
+
+@pytest.fixture(scope='session')
+def MyModel(MyModelBase, settings, request):
+
     Base.metadata.create_all(settings.engine)
     request.addfinalizer(lambda: Base.metadata.drop_all(settings.engine))
 
-    return MyModel
+    return MyModelBase
