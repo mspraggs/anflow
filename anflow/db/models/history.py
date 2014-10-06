@@ -14,8 +14,6 @@ from anflow.db.models.base import BaseModel
 
 class History(BaseModel):
 
-    __tablename__ = "project_history"
-
     studies = Column(PickleType)
     run_models = Column(Boolean)
     run_views = Column(Boolean)
