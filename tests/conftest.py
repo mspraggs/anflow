@@ -7,6 +7,7 @@ from datetime import datetime
 import logging
 import os
 import shutil
+import sys
 
 import pytest
 from sqlalchemy import Column, Float, Integer, String
@@ -48,6 +49,8 @@ def base_settings():
                                "bar"]
 
     settings.configure()
+
+    sys.path.insert(0, settings.PROJECT_ROOT)
 
     return settings
 
