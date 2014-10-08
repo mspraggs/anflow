@@ -55,6 +55,14 @@ class TestManager(object):
         manager = Manager([])
         assert len(manager.anflow_commands.items()) > 0
 
+class TestUtils(object):
+
+    def test_gather_models(self, model_files_setup, settings):
+
+        from anflow.core.management.utils import gather_models
+        models = gather_models(settings.ACTIVE_STUDIES)
+        assert len(models) == 1
+
 class TestStartProject(object):
 
     def test_main(self, base_settings):
