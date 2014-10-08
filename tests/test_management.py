@@ -15,40 +15,23 @@ from anflow.core.management import Manager
 
 
 @pytest.fixture
-def model_files_setup(settings):
+def project_files_setup(base_settings, request):
     """Fixture for setting up model files - basically dump the MyModel source to
     the foo models file"""
-    source_file = os.path.join(os.path.dirname(__file__),
-                               "static/dummy_model.py")
-    models_filename = os.path.join(settings.PROJECT_ROOT,
-                                   settings.COMPONENT_TEMPLATE
-                                   .format(study_name="foo",
-                                           component="models.py"))
-    init_filename = os.path.join(os.path.dirname(models_filename),
-                                 "__init__.py")
+    src_dir = os.path.join(os.path.dirname(__file__),
+                           'static/dummy_project')
+    dest_dir = base_settings.PROJECT_ROOT
+        
+    def fin():
+        shutil.rmtree(base_settings.tmp_dir, ignore_errors=True)
+        
     try:
-        os.makedirs(os.path.dirname(models_filename))
-        with open(init_filename, 'a') as f:
-            pass
+        shutil.copytree(src_dir, dest_dir)
     except OSError:
-        pass
-    shutil.copyfile(source_file, models_filename)
-
-    models_filename = os.path.join(settings.PROJECT_ROOT,
-                                   settings.COMPONENT_TEMPLATE
-                                   .format(study_name="bar",
-                                           component="models.py"))
-    init_filename = os.path.join(os.path.dirname(models_filename),
-                                 "__init__.py")
-    try:
-        os.makedirs(os.path.dirname(models_filename))
-        with open(init_filename, 'a') as f:
-            pass
-    except OSError:
-        pass
-    with open(models_filename, 'w') as f:
-        pass
-
+        fin()
+        shutil.copytree(src_dir, dest_dir)
+    request.addfinalizer(fin)
+        
 class TestManager(object):
 
     def test_constructor(self, settings):
@@ -57,7 +40,7 @@ class TestManager(object):
 
 class TestUtils(object):
 
-    def test_gather_models(self, model_files_setup, settings):
+    def test_gather_models(self, project_files_setup, settings):
 
         from anflow.core.management.utils import gather_models
         models = gather_models(settings.ACTIVE_STUDIES)
