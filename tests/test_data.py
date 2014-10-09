@@ -40,6 +40,14 @@ def random_datum(request, tmp_dir):
     params = {'a': 1, 'b': 2}
 
     datum = Datum(params, data, file_prefix=tmp_dir+'/some_measurement_')
+    
+    def fin():
+        try:
+            os.unlink(datum._filewrapper.filename)
+        except OSError:
+            pass
+    
+    request.addfinalizer(fin)
 
     return {'datum': datum,
             'data': data,
