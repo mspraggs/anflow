@@ -53,6 +53,29 @@ def random_datum(request, tmp_dir):
             'data': data,
             'params': params}
 
+@pytest.fixture
+def random_dataset(request, tmp_dir):
+
+    data = random.sample(range(100), 10)
+    dataset = DataSet()
+    filenames = []
+    for a, b in product(range(1, 5), range(7, 10)):
+        params = {'a': a, 'b': b}
+        datum = Datum(params, data, file_prefix=tmp_dir+'/')
+        filenames.append(datum._filename)        
+        dataset.append(datum)
+
+    def fin():
+        for filename in filenames:
+            try:
+                os.unlink(filename)
+            except OSError:
+                pass
+
+    request.addfinalizer(fin)
+
+    return dataset
+
 class TestFilewrapper(object):
 
     def test_init(self, random_wrapper):
