@@ -95,5 +95,27 @@ class Datum(object):
 
         return new_datum
 
-class DataSet(object):
-    pass
+class DataSet(list):
+    
+    def filter(self, **kwargs):
+        """Filter the dataset according to the supplied kwargs"""
+
+        out = self
+        for key, value in kwargs.items():
+            if key.endswith('__gt'):
+                filter_func = lambda x: getattr(x, key[:-4]) > value
+            elif key.endswith('__gte'):
+                filter_func = lambda x: getattr(x, key[:-5]) >= value
+            elif key.endswith('__lt'):
+                filter_func = lambda x: getattr(x, key[:-4]) < value
+            elif key.endswith('__lte'):
+                filter_func = lambda x: getattr(x, key[:-5]) <= value
+            elif key.endswith('__aprx'):
+                abs_value = abs(value)
+                def filter_func(x):
+                    return abs(getattr(x, key[:-6]) - value) <= 1e-8 * abs_value
+            else:
+                filter_func = lambda x: getattr(x, key) == value
+
+            out = DataSet(filter(filter_func, out))
+        return out
