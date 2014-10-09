@@ -9,7 +9,7 @@ import random
 
 import pytest
 
-from anflow.data import FileWrapper#, Datum, DataSet
+from anflow.data import FileWrapper, Datum, DataSet
 
 @pytest.fixture
 def random_wrapper(request, tmp_dir):
@@ -33,6 +33,18 @@ def random_wrapper(request, tmp_dir):
             'loader': loader,
             'timestamp': timestamp}
 
+@pytest.fixture
+def random_datum(request, tmp_dir):
+
+    data = random.sample(range(100), 10)
+    params = {'a': 1, 'b': 2}
+
+    datum = Datum(params, data, file_prefix=tmp_dir+'/some_measurement_')
+
+    return {'datum': datum,
+            'data': data,
+            'params': params}
+
 class TestFilewrapper(object):
 
     def test_init(self, random_wrapper):
@@ -46,3 +58,29 @@ class TestFilewrapper(object):
         assert random_wrapper['wrapper'].data == random_wrapper['data']
         assert hasattr(random_wrapper['wrapper'], '_data')
         assert random_wrapper['wrapper']._data == random_wrapper['data']
+
+class TestDatum(object):
+
+    def test_init(self, random_datum, tmp_dir):
+        """Test __init__ function"""
+        expected_filename = tmp_dir + "/some_measurement_a1_b2.pkl"
+        assert random_datum['datum']._filename == expected_filename
+        assert random_datum['datum']._params == set(['a', 'b'])
+        for attr, val in random_datum['params'].items():
+            assert getattr(random_datum['datum'], attr) == val
+
+    def test_paramsdict(self, random_datum):
+
+        assert random_datum['datum'].params == {'a': 1, 'b': 2}
+
+    def test_save(self, random_datum, tmp_dir):
+        """Test the save function of the Datum class"""
+        random_datum['datum'].save()
+        
+        expected_filename = tmp_dir + "/some_measurement_a1_b2.pkl"
+        assert os.path.exists(expected_filename)
+        
+        with open(expected_filename) as f:
+            contents = pickle.load(f)
+        assert contents[0] == random_datum['params']
+        assert contents[1] == random_datum['data']
