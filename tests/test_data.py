@@ -6,6 +6,7 @@ try:
 except ImportError:
     import pickle
 import random
+import shelve
 
 import pytest
 
@@ -38,12 +39,11 @@ def random_datum(request, tmp_dir):
 
     data = random.sample(range(100), 10)
     params = {'a': 1, 'b': 2}
-
     datum = Datum(params, data, file_prefix=tmp_dir+'/some_measurement_')
     
     def fin():
         try:
-            os.unlink(datum._filewrapper.filename)
+            os.unlink(datum._filename)
         except OSError:
             pass
     
@@ -74,8 +74,7 @@ class TestDatum(object):
     def test_init(self, random_datum, tmp_dir):
         """Test __init__ function"""
         expected_filename = tmp_dir + "/some_measurement_a1_b2.pkl"
-        assert (random_datum['datum']._filewrapper.filename
-                == expected_filename)
+        assert random_datum['datum']._filename == expected_filename
         assert random_datum['datum']._params == set(['a', 'b'])
         for attr, val in random_datum['params'].items():
             assert getattr(random_datum['datum'], attr) == val
@@ -90,8 +89,8 @@ class TestDatum(object):
         
         expected_filename = tmp_dir + "/some_measurement_a1_b2.pkl"
         assert os.path.exists(expected_filename)
-        
-        with open(expected_filename) as f:
-            contents = pickle.load(f)
-        assert contents[0] == random_datum['params']
-        assert contents[1] == random_datum['data']
+
+        shelf = shelve.open(expected_filename, protocol=2)
+        assert shelf['params'] == random_datum['params']
+        assert shelf['data'] == random_datum['data']
+        shelf.close()

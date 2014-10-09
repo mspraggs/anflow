@@ -5,6 +5,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+import shelve
 
 
 
@@ -34,17 +35,16 @@ class Datum(object):
 
     def __init__(self, params, data, file_prefix=None):
         """Constructor"""
-        def loader(filename, obj):
-            with open(filename) as f:
-                return pickle.load(f, 2)
+
+        file_prefix = file_prefix or ""
         
         filename = (file_prefix
                     + "_".join(["{}{}".format(key, val)
                                 for key, val in params.items()])
                     + ".pkl")
-        self._filewrapper = FileWrapper(filename, loader)
-        self._filewrapper._data = data
+        self._filename = filename
         self._params = set(params.keys())
+        self._data = data
 
         for key, value in params.items():
             setattr(self, key, value)
@@ -66,10 +66,34 @@ class Datum(object):
     @property
     def data(self):
         """Try to return the data if it's present, else load from disk"""
-        return self._filewrapper.data
+        try:
+            return self._data
+        except AttributeError:
+            shelf = shelve.open(self._filename, protocol=2)
+            self._data = shelf['data']
+            shelf.close()
+            return self._data
 
     def save(self):
         """Saves the datum to disk"""
-        obj = (self.params, self.data)
-        with open(self._filewrapper.filename, 'wb') as f:
-            pickle.dump(obj, f, 2)
+        shelf = shelve.open(self._filename, protocol=2)
+        shelf['params'] = self.params
+        shelf['data'] = self.data
+        shelf.close()
+
+    @classmethod
+    def load(cls, filename):
+        """Lazy-loads the object from disk"""
+
+        shelf = shelve.open(filename, protocol=2)
+        params = shelf['params']
+        shelf.close()
+
+        new_datum = cls(params, None)
+        delattr(new_datum, '_data')
+        new_datum._filename = filename
+
+        return new_datum
+
+class DataSet(object):
+    pass
