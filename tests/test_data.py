@@ -79,8 +79,8 @@ class TestDatum(object):
         for attr, val in random_datum['params'].items():
             assert getattr(random_datum['datum'], attr) == val
 
-    def test_paramsdict(self, random_datum):
-
+    def test_params(self, random_datum):
+        """Test that the parameters can be constructed properly"""
         assert random_datum['datum'].params == {'a': 1, 'b': 2}
 
     def test_save(self, random_datum, tmp_dir):
