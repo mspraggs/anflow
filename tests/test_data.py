@@ -60,8 +60,10 @@ def random_dataset(request, tmp_dir):
     data = random.sample(range(100), 10)
     dataset = DataSet()
     filenames = []
+    all_params = []
     for a, b in product(range(1, 5), range(7, 10)):
         params = {'a': a, 'b': b}
+        all_params.append(params)
         datum = Datum(params, data, file_prefix=tmp_dir+'/')
         filenames.append(datum._filename)        
         dataset.append(datum)
@@ -75,7 +77,7 @@ def random_dataset(request, tmp_dir):
 
     request.addfinalizer(fin)
 
-    return dataset
+    return {'dataset': dataset, 'params': all_params}
 
 class TestFilewrapper(object):
 
@@ -135,12 +137,20 @@ class TestDatum(object):
 class TestDataSet(object):
 
     def test_filter(self, random_dataset):
+        """Test filter feature of dataset"""
+        assert len(random_dataset['dataset']) == 12
+        assert len(random_dataset['dataset'].filter(a=2)) == 3
+        assert len(random_dataset['dataset'].filter(a__gt=2)) == 6
+        assert len(random_dataset['dataset'].filter(a__lt=2)) == 3
+        assert len(random_dataset['dataset'].filter(a__gte=2)) == 9
+        assert len(random_dataset['dataset'].filter(a__lte=2)) == 6
 
-        assert len(random_dataset) == 12
-        assert len(random_dataset.filter(a=2)) == 3
-        assert len(random_dataset.filter(a__gt=2)) == 6
-        assert len(random_dataset.filter(a__lt=2)) == 3
-        assert len(random_dataset.filter(a__gte=2)) == 9
-        assert len(random_dataset.filter(a__lte=2)) == 6
+        assert len(random_dataset['dataset'].filter(a=2, b__gt=8)) == 1
 
-        assert len(random_dataset.filter(a=2, b__gt=8)) == 1
+    def test_save(self, random_dataset, tmp_dir):
+
+        random_dataset['dataset'].save()
+        for params in random_dataset['params']:
+            filename = "a{a}_b{b}.pkl".format(**params)
+            expected_path = os.path.join(tmp_dir, filename)
+            assert os.path.exists(expected_path)
