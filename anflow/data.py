@@ -9,6 +9,15 @@ import shelve
 
 
 
+def generate_filename(params, prefix=None, suffix=None):
+    """Generates the filename for the given parameters"""
+
+    prefix = prefix or ""
+    suffix = suffix or ""
+    paramstring = "_".join(["{}{}".format(key, value)
+                            for key, value in params.items()])
+    return "{}{}{}".format(prefix, paramstring, suffix)
+
 class FileWrapper(object):
     """Lazy file loading wrapper"""
 
@@ -36,12 +45,7 @@ class Datum(object):
     def __init__(self, params, data, file_prefix=None):
         """Constructor"""
 
-        file_prefix = file_prefix or ""
-        
-        filename = (file_prefix
-                    + "_".join(["{}{}".format(key, val)
-                                for key, val in params.items()])
-                    + ".pkl")
+        filename = generate_filename(params, file_prefix, ".pkl")
         self._filename = filename
         self._params = set(params.keys())
         self._data = data
