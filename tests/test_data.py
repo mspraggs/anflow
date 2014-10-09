@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from itertools import product
 import os
 try:
     import cPickle as pickle
@@ -130,3 +131,14 @@ class TestDatum(object):
         assert not hasattr(new_datum, '_data')
         assert new_datum.params == random_datum['params']
         assert new_datum.data == random_datum['data']
+
+class TestDataSet(object):
+
+    def test_filter(self, random_dataset):
+
+        assert len(random_dataset) == 12
+        import time
+        t0 = time.time()
+        random_dataset.filter(a=1)
+        tf = time.time()
+        assert len(random_dataset.filter(a=1)) == 3
