@@ -26,10 +26,7 @@ class FileWrapper(object):
 
         self.filename = filename
         self.loader = loader
-        try:
-            self.timestamp = os.path.getmtime(filename)
-        except OSError:
-            None
+        self.timestamp = os.path.getmtime(filename)
 
     @property
     def data(self):
