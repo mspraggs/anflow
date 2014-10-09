@@ -119,3 +119,8 @@ class DataSet(list):
 
             out = DataSet(filter(filter_func, out))
         return out
+
+    def save(self):
+        """Save all data to disk"""
+        for datum in self:
+            datum.save()
