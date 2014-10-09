@@ -59,7 +59,8 @@ class TestFilewrapper(object):
         """Test for __init__ function"""
         assert random_wrapper['wrapper'].filename == random_wrapper['filename']
         assert random_wrapper['wrapper'].loader == random_wrapper['loader']
-        assert random_wrapper['wrapper'].timestamp == random_wrapper['timestamp']
+        assert (random_wrapper['wrapper'].timestamp
+                == random_wrapper['timestamp'])
 
     def test_data(self, random_wrapper):
         """Test function for property data"""
@@ -72,7 +73,8 @@ class TestDatum(object):
     def test_init(self, random_datum, tmp_dir):
         """Test __init__ function"""
         expected_filename = tmp_dir + "/some_measurement_a1_b2.pkl"
-        assert random_datum['datum']._filename == expected_filename
+        assert (random_datum['datum']._filewrapper.filename
+                == expected_filename)
         assert random_datum['datum']._params == set(['a', 'b'])
         for attr, val in random_datum['params'].items():
             assert getattr(random_datum['datum'], attr) == val
