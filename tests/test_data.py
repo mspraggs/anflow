@@ -94,3 +94,16 @@ class TestDatum(object):
         assert shelf['params'] == random_datum['params']
         assert shelf['data'] == random_datum['data']
         shelf.close()
+
+    def test_load(self, random_datum, tmp_dir):
+        """Test the load function of the Datum class"""
+        filename = os.path.join(tmp_dir, 'some_file.pkl')
+        shelf = shelve.open(filename, protocol=2)
+        shelf['params'] = random_datum['params']
+        shelf['data'] = random_datum['data']
+        shelf.close()
+
+        new_datum = Datum.load(filename)
+        assert not hasattr(new_datum, '_data')
+        assert new_datum.params == random_datum['params']
+        assert new_datum.data == random_datum['data']
