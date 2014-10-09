@@ -44,3 +44,5 @@ class TestFilewrapper(object):
     def test_data(self, random_wrapper):
         """Test function for property data"""
         assert random_wrapper['wrapper'].data == random_wrapper['data']
+        assert hasattr(random_wrapper['wrapper'], '_data')
+        assert random_wrapper['wrapper']._data == random_wrapper['data']

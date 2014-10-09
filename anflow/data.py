@@ -16,4 +16,8 @@ class FileWrapper(object):
 
     @property
     def data(self):
-        return self.loader(self.filename)
+        try:
+            return self._data
+        except AttributeError:
+            self._data = self.loader(self.filename)
+            return self._data
