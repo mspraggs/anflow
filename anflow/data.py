@@ -16,7 +16,10 @@ class FileWrapper(object):
 
         self.filename = filename
         self.loader = loader
-        self.timestamp = os.path.getmtime(filename)
+        try:
+            self.timestamp = os.path.getmtime(filename)
+        except OSError:
+            None
 
     @property
     def data(self):
@@ -27,28 +30,24 @@ class FileWrapper(object):
             return self._data
 
 class Datum(object):
+    """Holds a simulation result"""
 
-    def __init__(self, params, data, file_prefix=None, saver=None):
+    def __init__(self, params, data, file_prefix=None):
         """Constructor"""
-        if not saver:
-            def saver(filename, obj):
-                with open(filename, 'w') as f:
-                    pickle.dump(obj, f)
-            extension = ".pkl"
-        else:
-            extension = ""
-        self._saver = saver
+        def loader(filename, obj):
+            with open(filename) as f:
+                return pickle.load(f, 2)
         
         filename = (file_prefix
                     + "_".join(["{}{}".format(key, val)
                                 for key, val in params.items()])
-                    + extension)
-        self._filename = filename
+                    + ".pkl")
+        self._filewrapper = FileWrapper(filename, loader)
+        self._filewrapper._data = data
         self._params = set(params.keys())
 
         for key, value in params.items():
             setattr(self, key, value)
-        self.data = data
     
     def __getattribute__(self, attr):
         return object.__getattribute__(self, attr)
@@ -64,8 +63,13 @@ class Datum(object):
         """Generate the dictionary of parameter values"""
         return dict([(key, getattr(self, key)) for key in self._params])
 
+    @property
+    def data(self):
+        """Try to return the data if it's present, else load from disk"""
+        return self._filewrapper.data
+
     def save(self):
         """Saves the datum to disk"""
-
         obj = (self.params, self.data)
-        self._saver(self._filename, obj)
+        with open(self._filewrapper.filename, 'wb') as f:
+            pickle.dump(obj, f, 2)
