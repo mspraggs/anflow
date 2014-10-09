@@ -137,8 +137,10 @@ class TestDataSet(object):
     def test_filter(self, random_dataset):
 
         assert len(random_dataset) == 12
-        import time
-        t0 = time.time()
-        random_dataset.filter(a=1)
-        tf = time.time()
-        assert len(random_dataset.filter(a=1)) == 3
+        assert len(random_dataset.filter(a=2)) == 3
+        assert len(random_dataset.filter(a__gt=2)) == 6
+        assert len(random_dataset.filter(a__lt=2)) == 3
+        assert len(random_dataset.filter(a__gte=2)) == 9
+        assert len(random_dataset.filter(a__lte=2)) == 6
+
+        assert len(random_dataset.filter(a=2, b__gt=8)) == 1
