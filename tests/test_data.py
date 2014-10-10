@@ -98,6 +98,8 @@ class TestFunctions(object):
         params = [{'b': i} for i in range(7, 10)]
         data = gather_data(tmp_dir, data_params, params=params)
         assert len(data) == 12
+        data = gather_data(tmp_dir, data_params=random_dataset['params'])
+        assert len(data) == 12
 
 class TestFilewrapper(object):
 
