@@ -33,7 +33,7 @@ def gather_data(data_dir, data_params, file_prefix=None, params=None):
                 if os.path.exists(path):
                     dataset.append(Datum.load(path))
         else:
-            filename = generate_filename(collected_params,
+            filename = generate_filename(data_param,
                                          file_prefix, ".pkl")
             path = os.path.join(data_dir, filename)
             if os.path.exists(path):
