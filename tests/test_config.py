@@ -9,7 +9,7 @@ from anflow.config import Config
 
 
 @pytest.fixture
-def settings(tmp_dir):
+def settings(tmp_dir, request):
 
     class Obj(object):
         pass
@@ -25,6 +25,8 @@ def settings(tmp_dir):
             f.write('{} = {}\n'.format(key, value.__repr__()))
 
     os.environ['PROJECT_SETTINGS'] = filename
+
+    request.addfinalizer(lambda: os.unlink(filename))
 
     return {'dict': ret, 'obj': obj, 'file': filename,
             'envvar': 'PROJECT_SETTINGS'}
