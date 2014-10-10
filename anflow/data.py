@@ -6,6 +6,7 @@ try:
 except ImportError:
     import pickle
 import shelve
+import time
 
 
 
@@ -68,6 +69,7 @@ class Datum(object):
         self._filename = filename
         self._params = set(params.keys())
         self._data = data
+        self.timestamp = None
 
         for key, value in params.items():
             setattr(self, key, value)
@@ -76,7 +78,7 @@ class Datum(object):
         return object.__getattribute__(self, attr)
     
     def __setattr__(self, attr, value):
-        non_params = ["params", "data"]
+        non_params = ["params", "data", "timestamp"]
         if not attr.startswith('_') and attr not in non_params:
             self._params.add(attr)
         return object.__setattr__(self, attr, value)
@@ -102,6 +104,8 @@ class Datum(object):
         shelf = shelve.open(self._filename, protocol=2)
         shelf['params'] = self.params
         shelf['data'] = self.data
+        self.timestamp = time.time()
+        shelf['timestamp'] = self.timestamp
         shelf.close()
 
     @classmethod
@@ -110,11 +114,13 @@ class Datum(object):
 
         shelf = shelve.open(filename, protocol=2)
         params = shelf['params']
+        timestamp = shelf['timestamp']
         shelf.close()
 
         new_datum = cls(params, None)
         delattr(new_datum, '_data')
         new_datum._filename = filename
+        new_datum.timestamp = timestamp
 
         return new_datum
 

@@ -8,6 +8,7 @@ except ImportError:
     import pickle
 import random
 import shelve
+import time
 
 import pytest
 
@@ -133,7 +134,9 @@ class TestDatum(object):
 
     def test_save(self, random_datum, tmp_dir):
         """Test the save function of the Datum class"""
+        t1 = time.time()
         random_datum['datum'].save()
+        t2 = time.time()
         
         expected_filename = tmp_dir + "/some_measurement_a1_b2.pkl"
         assert os.path.exists(expected_filename)
@@ -141,20 +144,24 @@ class TestDatum(object):
         shelf = shelve.open(expected_filename, protocol=2)
         assert shelf['params'] == random_datum['params']
         assert shelf['data'] == random_datum['data']
+        assert t1 < shelf['timestamp'] < t2
         shelf.close()
 
     def test_load(self, random_datum, tmp_dir):
         """Test the load function of the Datum class"""
         filename = os.path.join(tmp_dir, 'some_file.pkl')
+        timestamp = time.time()
         shelf = shelve.open(filename, protocol=2)
         shelf['params'] = random_datum['params']
         shelf['data'] = random_datum['data']
+        shelf['timestamp'] = timestamp
         shelf.close()
 
         new_datum = Datum.load(filename)
         assert not hasattr(new_datum, '_data')
         assert new_datum.params == random_datum['params']
         assert new_datum.data == random_datum['data']
+        assert new_datum.timestamp == timestamp
 
 class TestDataSet(object):
 
