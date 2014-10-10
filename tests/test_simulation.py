@@ -39,3 +39,4 @@ class TestSimulation(object):
         assert sim.models == {'some_func': (some_func, input_data, None)}
         assert hasattr(some_func, 'results')
         assert len(some_func.results) == 0
+        assert some_func.results._parent == some_func
