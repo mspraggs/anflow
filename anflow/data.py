@@ -30,12 +30,14 @@ def gather_data(data_dir, data_params, file_prefix=None, params=None):
                 filename = generate_filename(collected_params,
                                              file_prefix, ".pkl")
                 path = os.path.join(data_dir, filename)
-                dataset.append(Datum.load(path))
+                if os.path.exists(path):
+                    dataset.append(Datum.load(path))
         else:
             filename = generate_filename(collected_params,
                                          file_prefix, ".pkl")
             path = os.path.join(data_dir, filename)
-            dataset.append(Datum.load(path))
+            if os.path.exists(path):
+                dataset.append(Datum.load(path))
     return dataset                
 
 class FileWrapper(object):
