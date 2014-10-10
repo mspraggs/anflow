@@ -23,4 +23,6 @@ class TestSimulation(object):
     def test_init(self, sim, tmp_dir):
         """Test object constructor"""
         assert hasattr(sim, 'config')
-        assert sim.results_dir == os.path.join(tmp_dir, "results")
+        assert sim.config.RESULTS_DIR == os.path.join(tmp_dir, "results")
+
+    
