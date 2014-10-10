@@ -102,32 +102,42 @@ class Datum(object):
 
         return new_datum
 
-class DataSet(list):
+class DataSet(object):
+
+    def __init__(self, params, prefix=None):
+        """Constructor - initialize parameter set"""
+        self._params = params
+        self._prefix = prefix
     
     def filter(self, **kwargs):
         """Filter the dataset according to the supplied kwargs"""
 
-        out = self
+        new_params = self._params[:]
         for key, value in kwargs.items():
             if key.endswith('__gt'):
-                filter_func = lambda x: getattr(x, key[:-4]) > value
+                filter_func = lambda d: d[key[:-4]] > value
             elif key.endswith('__gte'):
-                filter_func = lambda x: getattr(x, key[:-5]) >= value
+                filter_func = lambda d: d[key[:-5]] >= value
             elif key.endswith('__lt'):
-                filter_func = lambda x: getattr(x, key[:-4]) < value
+                filter_func = lambda d: d[key[:-4]] < value
             elif key.endswith('__lte'):
-                filter_func = lambda x: getattr(x, key[:-5]) <= value
+                filter_func = lambda d: d[key[:-5]] <= value
             elif key.endswith('__aprx'):
                 abs_value = abs(value)
-                def filter_func(x):
-                    return abs(getattr(x, key[:-6]) - value) <= 1e-8 * abs_value
+                def filter_func(d):
+                    return abs(d[key[:-6]] - value) <= 1e-8 * abs_value
             else:
-                filter_func = lambda x: getattr(x, key) == value
+                filter_func = lambda d: d[key] == value
 
-            out = DataSet(filter(filter_func, out))
-        return out
+            new_params = filter(filter_func, new_params)
+        return DataSet(new_params, self._prefix)
 
-    def save(self):
-        """Save all data to disk"""
-        for datum in self:
-            datum.save()
+    def all(self):
+        """Return a list of all Datum objects matched by the current
+        parameters"""
+        output = []
+        for params in self._params:
+            filename = generate_filename(params, self._prefix, '.pkl')
+            output.append(Datum.load(filename))
+
+        return output
