@@ -76,7 +76,7 @@ def random_dataset(request, tmp_dir):
         shelf.close()
         filenames.append(filename)
         
-    dataset = DataSet(all_params)
+    dataset = DataSet(all_params, tmp_dir + '/')
 
     def fin():
         for filename in filenames:
@@ -159,10 +159,10 @@ class TestDatum(object):
 
 class TestDataSet(object):
 
-    def test_init(self, random_dataset):
+    def test_init(self, random_dataset, tmp_dir):
 
         assert random_dataset['dataset']._params == random_dataset['params']
-        assert random_dataset['dataset']._prefix is None
+        assert random_dataset['dataset']._prefix == tmp_dir + '/'
 
     def test_filter(self, random_dataset):
         """Test filter feature of dataset"""
