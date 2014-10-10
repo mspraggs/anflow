@@ -181,3 +181,13 @@ class TestDataSet(object):
         assert len(random_dataset['dataset'].all()) == 12
         for datum in random_dataset['dataset'].all():
             assert isinstance(datum, Datum)
+
+    def test_first(self, random_dataset):
+        """Test for DataSet.first"""
+        assert isinstance(random_dataset['dataset'].first(), Datum)
+
+    def test_iter(self, random_dataset):
+        """Test for DataSet.__iter__"""
+
+        for datum in random_dataset['dataset']:
+            assert isinstance(datum, Datum)
