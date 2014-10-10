@@ -37,3 +37,4 @@ class TestSimulation(object):
             pass
 
         assert sim.models == {'some_func': (some_func, input_data, params)}
+        assert hasattr(some_func, 'results')
