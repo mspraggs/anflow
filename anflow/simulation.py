@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from anflow.config import Config
-from anflow.data import gather_data
+from anflow.data import Datum
 
 
 

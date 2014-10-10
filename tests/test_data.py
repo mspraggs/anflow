@@ -12,8 +12,7 @@ import time
 
 import pytest
 
-from anflow.data import (generate_filename, gather_data,
-                         FileWrapper, Datum, DataSet)
+from anflow.data import generate_filename, FileWrapper, Datum, DataSet
 
 
 
