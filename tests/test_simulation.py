@@ -26,3 +26,10 @@ class TestSimulation(object):
         assert sim.config.RESULTS_DIR == os.path.join(tmp_dir, "results")
 
     
+    def test_register_model(self, sim):
+        """Test Simulation.register_model"""
+
+        params = {'a': 1}
+        @sim.register_model(input_data=[Datum(params, 1.0)])
+        def some_func(data):
+            pass
