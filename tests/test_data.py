@@ -58,19 +58,26 @@ def random_datum(request, tmp_dir):
             'data': data,
             'params': params}
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def random_dataset(request, tmp_dir):
 
     data = random.sample(range(100), 10)
-    dataset = DataSet()
     filenames = []
     all_params = []
     for a, b in product(range(1, 5), range(7, 10)):
         params = {'a': a, 'b': b}
         all_params.append(params)
-        datum = Datum(params, data, file_prefix=tmp_dir+'/')
-        filenames.append(datum._filename)        
-        dataset.append(datum)
+        filename = "_".join(["{}{}".format(key, value)
+                             for key, value in params.items()])
+        filename = "{}/{}.pkl".format(tmp_dir, filename)
+        shelf = shelve.open(filename, 'c')
+        shelf['params'] = params
+        shelf['data'] = data
+        shelf['timestamp'] = time.time()
+        shelf.close()
+        filenames.append(filename)
+        
+    dataset = DataSet(all_params)
 
     def fin():
         for filename in filenames:
@@ -78,7 +85,6 @@ def random_dataset(request, tmp_dir):
                 os.unlink(filename)
             except OSError:
                 pass
-
     request.addfinalizer(fin)
 
     return {'dataset': dataset, 'params': all_params}
@@ -90,17 +96,6 @@ class TestFunctions(object):
         params = {'a': 4, 'blah': 2, 'ds': 'ok'}
         filename = generate_filename(params, "some_prefix_", ".pkl")
         assert filename == "some_prefix_a4_blah2_dsok.pkl"
-
-    def test_gather_data(self, random_dataset, tmp_dir):
-        """Test gather_data"""
-        random_dataset['dataset'].save()
-
-        data_params = [{'a': i} for i in range(1, 5)]
-        params = [{'b': i} for i in range(7, 10)]
-        data = gather_data(tmp_dir, data_params, params=params)
-        assert len(data) == 12
-        data = gather_data(tmp_dir, data_params=random_dataset['params'])
-        assert len(data) == 12
 
 class TestFilewrapper(object):
 
@@ -165,21 +160,25 @@ class TestDatum(object):
 
 class TestDataSet(object):
 
+    def test_init(self, random_dataset):
+
+        assert random_dataset['dataset']._params == random_dataset['params']
+        assert random_dataset['dataset']._prefix is None
+
     def test_filter(self, random_dataset):
         """Test filter feature of dataset"""
-        assert len(random_dataset['dataset']) == 12
-        assert len(random_dataset['dataset'].filter(a=2)) == 3
-        assert len(random_dataset['dataset'].filter(a__gt=2)) == 6
-        assert len(random_dataset['dataset'].filter(a__lt=2)) == 3
-        assert len(random_dataset['dataset'].filter(a__gte=2)) == 9
-        assert len(random_dataset['dataset'].filter(a__lte=2)) == 6
+        assert len(random_dataset['dataset']._params) == 12
+        assert len(random_dataset['dataset'].filter(a=2)._params) == 3
+        assert len(random_dataset['dataset'].filter(a__gt=2)._params) == 6
+        assert len(random_dataset['dataset'].filter(a__lt=2)._params) == 3
+        assert len(random_dataset['dataset'].filter(a__gte=2)._params) == 9
+        assert len(random_dataset['dataset'].filter(a__lte=2)._params) == 6
 
-        assert len(random_dataset['dataset'].filter(a=2, b__gt=8)) == 1
+        assert len(random_dataset['dataset'].filter(a=2, b__gt=8)._params) == 1
 
-    def test_save(self, random_dataset, tmp_dir):
-
-        random_dataset['dataset'].save()
-        for params in random_dataset['params']:
-            filename = "a{a}_b{b}.pkl".format(**params)
-            expected_path = os.path.join(tmp_dir, filename)
-            assert os.path.exists(expected_path)
+    def test_all(self, random_dataset):
+        """Test for DataSet.all"""
+        assert isinstance(random_dataset['dataset'].all(), list)
+        assert len(random_dataset['dataset'].all()) == 12
+        for datum in random_dataset['dataset'].all():
+            assert isinstance(datum, Datum)
