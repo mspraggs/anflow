@@ -36,8 +36,7 @@ def gather_data(data_dir, data_params, file_prefix=None, params=None):
                                          file_prefix, ".pkl")
             path = os.path.join(data_dir, filename)
             dataset.append(Datum.load(path))
-    return dataset
-                
+    return dataset                
 
 class FileWrapper(object):
     """Lazy file loading wrapper"""
