@@ -189,5 +189,9 @@ class TestDataSet(object):
     def test_iter(self, random_dataset):
         """Test for DataSet.__iter__"""
 
+        counter = 0
         for datum in random_dataset['dataset']:
             assert isinstance(datum, Datum)
+            counter += 1
+
+        assert counter == len(random_dataset['params']) == counter

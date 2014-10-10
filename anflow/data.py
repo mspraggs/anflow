@@ -108,6 +108,8 @@ class DataSet(object):
         """Constructor - initialize parameter set"""
         self._params = params
         self._prefix = prefix
+
+        self._counter = 0
     
     def filter(self, **kwargs):
         """Filter the dataset according to the supplied kwargs"""
@@ -141,3 +143,24 @@ class DataSet(object):
             output.append(Datum.load(filename))
 
         return output
+
+    def first(self):
+        """Return the first item in the DataSet"""
+        filename = generate_filename(self._params[0], self._prefix, '.pkl')
+        return Datum.load(filename)
+
+    def __iter__(self):
+        """Return the iterator for the dataset"""
+        return self
+
+    def next(self):
+        """Next function for iterating"""
+        if self._counter >= len(self._params):
+            self._counter = 0
+            raise StopIteration
+        else:
+            filename = generate_filename(self._params[self._counter],
+                                         self._prefix, '.pkl')
+            self._counter += 1
+            return Datum.load(filename)
+            
