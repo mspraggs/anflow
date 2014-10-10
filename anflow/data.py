@@ -19,28 +19,6 @@ def generate_filename(params, prefix=None, suffix=None):
                             for key, value in params.items()])
     return "{}{}{}".format(prefix, paramstring, suffix)
 
-def gather_data(data_dir, data_params, file_prefix=None, params=None):
-
-    file_prefix = file_prefix or ""
-    dataset = DataSet()
-    for data_param in data_params:
-        if params:
-            for param in params:
-                collected_params = data_param.copy()
-                collected_params.update(param)
-                filename = generate_filename(collected_params,
-                                             file_prefix, ".pkl")
-                path = os.path.join(data_dir, filename)
-                if os.path.exists(path):
-                    dataset.append(Datum.load(path))
-        else:
-            filename = generate_filename(data_param,
-                                         file_prefix, ".pkl")
-            path = os.path.join(data_dir, filename)
-            if os.path.exists(path):
-                dataset.append(Datum.load(path))
-    return dataset                
-
 class FileWrapper(object):
     """Lazy file loading wrapper"""
 
