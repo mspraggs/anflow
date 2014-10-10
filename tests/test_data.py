@@ -11,7 +11,8 @@ import shelve
 
 import pytest
 
-from anflow.data import (generate_filename, FileWrapper, Datum, DataSet)
+from anflow.data import (generate_filename, gather_data,
+                         FileWrapper, Datum, DataSet)
 
 @pytest.fixture
 def random_wrapper(request, tmp_dir):
@@ -87,13 +88,13 @@ class TestFunctions(object):
         filename = generate_filename(params, "some_prefix_", ".pkl")
         assert filename == "some_prefix_a4_blah2_dsok.pkl"
 
-    def test_gather_data(self, random_dataset):
+    def test_gather_data(self, random_dataset, tmp_dir):
         """Test gather_data"""
-        random_dataset.save()
+        random_dataset['dataset'].save()
 
         data_params = [{'a': i} for i in range(1, 5)]
         params = [{'b': i} for i in range(7, 10)]
-        data = gather_data(tmp_dir, data_params, params)
+        data = gather_data(tmp_dir, data_params, params=params)
         assert len(data) == 12
 
 class TestFilewrapper(object):
