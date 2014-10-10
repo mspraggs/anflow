@@ -36,5 +36,6 @@ class TestSimulation(object):
         def some_func(data):
             pass
 
-        assert sim.models == {'some_func': (some_func, input_data, params)}
+        assert sim.models == {'some_func': (some_func, input_data, None)}
         assert hasattr(some_func, 'results')
+        assert len(some_func.results) == 0
