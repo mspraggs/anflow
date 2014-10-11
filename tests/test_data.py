@@ -14,6 +14,8 @@ import pytest
 
 from anflow.data import generate_filename, FileWrapper, Datum, DataSet
 
+from .utils import count_shelve_files, delete_shelve_files
+
 
 
 @pytest.fixture
@@ -45,13 +47,7 @@ def random_datum(request, tmp_dir):
     params = {'a': 1, 'b': 2}
     datum = Datum(params, data, file_prefix=tmp_dir+'/some_measurement_')
     
-    def fin():
-        try:
-            os.unlink(datum._filename)
-        except OSError:
-            pass
-    
-    request.addfinalizer(fin)
+    request.addfinalizer(lambda: delete_shelve_files(datum._filename))
 
     return {'datum': datum,
             'data': data,
@@ -80,10 +76,7 @@ def random_dataset(request, tmp_dir):
 
     def fin():
         for filename in filenames:
-            try:
-                os.unlink(filename)
-            except OSError:
-                pass
+            delete_shelve_files(filename)
     request.addfinalizer(fin)
 
     return {'dataset': dataset, 'params': all_params}
@@ -169,17 +162,9 @@ class TestDatum(object):
         extensions = ['', '.bak', '.dat', '.dir', '.pag', '.db']
         
         new_datum = Datum.load(filename)
-        counter = 0
-        for extension in extensions:
-            if os.path.exists(filename + extension):
-                counter += 1
-        assert counter > 0
+        assert count_shelve_files(filename) > 0
         new_datum.delete()
-        counter = 0
-        for extension in extensions:
-            if os.path.exists(filename + extension):
-                counter += 1
-        assert counter == 0
+        assert count_shelve_files(filename) == 0
 
 class TestDataSet(object):
 
