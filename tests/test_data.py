@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 from itertools import product
 import os
@@ -49,9 +50,9 @@ def random_datum_file(tmp_dir, random_datum, request):
     timestamp = time.time()
     filename = tmp_dir + "/a1_b1.pkl"
     shelf = shelve.open(filename, protocol=2)
-    shelf['params'] = random_datum['params']
-    shelf['data'] = random_datum['data']
-    shelf['timestamp'] = timestamp
+    shelf[b'params'] = random_datum['params']
+    shelf[b'data'] = random_datum['data']
+    shelf[b'timestamp'] = timestamp
     shelf.close()
 
     request.addfinalizer(lambda: delete_shelve_files(filename))
@@ -72,9 +73,9 @@ def random_dataset(request, tmp_dir):
                              for key, value in params.items()])
         filename = "{}/{}.pkl".format(tmp_dir, filename)
         shelf = shelve.open(filename, 'c')
-        shelf['params'] = params
-        shelf['data'] = data
-        shelf['timestamp'] = time.time()
+        shelf[b'params'] = params
+        shelf[b'data'] = data
+        shelf[b'timestamp'] = time.time()
         shelf.close()
         filenames.append(filename)
         
@@ -135,9 +136,9 @@ class TestDatum(object):
         assert os.path.exists(expected_filename)
 
         shelf = shelve.open(expected_filename, protocol=2)
-        assert shelf['params'] == random_datum['params']
-        assert shelf['data'] == random_datum['data']
-        assert t1 < shelf['timestamp'] < t2
+        assert shelf[b'params'] == random_datum['params']
+        assert shelf[b'data'] == random_datum['data']
+        assert t1 < shelf[b'timestamp'] < t2
         shelf.close()
 
     def test_load(self, random_datum_file, tmp_dir):

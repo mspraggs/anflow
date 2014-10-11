@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import anydbm
 import os
@@ -76,17 +77,17 @@ class Datum(object):
             return self._data
         except AttributeError:
             shelf = shelve.open(self._filename, protocol=2)
-            self._data = shelf['data']
+            self._data = shelf[b'data']
             shelf.close()
             return self._data
 
     def save(self):
         """Saves the datum to disk"""
         shelf = shelve.open(self._filename, protocol=2)
-        shelf['params'] = self.params
-        shelf['data'] = self.data
+        shelf[b'params'] = self.params
+        shelf[b'data'] = self.data
         self.timestamp = time.time()
-        shelf['timestamp'] = self.timestamp
+        shelf[b'timestamp'] = self.timestamp
         shelf.close()
 
     @classmethod
@@ -94,8 +95,8 @@ class Datum(object):
         """Lazy-loads the object from disk"""
 
         shelf = shelve.open(filename, flag="r", protocol=2)
-        params = shelf['params']
-        timestamp = shelf['timestamp']
+        params = shelf[b'params']
+        timestamp = shelf[b'timestamp']
         shelf.close()
 
         new_datum = cls(params, None)
