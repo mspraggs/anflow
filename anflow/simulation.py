@@ -44,7 +44,7 @@ class Simulation(object):
             return func
         return decorator
 
-    def run_model(self, model):
+    def run_model(self, model, force=False):
         """Run a model"""
 
         func, data, parameters = self.models[model]
@@ -55,12 +55,34 @@ class Simulation(object):
         try:
             os.makedirs(self.config.RESULTS_DIR)
         except OSError:
-            pass        
-        for datum, params in product(data, parameters):
-            joint_params = {}
-            joint_params.update(datum.params)
-            joint_params.update(params)
-            kwargs = dict([(key, joint_params[key]) for key in args])
-            result = func(datum.data, **kwargs)
-            result_datum = Datum(joint_params, result, file_prefix)
-            result_datum.save()
+            pass
+
+        # Determine whether data is up to date and we should run the model
+        input_timestamp = max([datum.timestamp for datum in data])
+        results = self.models[model][0].results
+        try:
+            results = results.all()
+        except IOError:
+            results = []
+        if not results: # Check for lack of existing results
+            do_run = True
+        else:
+            results_timestamp = min([result.timestamp for result in results])
+            if results_timestamp > input_timestamp: # Check for new input
+                do_run = False
+            else:
+                do_run = True
+        # Apply override if required
+        do_run = force if force else do_run
+
+        if do_run:
+            for datum, params in product(data, parameters):
+                joint_params = {}
+                joint_params.update(datum.params)
+                joint_params.update(params)
+                kwargs = dict([(key, joint_params[key]) for key in args])
+                result = func(datum.data, **kwargs)
+                result_datum = Datum(joint_params, result, file_prefix)
+                result_datum.save()
+
+        return do_run
