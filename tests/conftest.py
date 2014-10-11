@@ -1,19 +1,20 @@
 from __future__ import absolute_import
-from __future__ import division
 from __future__ import unicode_literals
-from __future__ import print_function
 
 from datetime import datetime
 import logging
 import os
+import random
 import shutil
 import sys
 
 import pytest
 from sqlalchemy import Column, Float, Integer, String
 
-from anflow.core.wrappers import Datum
+from anflow.data import Datum
 from anflow.db import Base, models
+
+from .utils import delete_shelve_files
 
 
 
