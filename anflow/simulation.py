@@ -1,7 +1,11 @@
 from __future__ import absolute_import
 
+import inspect
+from itertools import product
+import os
+
 from anflow.config import Config
-from anflow.data import Datum
+from anflow.data import DataSet, Datum
 
 
 
@@ -42,3 +46,21 @@ class Simulation(object):
 
     def run_model(self, model):
         """Run a model"""
+
+        func, data, parameters = self.models[model]
+        args = inspect.getargspec(func).args[1:]
+        parameters = parameters or [{}]
+        file_prefix = os.path.join(self.config.RESULTS_DIR,
+                                   model + "_")
+        try:
+            os.makedirs(self.config.RESULTS_DIR)
+        except OSError:
+            pass        
+        for datum, params in product(data, parameters):
+            joint_params = {}
+            joint_params.update(datum.params)
+            joint_params.update(params)
+            kwargs = dict([(key, joint_params[key]) for key in args])
+            result = func(datum.data, **kwargs)
+            result_datum = Datum(joint_params, result, file_prefix)
+            result_datum.save()
