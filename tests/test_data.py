@@ -155,7 +155,7 @@ class TestDatum(object):
 
     def test_load(self, random_datum_file, tmp_dir):
         """Test the load function of the Datum class"""
-        new_datum = Datum.load(random_datum["filename"])
+        new_datum = Datum.load(random_datum_file["filename"])
         assert not hasattr(new_datum, '_data')
         assert new_datum.params == random_datum_file['params']
         assert new_datum.timestamp == random_datum_file["timestamp"]
@@ -163,9 +163,9 @@ class TestDatum(object):
     def test_delete(self, random_datum_file, tmp_dir):
         """Test Datum.delete"""        
         new_datum = Datum.load(random_datum_file["filename"])
-        assert count_shelve_files(filename) > 0
+        assert count_shelve_files(random_datum_file["filename"]) > 0
         new_datum.delete()
-        assert count_shelve_files(filename) == 0
+        assert count_shelve_files(random_datum_file["filename"]) == 0
 
 class TestDataSet(object):
 

@@ -12,7 +12,7 @@ def count_shelve_files(filename):
     counter = 0
     for extension in Datum._extensions:
         if os.path.exists(filename + extension):
-            couter += 1
+            counter += 1
     return counter
 
 def delete_shelve_files(filename):
