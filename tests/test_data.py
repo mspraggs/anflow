@@ -29,7 +29,7 @@ def random_wrapper(request, tmp_dir):
     timestamp = os.path.getmtime(filename)
 
     def loader(fname):
-        with open(filename) as f:
+        with open(fname) as f:
             return pickle.load(f)
 
     request.addfinalizer(lambda: os.unlink(filename))
