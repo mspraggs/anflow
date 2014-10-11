@@ -27,11 +27,11 @@ from .utils import delete_shelve_files
 def resampler(tmp_dir, request):
     cache_path = cache_path=os.path.join(tmp_dir, "cache")
     resampler = Resampler(resample=True, average=True, binsize=1,
-                          cache_path=cache_path)
+                          cache_path=cache_path, error_name='error')
     request.addfinalizer(lambda: shutil.rmtree(cache_path, ignore_errors=True))
     
     return {"resampler": resampler, "cache_path": cache_path, "do_resample": True,
-            "binsize": 1, "average": True}
+            "binsize": 1, "average": True, 'error_name': 'error'}
 
 @pytest.fixture
 def cached_datum(tmp_dir, request):
@@ -93,7 +93,7 @@ class TestResampler(object):
     def test_init(self, resampler):
         """Test basic resampler constructor"""
         assert resampler['resampler']._cache_path == resampler['cache_path']
-        for attr in ["cache_path", "resample", "binsize", "average"]:
+        for attr in ["do_resample", "binsize", "average", "error_name"]:
             assert getattr(resampler['resampler'], attr) == resampler[attr]
         assert os.path.exists(resampler['cache_path'])
         assert resampler['resampler']._cache
