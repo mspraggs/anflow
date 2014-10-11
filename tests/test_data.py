@@ -117,7 +117,7 @@ class TestDatum(object):
     def test_init(self, random_datum, tmp_dir):
         """Test __init__ function"""
         expected_filename = tmp_dir + "/some_measurement_a1_b2.pkl"
-        assert random_datum['datum']._filename == expected_filename
+        assert random_datum['datum'].filename == expected_filename
         assert random_datum['datum']._params == set(['a', 'b'])
         for attr, val in random_datum['params'].items():
             assert getattr(random_datum['datum'], attr) == val

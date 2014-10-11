@@ -38,7 +38,7 @@ def random_datum(request, tmp_dir):
     params = {'a': 1, 'b': 2}
     datum = Datum(params, data, file_prefix=tmp_dir+'/some_measurement_')
     
-    request.addfinalizer(lambda: delete_shelve_files(datum._filename))
+    request.addfinalizer(lambda: delete_shelve_files(datum.filename))
 
     return {'datum': datum,
             'data': data,

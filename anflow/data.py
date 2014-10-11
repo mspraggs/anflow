@@ -48,7 +48,7 @@ class Datum(object):
         """Constructor"""
 
         filename = generate_filename(params, file_prefix, ".pkl")
-        self._filename = filename
+        self.filename = filename
         self._params = set(params.keys())
         self._data = data
         self.timestamp = None
@@ -60,7 +60,7 @@ class Datum(object):
         return object.__getattribute__(self, attr)
     
     def __setattr__(self, attr, value):
-        non_params = ["params", "data", "timestamp"]
+        non_params = ["params", "data", "timestamp", "filename"]
         if not attr.startswith('_') and attr not in non_params:
             self._params.add(attr)
         return object.__setattr__(self, attr, value)
@@ -76,14 +76,14 @@ class Datum(object):
         try:
             return self._data
         except AttributeError:
-            shelf = shelve.open(self._filename, protocol=2)
+            shelf = shelve.open(self.filename, protocol=2)
             self._data = shelf[b'data']
             shelf.close()
             return self._data
 
     def save(self):
         """Saves the datum to disk"""
-        shelf = shelve.open(self._filename, protocol=2)
+        shelf = shelve.open(self.filename, protocol=2)
         shelf[b'params'] = self.params
         shelf[b'data'] = self.data
         self.timestamp = time.time()
@@ -101,7 +101,7 @@ class Datum(object):
 
         new_datum = cls(params, None)
         delattr(new_datum, '_data')
-        new_datum._filename = filename
+        new_datum.filename = filename
         new_datum.timestamp = timestamp
 
         return new_datum
@@ -112,7 +112,7 @@ class Datum(object):
         extensions = ['', '.bak', '.dat', '.dir', '.pag', '.db']
         for extension in extensions:
             try:
-                os.unlink(self._filename + extension)
+                os.unlink(self.filename + extension)
             except OSError:
                 pass
 
