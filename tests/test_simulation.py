@@ -1,16 +1,19 @@
 from __future__ import absolute_import
 
 import os
+import shutil
 
 import pytest
 
 from anflow import Simulation
 from anflow.data import Datum
 
+from .utils import delete_shelve_files
+
 
 
 @pytest.fixture
-def sim(tmp_dir):
+def sim(tmp_dir, request):
 
     settings = {}
     settings['RESULTS_DIR'] = os.path.join(tmp_dir, "results")
@@ -22,6 +25,12 @@ def sim(tmp_dir):
 
     sim = Simulation()
     sim.config.from_dict(settings)
+
+    def fin():
+        delete_shelve_files(tmp_dir + "/a1.pkl")
+        shutil.rmtree(settings['RESULTS_DIR'], ignore_errors=True)
+    request.addfinalizer(fin)
+    
     return {'simulation': sim, 'input_data': input_data}
 
 class TestSimulation(object):
