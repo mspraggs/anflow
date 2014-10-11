@@ -86,3 +86,12 @@ class Simulation(object):
                 result_datum.save()
 
         return do_run
+
+    def run(self, force=False):
+        """Run all models in this simulation"""
+
+        results = {}
+        for model in self.models.keys():
+            results[model] = self.run_model(model, force)
+
+        return results
