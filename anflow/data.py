@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import anydbm
 import os
 try:
     import cPickle as pickle
@@ -90,7 +91,7 @@ class Datum(object):
     def load(cls, filename):
         """Lazy-loads the object from disk"""
 
-        shelf = shelve.open(filename, protocol=2)
+        shelf = shelve.open(filename, flag="r", protocol=2)
         params = shelf['params']
         timestamp = shelf['timestamp']
         shelf.close()
@@ -140,14 +141,22 @@ class DataSet(object):
         output = []
         for params in self._params:
             filename = generate_filename(params, self._prefix, '.pkl')
-            output.append(Datum.load(filename))
-
+            try:
+                output.append(Datum.load(filename))
+            except anydbm.error:
+                raise IOError("Unable to open shelve file {}".format(filename))
         return output
 
     def first(self):
         """Return the first item in the DataSet"""
-        filename = generate_filename(self._params[0], self._prefix, '.pkl')
-        return Datum.load(filename)
+        try:
+            filename = generate_filename(self._params[0], self._prefix, '.pkl')
+        except IndexError:
+            return
+        try:
+            return Datum.load(filename)
+        except anydbm.error:
+            raise IOError("Unable to open shelve file {}".format(filename))
 
     def __iter__(self):
         """Return the iterator for the dataset"""
