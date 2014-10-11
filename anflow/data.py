@@ -41,6 +41,8 @@ class FileWrapper(object):
 class Datum(object):
     """Holds a simulation result"""
 
+    _extensions = ['', '.bak', '.dat', '.dir', '.pag', '.db']
+
     def __init__(self, params, data, file_prefix=None):
         """Constructor"""
 
