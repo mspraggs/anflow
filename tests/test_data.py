@@ -53,6 +53,25 @@ def random_datum(request, tmp_dir):
             'data': data,
             'params': params}
 
+@pytest.fixture
+def random_datum_file(tmp_dir, random_datum, request):
+
+    data = random.sample(range(100), 10)
+    params = {'a': 1, 'b': 2}
+
+    timestamp = time.time()
+    filename = tmp_dir + "/a1_b1.pkl"
+    shelf = shelve.open(filename, protocol=2)
+    shelf['params'] = random_datum['params']
+    shelf['data'] = random_datum['data']
+    shelf['timestamp'] = timestamp
+    shelf.close()
+
+    request.addfinalizer(lambda: delete_shelve_files(filename))
+
+    return {'filename': filename, 'params': params, 'timestamp': timestamp,
+            'data': data}
+
 @pytest.fixture(scope='class')
 def random_dataset(request, tmp_dir):
 
@@ -134,34 +153,16 @@ class TestDatum(object):
         assert t1 < shelf['timestamp'] < t2
         shelf.close()
 
-    def test_load(self, random_datum, tmp_dir):
+    def test_load(self, random_datum_file, tmp_dir):
         """Test the load function of the Datum class"""
-        filename = os.path.join(tmp_dir, 'some_file.pkl')
-        timestamp = time.time()
-        shelf = shelve.open(filename, protocol=2)
-        shelf['params'] = random_datum['params']
-        shelf['data'] = random_datum['data']
-        shelf['timestamp'] = timestamp
-        shelf.close()
-
-        new_datum = Datum.load(filename)
+        new_datum = Datum.load(random_datum["filename"])
         assert not hasattr(new_datum, '_data')
-        assert new_datum.params == random_datum['params']
-        assert new_datum.data == random_datum['data']
-        assert new_datum.timestamp == timestamp
+        assert new_datum.params == random_datum_file['params']
+        assert new_datum.timestamp == random_datum_file["timestamp"]
 
-    def test_delete(self, random_datum, tmp_dir):
-        filename = os.path.join(tmp_dir, 'some_file.pkl')
-        timestamp = time.time()
-        shelf = shelve.open(filename, protocol=2)
-        shelf['params'] = random_datum['params']
-        shelf['data'] = random_datum['data']
-        shelf['timestamp'] = timestamp
-        shelf.close()
-
-        extensions = ['', '.bak', '.dat', '.dir', '.pag', '.db']
-        
-        new_datum = Datum.load(filename)
+    def test_delete(self, random_datum_file, tmp_dir):
+        """Test Datum.delete"""        
+        new_datum = Datum.load(random_datum_file["filename"])
         assert count_shelve_files(filename) > 0
         new_datum.delete()
         assert count_shelve_files(filename) == 0
