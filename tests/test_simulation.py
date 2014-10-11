@@ -38,14 +38,14 @@ class TestSimulation(object):
 
         assert sim.models == {'some_func': (some_func, input_data, None)}
         assert hasattr(some_func, 'results')
-        assert len(some_func.results) == 0
+        assert len(some_func.results._params) == 1
         assert some_func.results._parent == some_func
 
     def test_run_model(self, sim, tmp_dir):
         """Test Simulation.run_model"""
 
         params = {'a': 1}
-        datum = Datum(params, 1.0)
+        datum = Datum(params, 1.0, tmp_dir + '/')
         datum.save()
         input_data = [datum]
         @sim.register_model(input_data=input_data)
