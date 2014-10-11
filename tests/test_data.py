@@ -204,4 +204,4 @@ class TestDataSet(object):
             assert isinstance(datum, Datum)
             counter += 1
 
-        assert counter == len(random_dataset['params']) == counter
+        assert counter == len(random_dataset['params'])
