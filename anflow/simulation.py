@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from collections import OrderedDict
 import inspect
 from itertools import product
 import os
@@ -15,7 +16,7 @@ class Simulation(object):
         """Constructor"""
 
         self.config = Config()
-        self.models = {}
+        self.models = OrderedDict()
 
     def register_model(self, input_data, parameters=None):
         """Register the supplied model function and associated parameters"""
