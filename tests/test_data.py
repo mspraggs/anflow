@@ -157,6 +157,30 @@ class TestDatum(object):
         assert new_datum.data == random_datum['data']
         assert new_datum.timestamp == timestamp
 
+    def test_delete(self, random_datum, tmp_dir):
+        filename = os.path.join(tmp_dir, 'some_file.pkl')
+        timestamp = time.time()
+        shelf = shelve.open(filename, protocol=2)
+        shelf['params'] = random_datum['params']
+        shelf['data'] = random_datum['data']
+        shelf['timestamp'] = timestamp
+        shelf.close()
+
+        extensions = ['', '.bak', '.dat', '.dir', '.pag', '.db']
+        
+        new_datum = Datum.load(filename)
+        counter = 0
+        for extension in extensions:
+            if os.path.exists(filename + extension):
+                counter += 1
+        assert counter > 0
+        new_datum.delete()
+        counter = 0
+        for extension in extensions:
+            if os.path.exists(filename + extension):
+                counter += 1
+        assert counter == 0
+
 class TestDataSet(object):
 
     def test_init(self, random_dataset, tmp_dir):

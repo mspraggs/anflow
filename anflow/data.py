@@ -103,6 +103,16 @@ class Datum(object):
 
         return new_datum
 
+    def delete(self):
+        """Deletes the datum file(s) on disk"""
+
+        extensions = ['', '.bak', '.dat', '.dir', '.pag', '.db']
+        for extension in extensions:
+            try:
+                os.unlink(self._filename + extension)
+            except OSError:
+                pass
+
 class DataSet(object):
 
     def __init__(self, params, prefix=None):
