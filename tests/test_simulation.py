@@ -66,7 +66,17 @@ class TestSimulation(object):
         def another_func(data):
             return data
 
-        simulation.run_model('some_func')
+        result = simulation.run_model('some_func')
+        assert count_shelve_files(os.path.join(tmp_dir, "results",
+                                               'some_func_a1.pkl')) > 0
+        assert result == 0
+        result = simulation.run_model('another_func')
+        assert count_shelve_files(os.path.join(tmp_dir, "results",
+                                               'another_func_a1.pkl')) > 0
+        assert result == 0
+
+        result = simulation.run_model('another_func')
+        assert result > 0        
         assert count_shelve_files(os.path.join(tmp_dir, "results",
                                                'some_func_a1.pkl')) > 0
         simulation.run_model('another_func')
