@@ -41,19 +41,6 @@ def random_wrapper(request, tmp_dir):
             'timestamp': timestamp}
 
 @pytest.fixture
-def random_datum(request, tmp_dir):
-
-    data = random.sample(range(100), 10)
-    params = {'a': 1, 'b': 2}
-    datum = Datum(params, data, file_prefix=tmp_dir+'/some_measurement_')
-    
-    request.addfinalizer(lambda: delete_shelve_files(datum._filename))
-
-    return {'datum': datum,
-            'data': data,
-            'params': params}
-
-@pytest.fixture
 def random_datum_file(tmp_dir, random_datum, request):
 
     data = random.sample(range(100), 10)

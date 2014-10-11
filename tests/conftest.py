@@ -30,6 +30,19 @@ def tmp_dir(request):
     request.addfinalizer(lambda: shutil.rmtree(tmp_dir, ignore_errors=True))
     return tmp_dir
 
+@pytest.fixture
+def random_datum(request, tmp_dir):
+
+    data = random.sample(range(100), 10)
+    params = {'a': 1, 'b': 2}
+    datum = Datum(params, data, file_prefix=tmp_dir+'/some_measurement_')
+    
+    request.addfinalizer(lambda: delete_shelve_files(datum._filename))
+
+    return {'datum': datum,
+            'data': data,
+            'params': params}
+
 @pytest.fixture(scope="session")
 def base_settings():
     from anflow.conf import settings, ENVIRONMENT_VARIABLE
