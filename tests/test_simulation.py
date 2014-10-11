@@ -8,7 +8,7 @@ import pytest
 from anflow import Simulation
 from anflow.data import Datum
 
-from .utils import delete_shelve_files
+from .utils import delete_shelve_files, count_shelve_files
 
 
 
@@ -67,8 +67,8 @@ class TestSimulation(object):
             return data
 
         simulation.run_model('some_func')
-        assert os.path.exists(os.path.join(tmp_dir, "results",
-                                           'some_func_a1.pkl'))
+        assert count_shelve_files(os.path.join(tmp_dir, "results",
+                                               'some_func_a1.pkl')) > 0
         simulation.run_model('another_func')
-        assert os.path.exists(os.path.join(tmp_dir, "results",
-                                           'another_func_a1.pkl'))
+        assert count_shelve_files(os.path.join(tmp_dir, "results",
+                                               'another_func_a1.pkl')) > 0
