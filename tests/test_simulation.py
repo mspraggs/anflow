@@ -79,8 +79,19 @@ class TestSimulation(object):
         assert not result
         result = simulation.run_model('another_func', force=True)
         assert result
+
+    def test_run(self, sim, tmp_dir):
+        """Test Simulation.run"""
+        simulation = sim['simulation']
+        @simulation.register_model(input_data=sim['input_data'])
+        def some_func(data):
+            return data
+        @simulation.register_model(input_data=some_func.results)
+        def another_func(data):
+            return data
+        
+        simulation.run()
         assert count_shelve_files(os.path.join(tmp_dir, "results",
                                                'some_func_a1.pkl')) > 0
-        simulation.run_model('another_func')
         assert count_shelve_files(os.path.join(tmp_dir, "results",
                                                'another_func_a1.pkl')) > 0
