@@ -7,7 +7,7 @@ import shutil
 import pytest
 
 from anflow import Simulation
-from anflow.data import Datum
+from anflow.data import DataSet, Datum
 
 from .utils import delete_shelve_files, count_shelve_files
 
@@ -18,6 +18,7 @@ def sim(tmp_dir, request):
 
     settings = {}
     settings['RESULTS_DIR'] = os.path.join(tmp_dir, "results")
+    settings['REPORTS_DIR'] = os.path.join(tmp_dir, "reports")
     
     params = {'a': 1}
     datum = Datum(params, 1.0, tmp_dir + '/')
@@ -33,6 +34,18 @@ def sim(tmp_dir, request):
     request.addfinalizer(fin)
     
     return {'simulation': sim, 'input_data': input_data}
+
+@pytest.fixture
+def run_sim(tmp_dir, sim):
+
+    simulation = sim['simulation']
+    def model(data):
+        return data
+    simulation.models = {'model': (model, sim['input_data'], None)}
+    model.results = DataSet([{'a': 1}], os.path.join(tmp_dir, 'model_'))
+    model.results._parent = model
+
+    return {'simulation': simulation, 'model': model}
 
 class TestSimulation(object):
 
@@ -55,6 +68,17 @@ class TestSimulation(object):
         assert hasattr(some_func, 'results')
         assert len(some_func.results._params) == 1
         assert some_func.results._parent == some_func
+
+    def test_register_view(self, sim):
+        """Test Simulation.register_view"""
+        
+        simulation = sim['simulation']
+        @simulation.register_view(model='test', parameters=params)
+        def some_view(data):
+            pass
+
+        assert (simulation.views
+                == {'some_view': (some_view, 'test', params)})
 
     def test_run_model(self, sim, tmp_dir):
         """Test Simulation.run_model"""
@@ -80,6 +104,22 @@ class TestSimulation(object):
         assert not result
         result = simulation.run_model('another_func', force=True)
         assert result
+
+    def test_run_view(self, run_sim, tmp_dir):
+        """Test Simulation.run_model"""
+
+        simulation = run_sim['simulation']
+        @simulation.register_view('model', parameters=[{'a': 1}])
+        def some_view(data):
+            with open("some_file", 'w') as f:
+                f.write(data.params['a'].__repr__() + "\n")
+
+        simulation.run_view()
+        assert os.path.exists(os.path.join(tmp_dir, 'reports/some_file'))
+        with open(os.path.join(tmp_dir, 'reports/some_file', 'w')) as f:
+            lines = f.readlines()
+        assert len(lines) == 1
+        assert lines[0] == '1\n'
 
     def test_run(self, sim, tmp_dir):
         """Test Simulation.run"""
