@@ -110,4 +110,5 @@ class TestResampler(object):
             assert getattr(resampler['resampler'], attr) == resampler[attr]
         assert os.path.exists(resampler['cache_path'])
         assert resampler['resampler']._cache
-        assert resampler['resampler'].result_type.__name__ == "ResamplerResult"
+        assert hasattr(resampler['resampler'], 'bins')
+        assert resampler['resampler'].result_type.__name__ == "MyResamplerResult"
