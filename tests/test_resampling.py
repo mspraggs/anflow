@@ -26,8 +26,21 @@ from .utils import delete_shelve_files
 @pytest.fixture
 def resampler(tmp_dir, request):
     cache_path = cache_path=os.path.join(tmp_dir, "cache")
-    resampler = Resampler(resample=True, average=True, binsize=1,
-                          cache_path=cache_path, error_name='error')
+
+    class MyResampler(Resampler):
+
+        @staticmethod
+        def _error(data, centre):
+            return centre
+
+        def _central_value(self, datum, results, func):
+            return func(sum(datum.data) / len(datum.data))
+
+        def _resample(self, data):
+            return data
+    
+    resampler = MyResampler(resample=True, average=True, binsize=1,
+                            cache_path=cache_path, error_name='error')
     request.addfinalizer(lambda: shutil.rmtree(cache_path, ignore_errors=True))
     
     return {"resampler": resampler, "cache_path": cache_path, "do_resample": True,
