@@ -170,7 +170,7 @@ class TestBootstrap(object):
         assert boot.bins == bins
         assert boot.num_bootstraps == 3
         boot = Bootstrap(num_bootstraps=10)
-        assert boo.num_bootstraps == 10
+        assert boot.num_bootstraps == 10
 
         with pytest.raises(ValueError):
             boot = Bootstrap()
@@ -196,4 +196,4 @@ class TestBootstrap(object):
                                         [2.0, 3.0, 1.0],
                                         [1.0, 3.0, 3.0]]
         boot = Bootstrap(average=True, bins=bins)
-        assert boot._resample == [4.0 / 3.0, 2.0, 7.0 / 3.0]
+        assert boot._resample(data) == [4.0 / 3.0, 2.0, 7.0 / 3.0]
