@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
-from __future__ import print_function
 
 import collections
 import json
@@ -123,9 +122,6 @@ class Resampler(object):
     def _error(data, central_value):
         raise NotImplementedError
 
-class Bootstrap(Resampler):
-    pass
-
 class Jackknife(Resampler):
 
     def _central_value(self, data, results, function):
@@ -152,3 +148,44 @@ class Jackknife(Resampler):
         else:
             resampled_data = [data[:i] + data[i+1:] for i in range(N)]
         return resampled_data
+
+class Bootstrap(Resampler):
+
+    def __init__(self, resample=True, average=False, binsize=1, bins=None,
+                 num_bootstraps=None, cache_path=None, error_name=None):
+        """Initialize the bootstrap variables - bins and/or num_bootstraps"""
+
+        super(Bootstrap, self).__init__(resample, average, binsize, cache_path,
+                                        error_name)
+        if not (bins or num_bootstraps):
+            raise ValueError("You must specify either the bins to use or the "
+                             "number of bootstraps")
+        else:
+            self.bins = bins
+            self.num_bootstraps = num_bootstraps or len(bins)
+
+    def _central_value(self, data, results, function):
+        """Central value computation"""
+        return function(sum(results) / len(results))
+
+    @staticmethod
+    def _error(data, centre):
+        """Error computation"""
+        N = len(data)
+        deviations = map(lambda datum: (datum - centre)**2, data)
+        return (1 / N * sum(deviations))**0.5
+
+    def _resample(self, data):
+        """Resample the supplied data"""
+
+        N = len(data)
+        if not self.bins:
+            self.bins = [np.random.randint(N, size=N).tolist()
+                         for i in range(self.num_bootstraps)]
+        resampled_data = [[data[i] for i in sample_bins]
+                          for sample_bins in self.bins]
+        if self.average:
+            return [sum(datum) / len(datum) for datum in resampled_data]
+        else:
+            return resampled_data
+        
