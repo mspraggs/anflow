@@ -48,7 +48,7 @@ class Resampler(object):
         self.binsize = binsize
         self._cache_path = cache_path
         self._cache = cache_path and resample
-        self.do_resample = resample and self._cache
+        self.do_resample = resample
         self.error_name = error_name
         typename = self.__class__.__name__ + "Result"
         result_type = collections.namedtuple(typename,
