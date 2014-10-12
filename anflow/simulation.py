@@ -157,5 +157,7 @@ class Simulation(object):
         results = {}
         for model in self.models.keys():
             results[model] = self.run_model(model, force)
+        for view in self.views.keys():
+            results[view] = self.run_view(view, force)
 
         return results
