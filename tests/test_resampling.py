@@ -128,3 +128,26 @@ class TestResampler(object):
         assert result.centre == 1.5
         assert result.error == 1.5
         assert not result.bins
+
+class TestJackknife(object):
+
+    def test_central_value(self):
+        class Datum(object): pass
+        datum = Datum()
+        datum.data = [1.0, 2, 3]
+        datum.centre = 5
+        results = None
+        
+        jack = Jackknife(average=True)
+        assert jack._central_value(datum, results, lambda x: x) == 2
+        jack = Jackknife(average=False)
+        datum.data.append(4)
+        assert jack._central_value(datum, results,
+                                   lambda x: sum(x) / len(x)) == 2.5
+        jack = Jackknife(resample=False)
+        assert jack._central_value(datum, results, lambda x: x) == 5
+    
+    def test_error(self):
+        jack = Jackknife()
+        assert np.allclose(jack._error([1, 2, 3], 2),
+                           np.sqrt(2) * np.std([1, 2, 3]))
