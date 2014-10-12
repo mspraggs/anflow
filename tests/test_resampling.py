@@ -31,7 +31,7 @@ def resampler(tmp_dir, request):
 
         @staticmethod
         def _error(data, centre):
-            return centre
+            return sum(data) / 10
 
         def _central_value(self, datum, results, func):
             return func(sum(datum.data) / len(datum.data))
@@ -120,21 +120,22 @@ class TestResampler(object):
 
         @res
         def test_function(data, error):
-            return data
+            return data**2
         assert hasattr(test_function, 'func')
        
         result = test_function(Datum({'a': 1, 'b': 2}, [1.0, 2.0]))
-        assert result.data == [1.0, 2.0]
-        assert result.centre == 1.5
-        assert result.error == 1.5
+        assert result.data == [1.0, 4.0]
+        assert result.centre == 2.25
+        assert result.error == 0.5
         assert not result.bins
 
 class TestJackknife(object):
 
     def test_central_value(self):
+        """Test Jackknife._central_value"""
         class Datum(object): pass
         datum = Datum()
-        datum.data = [1.0, 2, 3]
+        datum.data = [1.0, 2.0, 3.0]
         datum.centre = 5
         results = None
         
@@ -148,6 +149,14 @@ class TestJackknife(object):
         assert jack._central_value(datum, results, lambda x: x) == 5
     
     def test_error(self):
-        jack = Jackknife()
-        assert np.allclose(jack._error([1, 2, 3], 2),
+        """Test Jackknife._error"""
+        assert np.allclose(Jackknife._error([1, 2, 3], 2),
                            np.sqrt(2) * np.std([1, 2, 3]))
+
+    def test_resample(self):
+        """Test Jackknife._resample"""
+        data = [1.0, 2.0, 3.0]
+        jack = Jackknife()
+        assert jack._resample(data) == [[2.0, 3.0], [1.0, 3.0], [1.0, 2.0]]
+        jack = Jackknife(average=True)
+        assert jack._resample(data) == [2.5, 2.0, 1.5]
