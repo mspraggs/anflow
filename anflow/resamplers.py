@@ -127,4 +127,28 @@ class Bootstrap(Resampler):
     pass
 
 class Jackknife(Resampler):
-    pass
+
+    def _central_value(self, data, results, function):
+        if self.do_resample:
+            if self.average:
+                return function(sum(data.data) / len(data.data))
+            else:
+                return function(data.data)
+        else:
+            return function(data.centre)
+    
+    @staticmethod
+    def _error(data, centre):
+        N = len(data)
+        deviations = map(lambda datum: (datum - centre)**2, data)
+        return ((N - 1) / N * sum(deviations))**0.5
+
+    def _resample(self, data):
+
+        N = len(data)
+        if self.average:
+            data_sum = sum(data)
+            resampled_data = [(data_sum - datum) / (N - 1) for datum in data]
+        else:
+            resampled_data = [data[:i] + data[i+1:] for i in range(N)]
+        return resampled_data
