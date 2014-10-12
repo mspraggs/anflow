@@ -114,12 +114,16 @@ class TestSimulation(object):
             with open("some_file", 'w') as f:
                 f.write(data.params['a'].__repr__() + "\n")
 
-        simulation.run_view()
+        result = simulation.run_view('some_view')
+        assert result
         assert os.path.exists(os.path.join(tmp_dir, 'reports/some_file'))
         with open(os.path.join(tmp_dir, 'reports/some_file', 'w')) as f:
             lines = f.readlines()
         assert len(lines) == 1
         assert lines[0] == '1\n'
+        
+        result = simulation.run_view('some_view')
+        assert not result
 
     def test_run(self, sim, tmp_dir):
         """Test Simulation.run"""
