@@ -160,3 +160,40 @@ class TestJackknife(object):
         assert jack._resample(data) == [[2.0, 3.0], [1.0, 3.0], [1.0, 2.0]]
         jack = Jackknife(average=True)
         assert jack._resample(data) == [2.5, 2.0, 1.5]
+
+class TestBootstrap(object):
+
+    def test_init(self):
+        """Test the bootstrap constructor - should store bins"""
+        bins = [[1, 2, 1], [2, 3, 1], [1, 3, 3]]
+        boot = Bootstrap(bins=bins)
+        assert boot.bins == bins
+        assert boot.num_bootstraps == 3
+        boot = Bootstrap(num_bootstraps=10)
+        assert boo.num_bootstraps == 10
+
+        with pytest.raises(ValueError):
+            boot = Bootstrap()
+
+    def test_central_value(self):
+        """Test Bootstrap._central_value"""
+        results = [1.0, 2.0, 3.0]
+        
+        boot = Bootstrap(num_bootstraps=1)
+        assert boot._central_value(None, results, lambda x: x) == 2.0
+
+    def test_error(self):
+        """Test Bootstrap._error"""
+        assert np.allclose(Bootstrap._error([1, 2, 3], 2),
+                           np.std([1, 2, 3]))
+        
+    def test_resample(self):
+        """Test Bootstrap._resample"""
+        bins = [[0, 1, 0], [1, 2, 0], [0, 2, 2]]
+        data = [1.0, 2.0, 3.0]
+        boot = Bootstrap(bins=bins)
+        assert boot._resample(data) == [[1.0, 2.0, 1.0],
+                                        [2.0, 3.0, 1.0],
+                                        [1.0, 3.0, 3.0]]
+        boot = Bootstrap(average=True, bins=bins)
+        assert boot._resample == [4.0 / 3.0, 2.0, 7.0 / 3.0]
