@@ -112,3 +112,19 @@ class TestResampler(object):
         assert resampler['resampler']._cache
         assert hasattr(resampler['resampler'], 'bins')
         assert resampler['resampler'].result_type.__name__ == "MyResamplerResult"
+
+    def test_call(self, resampler):
+        """Test decorating facilities of resampler"""
+
+        res = resampler['resampler']
+
+        @res
+        def test_function(data, error):
+            return data
+        assert hasattr(test_function, 'func')
+       
+        result = test_function(Datum({'a': 1, 'b': 2}, [1.0, 2.0]))
+        assert result.data == [1.0, 2.0]
+        assert result.centre == 1.5
+        assert result.error == 1.5
+        assert not result.bins
