@@ -2,7 +2,9 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
+import shelve
 import shutil
+import time
 
 import pytest
 
@@ -36,14 +38,27 @@ def sim(tmp_dir, request):
     return {'simulation': sim, 'input_data': input_data}
 
 @pytest.fixture
-def run_sim(tmp_dir, sim):
+def run_sim(tmp_dir, sim, request):
 
     simulation = sim['simulation']
     def model(data):
         return data
-    simulation.models = {'model': (model, sim['input_data'], None)}
-    model.results = DataSet([{'a': 1}], os.path.join(tmp_dir, 'model_'))
+    model.results = DataSet([{'a': 1}], os.path.join(os.path.join(tmp_dir,
+                                                                  'results'),
+                                                     'model_'))
     model.results._parent = model
+    simulation.models = {'model': (model, sim['input_data'], None)}
+
+    os.makedirs(os.path.join(tmp_dir, "results"))
+    shelf = shelve.open(tmp_dir + "/results/model_a1.pkl")
+    shelf[b'params'] = {'a': 1}
+    shelf[b'data'] = 1.0
+    shelf[b'timestamp'] = time.time()
+    shelf.close()
+
+    def fin():
+        shutil.rmtree(simulation.config.REPORTS_DIR, ignore_errors=True)
+    request.addfinalizer(fin)
 
     return {'simulation': simulation, 'model': model}
 
@@ -69,16 +84,17 @@ class TestSimulation(object):
         assert len(some_func.results._params) == 1
         assert some_func.results._parent == some_func
 
-    def test_register_view(self, sim):
+    def test_register_view(self, run_sim):
         """Test Simulation.register_view"""
         
-        simulation = sim['simulation']
-        @simulation.register_view(model='test', parameters=params)
+        simulation = run_sim['simulation']
+        params = [{'a': 1}]
+        @simulation.register_view(models=(run_sim['model'],), parameters=params)
         def some_view(data):
             pass
 
-        assert (simulation.views
-                == {'some_view': (some_view, 'test', params)})
+        assert (dict(simulation.views)
+                == {'some_view': (some_view, (run_sim['model'],), params)})
 
     def test_run_model(self, sim, tmp_dir):
         """Test Simulation.run_model"""
@@ -109,15 +125,15 @@ class TestSimulation(object):
         """Test Simulation.run_model"""
 
         simulation = run_sim['simulation']
-        @simulation.register_view('model', parameters=[{'a': 1}])
+        @simulation.register_view((run_sim['model'],), parameters=[{'a': 1}])
         def some_view(data):
             with open("some_file", 'w') as f:
-                f.write(data.params['a'].__repr__() + "\n")
+                f.write(data['model'][0].params['a'].__repr__() + "\n")
 
         result = simulation.run_view('some_view')
         assert result
         assert os.path.exists(os.path.join(tmp_dir, 'reports/some_file'))
-        with open(os.path.join(tmp_dir, 'reports/some_file', 'w')) as f:
+        with open(os.path.join(tmp_dir, 'reports/some_file')) as f:
             lines = f.readlines()
         assert len(lines) == 1
         assert lines[0] == '1\n'
