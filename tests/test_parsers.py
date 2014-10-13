@@ -76,6 +76,7 @@ class TestGuidedParser(object):
         assert isinstance(parser.parsed_data[0], FileWrapper)
         assert (parser.parsed_data[0].data == data_to_parse['data']).all()
         assert parser.parsed_data[0].params == {'a': 1}
+        assert parser.populated
 
     def test_iter(self, data_to_parse):
         """Test GuidedParser.__iter__ and GuidedParser.next"""
