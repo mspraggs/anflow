@@ -80,3 +80,11 @@ class TestGuidedParser(object):
 
     def test_iter(self, data_to_parse):
         """Test GuidedParser.__iter__ and GuidedParser.next"""
+
+        parser = data_to_parse['parser']
+
+        for datum in parser:
+            assert datum.params == {'a': 1}
+            assert (datum.data == data_to_parse['data']).all()
+
+        assert parser.populated
