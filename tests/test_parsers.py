@@ -42,6 +42,7 @@ def data_to_parse(tmp_dir, request):
         return np.load(filepath.format(b=b[0]))
         
     parser = GuidedParser(template, load_func, parameters=params)
+    parser.config.from_dict({'RAWDATA_DIR': os.path.join(tmp_dir, "rawdata")})
 
     request.addfinalizer(lambda: shutil.rmtree(os.path.join(tmp_dir, "rawdata"),
                                                ignore_errors=True))
@@ -69,7 +70,6 @@ class TestGuidedParser(object):
         """Test GuidedParser"""
         
         parser = data_to_parse['parser']
-        parser.config.from_dict({'RAWDATA_DIR': data_to_parse['rawdata_dir']})
         parser.populate()
 
         assert len(parser.parsed_data) == 1
