@@ -111,7 +111,6 @@ class TestResampler(object):
         assert os.path.exists(resampler['cache_path'])
         assert resampler['resampler']._cache
         assert hasattr(resampler['resampler'], 'bins')
-        assert resampler['resampler'].result_type.__name__ == "MyResamplerResult"
 
     def test_call(self, resampler):
         """Test decorating facilities of resampler"""
@@ -121,8 +120,8 @@ class TestResampler(object):
         @res
         def test_function(data, error):
             return data**2
-        assert hasattr(test_function, 'func')
-       
+        assert hasattr(test_function, 'original')
+
         result = test_function(Datum({'a': 1, 'b': 2}, [1.0, 2.0]))
         assert result.data == [1.0, 4.0]
         assert result.centre == 2.25
