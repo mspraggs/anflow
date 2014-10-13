@@ -60,3 +60,9 @@ class GuidedParser(object):
             self.parsed_data.append(filewrapper)
 
         self.populated = True
+
+    def __iter__(self):
+
+        if not self.populated:
+            self.populate()
+        return self.parsed_data.__iter__()
