@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import collections
+from functools import wraps
 import json
 import hashlib
 import os
@@ -65,6 +66,7 @@ class Resampler(object):
         """Pulls together all the resampling components - the main resampling
         entry point"""
 
+        @wraps(function)
         def decorator(data, *args, **kwargs):
             """Resampling function"""
             if self.do_resample:
@@ -107,7 +109,8 @@ class Resampler(object):
                                            error=error, bins=self.bins)
             return result_datum
 
-        decorator.func = function
+        decorator.original = function
+        decorator.resampled = None
 
         return decorator
 
