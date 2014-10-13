@@ -30,9 +30,13 @@ class Simulation(object):
         actual_parameters = parameters or [{}]
 
         def decorator(func):
-            self.models[func.__name__] = (func, input_data, parameters)
+            try:
+                funcname = func.__name__
+            except AttributeError:
+                funcname = func.original.__name__
+            self.models[funcname] = (func, input_data, parameters)
             prefix = os.path.join(self.config.RESULTS_DIR,
-                                  "{}_".format(func.__name__))
+                                  "{}_".format(funcname))
             all_params = []
             for dparams in data_params:
                 for params in actual_parameters:
@@ -60,7 +64,10 @@ class Simulation(object):
         """Run a model"""
 
         func, data, parameters = self.models[model]
-        args = inspect.getargspec(func).args[1:]
+        try:
+            args = inspect.getargspec(func.original).args[1:]
+        except AttributeError:
+            args = inspect.getargspec(func).args[1:]
         parameters = parameters or [{}]
         file_prefix = os.path.join(self.config.RESULTS_DIR,
                                    model + "_")
@@ -93,7 +100,10 @@ class Simulation(object):
                 joint_params.update(datum.params)
                 joint_params.update(params)
                 kwargs = dict([(key, joint_params[key]) for key in args])
-                result = func(datum.data, **kwargs)
+                if hasattr(func, 'resampled'):
+                    result = func(datum, **kwargs)
+                else:
+                    result = func(datum.data, **kwargs)
                 result_datum = Datum(joint_params, result, file_prefix)
                 result_datum.save()
 
