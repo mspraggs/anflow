@@ -11,6 +11,10 @@ from anflow.data import Datum
 
 
 
+ResamplerResult = collections.namedtuple("ResamplerResult",
+                                         ['data', 'centre',
+                                          'error', 'bins'])
+
 def hashgen(hash_object):
     """Generate an md5 hash using the pickle value of the specified object"""
     pickle_value = json.dumps(hash_object)
@@ -49,11 +53,6 @@ class Resampler(object):
         self._cache = cache_path and resample
         self.do_resample = resample
         self.error_name = error_name
-        typename = self.__class__.__name__ + "Result"
-        result_type = collections.namedtuple(typename,
-                                             ['data', 'centre',
-                                              'error', 'bins'])
-        self.result_type = result_type
         self.bins = None
 
         if self._cache:
@@ -104,8 +103,8 @@ class Resampler(object):
                                          lambda datum: function(datum, *args,
                                                                 **kwargs))
             error = self._error(results, centre)
-            result_datum = self.result_type(data=results, centre=centre,
-                                            error=error, bins=self.bins)
+            result_datum = ResamplerResult(data=results, centre=centre,
+                                           error=error, bins=self.bins)
             return result_datum
 
         decorator.func = function
