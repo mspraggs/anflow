@@ -24,12 +24,12 @@ def generate_filename(params, prefix=None, suffix=None):
 class FileWrapper(object):
     """Lazy file loading wrapper"""
 
-    def __init__(self, filename, loader):
+    def __init__(self, filename, loader, timestamp=None):
         """Constructor"""
 
         self.filename = filename
         self.loader = loader
-        self.timestamp = os.path.getmtime(filename)
+        self.timestamp = timestamp or os.path.getmtime(filename)
 
     @property
     def data(self):
