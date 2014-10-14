@@ -43,9 +43,8 @@ def run_sim(tmp_dir, sim, request):
     simulation = sim['simulation']
     def model(data):
         return data
-    model.results = DataSet([{'a': 1}], os.path.join(os.path.join(tmp_dir,
-                                                                  'results'),
-                                                     'model_'))
+    model.results = DataSet([{'a': 1}], simulation.config,
+                            os.path.join(tmp_dir, 'results', 'model_'))
     model.results._parent = model
     simulation.models = {'model': (model, sim['input_data'], None)}
 

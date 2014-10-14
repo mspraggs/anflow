@@ -35,8 +35,7 @@ class Simulation(object):
             except AttributeError:
                 funcname = func.original.__name__
             self.models[funcname] = (func, input_data, parameters)
-            prefix = os.path.join(self.config.RESULTS_DIR,
-                                  "{}_".format(funcname))
+            prefix = "{}_".format(funcname)
             all_params = []
             for dparams in data_params:
                 for params in actual_parameters:
@@ -44,9 +43,8 @@ class Simulation(object):
                     temp_params.update(dparams)
                     temp_params.update(params)
                     all_params.append(temp_params)
-            func.results = DataSet(all_params,
-                                   os.path.join(self.config.RESULTS_DIR,
-                                                prefix))
+            func.results = DataSet(all_params, self.config,
+                                   prefix)
             func.results._parent = func
             return func
         return decorator
