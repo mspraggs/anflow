@@ -118,8 +118,9 @@ class Datum(object):
 
 class DataSet(object):
 
-    def __init__(self, params, prefix=None):
+    def __init__(self, params, config, prefix=None):
         """Constructor - initialize parameter set"""
+        self.config = config
         self._params = params
         self._prefix = prefix
 
@@ -146,14 +147,15 @@ class DataSet(object):
                 filter_func = lambda d: d[key] == value
 
             new_params = filter(filter_func, new_params)
-        return DataSet(new_params, self._prefix)
+        return DataSet(new_params, self.config, self._prefix)
 
     def all(self):
         """Return a list of all Datum objects matched by the current
         parameters"""
         output = []
+        actual_prefix = os.path.join(self.config.RESULTS_DIR, self._prefix)
         for params in self._params:
-            filename = generate_filename(params, self._prefix, '.pkl')
+            filename = generate_filename(params, actual_prefix, '.pkl')
             try:
                 output.append(Datum.load(filename))
             except anydbm.error:
@@ -162,8 +164,9 @@ class DataSet(object):
 
     def first(self):
         """Return the first item in the DataSet"""
+        actual_prefix = os.path.join(self.config.RESULTS_DIR, self._prefix)
         try:
-            filename = generate_filename(self._params[0], self._prefix, '.pkl')
+            filename = generate_filename(self._params[0], actual_prefix, '.pkl')
         except IndexError:
             return
         try:
@@ -181,8 +184,9 @@ class DataSet(object):
             self._counter = 0
             raise StopIteration
         else:
+            actual_prefix = os.path.join(self.config.RESULTS_DIR, self._prefix)
             filename = generate_filename(self._params[self._counter],
-                                         self._prefix, '.pkl')
+                                         actual_prefix, '.pkl')
             self._counter += 1
             return Datum.load(filename)
             

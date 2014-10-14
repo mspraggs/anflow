@@ -13,6 +13,7 @@ import time
 
 import pytest
 
+from anflow.config import Config
 from anflow.data import generate_filename, FileWrapper, Datum, DataSet
 
 from .utils import count_shelve_files, delete_shelve_files
@@ -78,8 +79,10 @@ def random_dataset(request, tmp_dir):
         shelf[b'timestamp'] = time.time()
         shelf.close()
         filenames.append(filename)
-        
-    dataset = DataSet(all_params, tmp_dir + '/')
+
+    config = Config()
+    config.from_dict({'RESULTS_DIR': os.path.join(tmp_dir, 'results')})
+    dataset = DataSet(all_params, config, tmp_dir + '/')
 
     def fin():
         for filename in filenames:
