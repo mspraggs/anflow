@@ -47,6 +47,7 @@ class Simulation(object):
                                    prefix)
             func.results._parent = func
             return func
+
         return decorator
 
     def register_view(self, models, parameters=None):
@@ -104,8 +105,9 @@ class Simulation(object):
                     result = func(datum, **kwargs)
                 else:
                     result = func(datum.data, **kwargs)
-                result_datum = Datum(joint_params, result, file_prefix)
-                result_datum.save()
+                if result is not None:
+                    result_datum = Datum(joint_params, result, file_prefix)
+                    result_datum.save()
 
         return do_run
 

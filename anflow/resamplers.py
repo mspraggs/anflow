@@ -102,6 +102,9 @@ class Resampler(object):
             
             results = map(lambda datum: function(datum, *args, **kwargs),
                           working_data)
+            results = filter(lambda x: x is not None, results)
+            if len(results) == 0:
+                return
             if type(data.data) == ResamplerResult:
                 centre_data = data.data
             else:
