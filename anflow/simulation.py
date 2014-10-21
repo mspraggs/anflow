@@ -64,6 +64,8 @@ class Simulation(object):
         func, data, parameters = self.models[model]
         try:
             args = inspect.getargspec(func.original).args[1:]
+            if func.error_name:
+                args.remove(func.error_name)
         except AttributeError:
             args = inspect.getargspec(func).args[1:]
         parameters = parameters or [{}]

@@ -95,13 +95,18 @@ class Resampler(object):
                     kwargs[self.error_name] = data.error
                 except AttributeError:
                     # If there's no error in the input, compute it.
-                    input_centre = sum(data.data) / len(data.data)
+                    
+                    input_centre = sum(working_data) / len(working_data)
                     kwargs[self.error_name] = self._error(working_data,
                                                           input_centre)
             
             results = map(lambda datum: function(datum, *args, **kwargs),
                           working_data)
-            centre = self._central_value(data, results,
+            if type(data.data) == ResamplerResult:
+                centre_data = data.data
+            else:
+                centre_data = data
+            centre = self._central_value(centre_data, results,
                                          lambda datum: function(datum, *args,
                                                                 **kwargs))
             error = self._error(results, centre)
@@ -111,6 +116,7 @@ class Resampler(object):
 
         decorator.original = function
         decorator.resampled = None
+        decorator.error_name = self.error_name
 
         return decorator
 
