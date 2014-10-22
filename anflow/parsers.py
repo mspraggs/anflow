@@ -19,7 +19,6 @@ class GuidedParser(object):
         self.path_template = path_template
         self.loader = loader
         self.collect = inspect.getargspec(loader).args[1:]
-        self.config = Config()
         self.parameters = parameters
         self.populated = False
         self.parsed_data = []
@@ -29,8 +28,7 @@ class GuidedParser(object):
 
         params_copy = self.parameters.copy()        
         collect_params = {}
-        path_template_copy = os.path.join(self.config.RAWDATA_DIR,
-                                          self.path_template)
+        path_template_copy = self.path_template
         # First the path template needs to be reformatted if there are variables
         # to collect
         if self.collect:

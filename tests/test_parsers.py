@@ -3,10 +3,6 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from anflow.core.wrappers import Datum
-from anflow.core.parsers.base import BaseParser
-from anflow.core.parsers import BlindParser, GuidedParser
-
 import importlib
 import inspect
 from itertools import product
@@ -35,14 +31,13 @@ def data_to_parse(tmp_dir, request):
     data = np.arange(10)
     np.save(os.path.join(tmp_dir, "rawdata/data_a1_b2.npy"), data)
 
-    template = "data_a{a}_b{b}.npy"
+    template = os.path.join(tmp_dir, "rawdata/data_a{a}_b{b}.npy")
     
     params = {'a': [1], 'b': [2]}
     def load_func(filepath, b):
         return np.load(filepath.format(b=b[0]))
         
     parser = GuidedParser(template, load_func, parameters=params)
-    parser.config.from_dict({'RAWDATA_DIR': os.path.join(tmp_dir, "rawdata")})
 
     request.addfinalizer(lambda: shutil.rmtree(os.path.join(tmp_dir, "rawdata"),
                                                ignore_errors=True))
@@ -60,7 +55,6 @@ class TestGuidedParser(object):
         parser = data_to_parse['parser']
 
         assert parser.path_template == data_to_parse['template']
-        assert hasattr(parser, 'config')
         assert parser.loader == data_to_parse['load_func']
         assert parser.collect == ['b']
         assert parser.populated == False
