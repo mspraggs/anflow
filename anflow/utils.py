@@ -43,22 +43,27 @@ def get_root_path(import_name):
 def get_dependency_files(obj, top, n=10):
     """Gets a list of files that obj depends on in some way that are under
     the directory top"""
+    # Check to see if we're at the bottom of the recursion
     if n == 0:
         return []
+    # Get the object's module
     mod = inspect.getmodule(obj)
     try:
+        # Then the file of the module. Do this so that decorated functions
+        # are traced to the place they are first defined, not to the wrap
         filename = inspect.getsourcefile(mod)
     except TypeError:
         filename = None
     else:
         if filename:
             filename = os.path.abspath(filename)
-            relpath = os.path.relpath(filename, top)
-            if relpath.startswith('..'):
-                filename = None
+            if os.path.commonprefix([filename, top]) != top:
+                return []
     out = []
     if filename:
         out.append(filename)
         for name, attr in mod.__dict__.items():
-            out.extend(get_dependency_files(attr, top, n - 1))
+            attrmod = inspect.getmodule(attr)
+            if attrmod != mod:
+                out.extend(get_dependency_files(attr, top, n - 1))
     return list(set(out))
