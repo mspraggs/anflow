@@ -12,11 +12,9 @@ from anflow.data import DataSet, Datum
 from anflow.utils import get_root_path, get_dependency_files
 
 
-
 class Simulation(object):
-
     defaults = {'DEBUG': False,
-                'LOGGING_LEVEL': None,
+                'LOGGING_LEVEL': logging.NOTSET,
                 'LOGGING_CONSOLE': True,
                 'LOGGING_FORMAT': "%(asctime)s : %(name)s : %(levelname)s : %(message)s",
                 'LOGGING_DATEFMT': "%d/%m/%Y %H:%M:%S",
@@ -34,7 +32,7 @@ class Simulation(object):
 
         self.config.from_dict(self.defaults)
         # Set up the log
-        self.log = logging.getLogger()
+        self.log = logging.getLogger(import_name)
         formatter = logging.Formatter(self.config.LOGGING_FORMAT,
                                       self.config.LOGGING_DATEFMT)
         if self.config.LOGGING_CONSOLE:
@@ -90,6 +88,9 @@ class Simulation(object):
     def run_model(self, model, force=False):
         """Run a model"""
 
+        log = self.log.getChild('model.{}'.format(model))
+        log.info("Preparing to run model {}".format(model))
+
         func, data, parameters = self.models[model]
         try:
             args = inspect.getargspec(func.original).args[1:]
@@ -107,41 +108,48 @@ class Simulation(object):
 
         # Determine whether data is up to date and we should run the model
         # Part of this is concerned with determining if source has changed
-        source_files = get_dependency_files(func, self.root_path)
-        try:
-            source_timestamp = max(map(os.path.getmtime, source_files))
-        except ValueError:
-            source_timestamp = 0
-        input_timestamp = max([datum.timestamp for datum in data])
-        results = self.models[model][0].results
-        try:
-            results = results.all()
-        except IOError:
-            results = []
-        if not results: # Check for lack of existing results
-            do_run = True
+        if force:
+            log.info("Model run has been forced")
+            do_run = force
         else:
-            results_timestamp = min([result.timestamp for result in results])
-            # Check for new input or source code
-            if (results_timestamp > input_timestamp
-                and results_timestamp > source_timestamp):
-                do_run = False
-            else:
+            log.info("Checking whether results are up-to-date")
+            source_files = get_dependency_files(func, self.root_path)
+            try:
+                source_timestamp = max(map(os.path.getmtime, source_files))
+            except ValueError:
+                source_timestamp = 0
+            input_timestamp = max([datum.timestamp for datum in data])
+            results = self.models[model][0].results
+            try:
+                results = results.all()
+            except IOError:
+                results = []
+            if not results:  # Check for lack of existing results
                 do_run = True
-        # Apply override if required
-        do_run = force if force else do_run
+            else:
+                results_timestamp = min([result.timestamp for result in results])
+                # Check for new input or source code
+                do_run = not (results_timestamp > input_timestamp and
+                              results_timestamp > source_timestamp)
 
         if do_run:
-            for datum, params in product(data, parameters):
+            log.info("Running model")
+            num_runs = len(data) * len(parameters)
+            for i, (datum, params) in enumerate(product(data, parameters)):
                 joint_params = {}
                 joint_params.update(datum.params)
                 joint_params.update(params)
                 kwargs = dict([(key, joint_params[key]) for key in args])
+                log.info("Running model with parameters ({} of {}):"
+                         .format(i + 1, num_runs))
+                for key, value in kwargs.items():
+                    log.info("{}: {}".format(key, value))
                 if hasattr(func, 'resampled'):
                     result = func(datum, **kwargs)
                 else:
                     result = func(datum.data, **kwargs)
                 if result is not None:
+                    log.info("Saving results")
                     result_datum = Datum(joint_params, result, file_prefix)
                     result_datum.save()
 
@@ -149,6 +157,9 @@ class Simulation(object):
 
     def run_view(self, view, force=False):
         """Runs the specified view"""
+
+        log = self.log.getChild("view.{}".format(view))
+        log.info("Preparing to run view {}".format(view))
 
         func, models, parameters = self.views[view]
         args = inspect.getargspec(func).args[1:]
@@ -158,28 +169,33 @@ class Simulation(object):
         except OSError:
             pass
 
-        # Determine whether we need to run the view
-        source_files = get_dependency_files(func, self.root_path)
-        try:
-            source_timestamp = max(map(os.path.getmtime, source_files))
-        except ValueError:
-            source_timestamp = 0
-        input_timestamp = 0
-        for model in models:
-            candidate = max([datum.timestamp for datum in model.results])
-            input_timestamp = max(candidate, input_timestamp)
-        try:
-            timestamp_path = os.path.join(reports_dir,
-                                          "{}.run".format(view))
-            last_run_timestamp = os.path.getmtime(timestamp_path)
-        except OSError:
-            do_run = True
+        if force:
+            log.info("View run has been forced")
+            do_run = force
         else:
-            do_run = (last_run_timestamp < input_timestamp
-                      or last_run_timestamp < source_timestamp
-                      or force)
+            # Determine whether we need to run the view
+            log.info("Checking whether output is up-to-date")
+            source_files = get_dependency_files(func, self.root_path)
+            try:
+                source_timestamp = max(map(os.path.getmtime, source_files))
+            except ValueError:
+                source_timestamp = 0
+            input_timestamp = 0
+            for model in models:
+                candidate = max([datum.timestamp for datum in model.results])
+                input_timestamp = max(candidate, input_timestamp)
+            try:
+                timestamp_path = os.path.join(reports_dir,
+                                              "{}.run".format(view))
+                last_run_timestamp = os.path.getmtime(timestamp_path)
+            except OSError:
+                do_run = True
+            else:
+                do_run = (last_run_timestamp < input_timestamp
+                          or last_run_timestamp < source_timestamp)
 
         if do_run:
+            log.info("Running view")
             old_cwd = os.getcwd()
             os.chdir(self.config.REPORTS_DIR)
             parameters = parameters or [{}]
@@ -199,6 +215,9 @@ class Simulation(object):
                     # Assign the result to the data dictionary
                     data[model.__name__] = result
                 kwargs = dict([(arg, params[arg]) for arg in args])
+                log.info("Running view with parameters:")
+                for key, value in kwargs.items():
+                    log.info("{}: {}".format(key, value))
                 func(data, **kwargs)
             with open("{}.run".format(view), 'w') as f:
                 pass
@@ -209,6 +228,7 @@ class Simulation(object):
     def run(self, force=False):
         """Run all models in this simulation"""
 
+        self.log.info("Running all models and views")
         results = {}
         for model in self.models.keys():
             results[model] = self.run_model(model, force)
