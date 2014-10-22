@@ -8,17 +8,21 @@ import os
 
 from anflow.config import Config
 from anflow.data import DataSet, Datum
+from anflow.utils import get_root_path
 
 
 
 class Simulation(object):
 
-    def __init__(self):
+    def __init__(self, import_name):
         """Constructor"""
 
         self.config = Config()
         self.models = OrderedDict()
         self.views = OrderedDict()
+        self.import_name = import_name
+
+        self.root_path = get_root_path(import_name)
 
     def register_model(self, input_data, parameters=None):
         """Register the supplied model function and associated parameters"""
