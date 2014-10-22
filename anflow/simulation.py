@@ -31,8 +31,14 @@ class Simulation(object):
         self.root_path = root_path or get_root_path(import_name)
 
         self.config.from_dict(self.defaults)
+        self.log = logging.getLogger(self.import_name)
+        self.log.propagate = False
+        self._setup_log()
+
+    def _setup_log(self):
         # Set up the log
-        self.log = logging.getLogger(import_name)
+        self.log.handlers = []
+        self.log.setLevel(self.config.LOGGING_LEVEL)
         formatter = logging.Formatter(self.config.LOGGING_FORMAT,
                                       self.config.LOGGING_DATEFMT)
         if self.config.LOGGING_CONSOLE:
@@ -87,6 +93,8 @@ class Simulation(object):
 
     def run_model(self, model, force=False):
         """Run a model"""
+
+        self._setup_log()
 
         log = self.log.getChild('model.{}'.format(model))
         log.info("Preparing to run model {}".format(model))
@@ -158,6 +166,7 @@ class Simulation(object):
     def run_view(self, view, force=False):
         """Runs the specified view"""
 
+        self._setup_log()
         log = self.log.getChild("view.{}".format(view))
         log.info("Preparing to run view {}".format(view))
 
