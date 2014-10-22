@@ -8,7 +8,7 @@ import os
 
 from anflow.config import Config
 from anflow.data import DataSet, Datum
-from anflow.utils import get_root_path
+from anflow.utils import get_root_path, get_dependency_files
 
 
 
@@ -82,6 +82,12 @@ class Simulation(object):
             pass
 
         # Determine whether data is up to date and we should run the model
+        # Part of this is concerned with determining if source has changed
+        source_files = get_dependency_files(func, self.root_path)
+        try:
+            source_timestamp = max(map(os.path.getmtime, source_files))
+        except ValueError:
+            source_timestamp = 0
         input_timestamp = max([datum.timestamp for datum in data])
         results = self.models[model][0].results
         try:
@@ -92,7 +98,9 @@ class Simulation(object):
             do_run = True
         else:
             results_timestamp = min([result.timestamp for result in results])
-            if results_timestamp > input_timestamp: # Check for new input
+            # Check for new input or source code
+            if (results_timestamp > input_timestamp
+                and results_timestamp > source_timestamp):
                 do_run = False
             else:
                 do_run = True

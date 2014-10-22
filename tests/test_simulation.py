@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import importlib
 import os
 import shelve
 import shutil
+import sys
 import time
 
 import pytest
@@ -27,15 +29,32 @@ def sim(tmp_dir, request):
     datum.save()
     input_data = [datum]
 
-    sim = Simulation("testsim")
+    sim = Simulation("testsim", root_path=tmp_dir)
     sim.config.from_dict(settings)
 
+    with open(os.path.join(tmp_dir, '__init__.py'), 'a') as f:
+        pass
+    with open(os.path.join(tmp_dir, "functions.py"), 'w') as f:
+        f.write('def func1(data): return data\n')
+        f.write('def func2(data): return data\n')
+        f.write('def func3(data): pass\n')
+    sys.path.insert(0, tmp_dir)
+    module = importlib.import_module('functions')
+    
     def fin():
         delete_shelve_files(tmp_dir + "/a1.pkl")
+        for filename in ['__init__.py', 'functions.py']:
+            try:
+                os.unlink(os.path.join(tmp_dir, filename))
+            except OSError:
+                pass
         shutil.rmtree(settings['RESULTS_DIR'], ignore_errors=True)
+        shutil.rmtree(settings['REPORTS_DIR'], ignore_errors=True)
+        sys.path.remove(tmp_dir)
     request.addfinalizer(fin)
     
-    return {'simulation': sim, 'input_data': input_data}
+    return {'simulation': sim, 'input_data': input_data,
+            'module': module}
 
 @pytest.fixture
 def run_sim(tmp_dir, sim, request):
@@ -69,7 +88,7 @@ class TestSimulation(object):
         assert hasattr(sim['simulation'], 'views')
         assert hasattr(sim['simulation'], 'config')
         assert sim['simulation'].import_name == "testsim"
-        assert sim['simulation'].root_path == os.getcwd()
+        assert sim['simulation'].root_path == tmp_dir
         assert sim['simulation'].config.RESULTS_DIR == os.path.join(tmp_dir,
                                                                     "results")
         assert sim['simulation'].config.REPORTS_DIR == os.path.join(tmp_dir,
@@ -106,24 +125,25 @@ class TestSimulation(object):
         
         simulation = sim['simulation']
         @simulation.register_model(input_data=sim['input_data'])
-        def some_func(data):
+        def func1(data):
             return data
-        @simulation.register_model(input_data=some_func.results)
-        def another_func(data):
-            return data
+            
+        decorator = simulation.register_model(input_data=func1.results)
+        func2 = sim['module'].func2
+        func2 = decorator(func2)
 
-        result = simulation.run_model('some_func')
+        result = simulation.run_model('func1')
         assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'some_func_a1.pkl')) > 0
+                                               'func1_a1.pkl')) > 0
         assert result
-        result = simulation.run_model('another_func')
+        result = simulation.run_model('func2')
         assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'another_func_a1.pkl')) > 0
+                                               'func2_a1.pkl')) > 0
         assert result
 
-        result = simulation.run_model('another_func')
+        result = simulation.run_model('func2')
         assert not result
-        result = simulation.run_model('another_func', force=True)
+        result = simulation.run_model('func2', force=True)
         assert result
 
     def test_run_view(self, run_sim, tmp_dir):
@@ -149,15 +169,15 @@ class TestSimulation(object):
     def test_run(self, sim, tmp_dir):
         """Test Simulation.run"""
         simulation = sim['simulation']
-        @simulation.register_model(input_data=sim['input_data'])
-        def some_func(data):
-            return data
-        @simulation.register_model(input_data=some_func.results)
-        def another_func(data):
-            return data
+        decorator = simulation.register_model(input_data=sim['input_data'])
+        func1 = sim['module'].func1
+        func1 = decorator(func1)
+        decorator = simulation.register_model(input_data=func1.results)
+        func2 = sim['module'].func2
+        func2 = decorator(func2)
         
         simulation.run()
         assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'some_func_a1.pkl')) > 0
+                                               'func1_a1.pkl')) > 0
         assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'another_func_a1.pkl')) > 0
+                                               'func2_a1.pkl')) > 0
