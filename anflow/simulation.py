@@ -14,7 +14,7 @@ from anflow.utils import get_root_path
 
 class Simulation(object):
 
-    def __init__(self, import_name):
+    def __init__(self, import_name, root_path=None):
         """Constructor"""
 
         self.config = Config()
@@ -22,7 +22,7 @@ class Simulation(object):
         self.views = OrderedDict()
         self.import_name = import_name
 
-        self.root_path = get_root_path(import_name)
+        self.root_path = root_path or get_root_path(import_name)
 
     def register_model(self, input_data, parameters=None):
         """Register the supplied model function and associated parameters"""
