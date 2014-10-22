@@ -27,7 +27,7 @@ def sim(tmp_dir, request):
     datum.save()
     input_data = [datum]
 
-    sim = Simulation()
+    sim = Simulation("testsim")
     sim.config.from_dict(settings)
 
     def fin():
@@ -65,9 +65,15 @@ class TestSimulation(object):
 
     def test_init(self, sim, tmp_dir):
         """Test object constructor"""
+        assert hasattr(sim['simulation'], 'models')
+        assert hasattr(sim['simulation'], 'views')
         assert hasattr(sim['simulation'], 'config')
+        assert sim['simulation'].import_name == "testsim"
+        assert sim['simulation'].root_path == os.getcwd()
         assert sim['simulation'].config.RESULTS_DIR == os.path.join(tmp_dir,
                                                                     "results")
+        assert sim['simulation'].config.REPORTS_DIR == os.path.join(tmp_dir,
+                                                                    "reports")
 
     def test_register_model(self, sim):
         """Test Simulation.register_model"""
