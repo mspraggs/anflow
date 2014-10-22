@@ -189,4 +189,6 @@ class DataSet(object):
                                          actual_prefix, '.pkl')
             self._counter += 1
             return Datum.load(filename)
-            
+
+    def __len__(self):
+        return len(self._params)
