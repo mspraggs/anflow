@@ -78,7 +78,8 @@ def run_sim(tmp_dir, sim, request):
         shutil.rmtree(simulation.config.REPORTS_DIR, ignore_errors=True)
     request.addfinalizer(fin)
 
-    return {'simulation': simulation, 'model': model}
+    return {'simulation': simulation, 'model': model,
+            'module': sim['module']}
 
 class TestSimulation(object):
 
@@ -150,10 +151,16 @@ class TestSimulation(object):
         """Test Simulation.run_model"""
 
         simulation = run_sim['simulation']
-        @simulation.register_view((run_sim['model'],), parameters=[{'a': 1}])
+        
         def some_view(data):
             with open("some_file", 'w') as f:
                 f.write(data['model'][0].params['a'].__repr__() + "\n")
+        run_sim['module'].func3 = some_view
+                
+        decorator = simulation.register_view((run_sim['model'],),
+                                             parameters=[{'a': 1}])
+        func3 = run_sim['module'].func3
+        func3 = decorator(func3)
 
         result = simulation.run_view('some_view')
         assert result
