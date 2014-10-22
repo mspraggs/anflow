@@ -43,7 +43,7 @@ class TestFunctions(object):
         # First try a module that doesn't exist
         assert get_root_path('blah') == os.getcwd()
         # Then try __main__
-        assert get_root_path('__main__') == os.path.dirname(sys.executable)
+        assert get_root_path('__main__') == os.path.dirname(sys.modules['__main__'].__file__)
         # Then the dummy_module
         assert get_root_path(dummy_module[0]) == tmp_dir
 
