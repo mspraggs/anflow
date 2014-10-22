@@ -135,6 +135,11 @@ class Simulation(object):
             pass
 
         # Determine whether we need to run the view
+        source_files = get_dependency_files(func, self.root_path)
+        try:
+            source_timestamp = max(map(os.path.getmtime, source_files))
+        except ValueError:
+            source_timestamp = 0
         input_timestamp = 0
         for model in models:
             candidate = max([datum.timestamp for datum in model.results])
@@ -146,7 +151,9 @@ class Simulation(object):
         except OSError:
             do_run = True
         else:
-            do_run = last_run_timestamp < input_timestamp or force
+            do_run = (last_run_timestamp < input_timestamp
+                      or last_run_timestamp < source_timestamp
+                      or force)
 
         if do_run:
             old_cwd = os.getcwd()
