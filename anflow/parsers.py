@@ -6,12 +6,14 @@ from itertools import product
 import os
 import re
 
-from anflow.config import Config
 from anflow.data import FileWrapper
 
 
 
-class GuidedParser(object):
+class Parser(object):
+    pass
+
+class GuidedParser(Parser):
 
     def __init__(self, path_template, loader, parameters):
         """Constructor for the GuidedParser"""
