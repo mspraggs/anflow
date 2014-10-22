@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import inspect
 import os
 import pkgutil
 import sys
@@ -38,3 +39,26 @@ def get_root_path(import_name):
 
     # Now return the directory path the import_name module is in
     return os.path.dirname(os.path.abspath(filepath))
+
+def get_dependency_files(obj, top, n=10):
+    """Gets a list of files that obj depends on in some way that are under
+    the directory top"""
+    if n == 0:
+        return []
+    mod = inspect.getmodule(obj)
+    try:
+        filename = inspect.getsourcefile(mod)
+    except TypeError:
+        filename = None
+    else:
+        if filename:
+            filename = os.path.abspath(filename)
+            relpath = os.path.relpath(filename, top)
+            if relpath.startswith('..'):
+                filename = None
+    out = []
+    if filename:
+        out.append(filename)
+        for name, attr in mod.__dict__.items():
+            out.extend(get_dependency_files(attr, top, n - 1))
+    return list(set(out))
