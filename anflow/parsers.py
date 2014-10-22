@@ -66,3 +66,6 @@ class GuidedParser(Parser):
         if not self.populated:
             self.populate()
         return self.parsed_data.__iter__()
+
+    def __len__(self):
+        return len(self.parsed_data)
