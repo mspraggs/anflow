@@ -1,15 +1,11 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from datetime import datetime
-import logging
 import os
 import random
 import shutil
-import sys
 
 import pytest
-from sqlalchemy import Column, Float, Integer, String
 
 from anflow.data import Datum
 
