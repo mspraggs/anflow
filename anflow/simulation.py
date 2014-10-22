@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 import inspect
 from itertools import product
+import logging
 import os
 
 from anflow.config import Config
@@ -14,6 +15,13 @@ from anflow.utils import get_root_path, get_dependency_files
 
 class Simulation(object):
 
+    defaults = {'DEBUG': False,
+                'LOGGING_LEVEL': None,
+                'LOGGING_CONSOLE': True,
+                'LOGGING_FORMAT': "%(asctime)s : %(name)s : %(levelname)s : %(message)s",
+                'LOGGING_DATEFMT': "%d/%m/%Y %H:%M:%S",
+                'LOGGING_FILE': None}
+
     def __init__(self, import_name, root_path=None):
         """Constructor"""
 
@@ -23,6 +31,22 @@ class Simulation(object):
         self.import_name = import_name
 
         self.root_path = root_path or get_root_path(import_name)
+
+        self.config.from_dict(self.defaults)
+        # Set up the log
+        self.log = logging.getLogger()
+        formatter = logging.Formatter(self.config.LOGGING_FORMAT,
+                                      self.config.LOGGING_DATEFMT)
+        if self.config.LOGGING_CONSOLE:
+            ch = logging.StreamHandler()
+            ch.setLevel(self.config.LOGGING_LEVEL)
+            ch.setFormatter(formatter)
+            self.log.addHandler(ch)
+        if self.config.LOGGING_FILE:
+            fh = logging.FileHandler(self.config.LOGGING_FILE)
+            fh.setLevel(self.config.LOGGING_LEVEL)
+            fh.setFormatter(formatter)
+            self.log.addHandler(fh)
 
     def register_model(self, input_data, parameters=None):
         """Register the supplied model function and associated parameters"""
