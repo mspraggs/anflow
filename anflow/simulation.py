@@ -205,8 +205,13 @@ class Simulation(object):
                                               "{}.run".format(view))
                 last_run_timestamp = os.path.getmtime(timestamp_path)
             except OSError:
+                log.info("View has not been run")
                 do_run = True
             else:
+                if last_run_timestamp < input_timestamp:
+                    log.info("Input data is newer than view output")
+                if last_run_timestamp < source_timestamp:
+                    log.info("View source code is newer than view output")
                 do_run = (last_run_timestamp < input_timestamp
                           or last_run_timestamp < source_timestamp)
 
@@ -231,13 +236,18 @@ class Simulation(object):
                     # Assign the result to the data dictionary
                     data[model.__name__] = result
                 kwargs = dict([(arg, params[arg]) for arg in args])
-                log.info("Running view with parameters:")
-                for key, value in kwargs.items():
-                    log.info("{}: {}".format(key, value))
+                if len(parameters) > 0:
+                    log.info("Running view with parameters:")
+                    for key, value in params.items():
+                        log.info("{}: {}".format(key, value))
+                else:
+                    log.info("Running view without parameters")
                 func(data, **kwargs)
             with open("{}.run".format(view), 'w') as f:
                 pass
             os.chdir(old_cwd)
+        else:
+            log.info("View output is up-to-date")
 
         return do_run
 
