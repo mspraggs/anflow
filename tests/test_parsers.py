@@ -3,9 +3,6 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-import importlib
-import inspect
-from itertools import product
 import os
 try:
     import cPickle as pickle
