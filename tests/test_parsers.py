@@ -17,7 +17,7 @@ import pytest
 import numpy as np
 
 from anflow.data import FileWrapper
-from anflow.parsers import GuidedParser
+from anflow.parsers import GuidedParser, Parser
 
 
 
@@ -46,6 +46,36 @@ def data_to_parse(tmp_dir, request):
             'rawdata_dir': os.path.join(tmp_dir, 'rawdata'),
             'template': template, 'load_func': load_func,
             'params': params}
+
+class TestParser(object):
+
+    def test_init(self):
+        """Parser constructor test"""
+        parser = Parser()
+        assert hasattr(parser, 'parsed_data')
+        assert hasattr(parser, '__iter__')
+        assert hasattr(parser, '__len__')
+        assert hasattr(parser, 'populate')
+        assert not parser.populated
+        assert len(parser) == 0
+
+    def test_populate(self):
+        """Parser.populate test"""
+        parser = Parser()
+        with pytest.raises(NotImplementedError):
+            parser.populate()
+
+    def test_iter(self):
+        """Parser.__iter__ test"""
+        parser = Parser()
+        with pytest.raises(NotImplementedError):
+            for datum in parser:
+                pass
+
+    def test_len(self):
+        """Parser.__len__ test"""
+        parser = Parser()
+        assert len(parser) == 0
 
 class TestGuidedParser(object):
 

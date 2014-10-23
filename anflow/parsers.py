@@ -11,7 +11,26 @@ from anflow.data import FileWrapper
 
 
 class Parser(object):
-    pass
+
+    def __init__(self):
+        """Parser constructor"""
+
+        self.parsed_data = []
+        self.populated = False
+
+    def populate(self):
+        """Empty populate function"""
+        raise NotImplementedError
+
+    def __iter__(self):
+        """Parser iterator"""
+        if not self.populated:
+            self.populate()
+        return self.parsed_data.__iter__()
+
+    def __len__(self):
+        """Length attribute"""
+        return len(self.parsed_data)
 
 class GuidedParser(Parser):
 
