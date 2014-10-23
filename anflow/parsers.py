@@ -36,13 +36,11 @@ class GuidedParser(Parser):
 
     def __init__(self, path_template, loader, parameters):
         """Constructor for the GuidedParser"""
-
+        super(GuidedParser, self).__init__()
         self.path_template = path_template
         self.loader = loader
         self.collect = inspect.getargspec(loader).args[1:]
         self.parameters = parameters
-        self.populated = False
-        self.parsed_data = []
 
     def populate(self):
         """Populate the parser using the data on the specified paths"""
@@ -79,12 +77,3 @@ class GuidedParser(Parser):
             self.parsed_data.append(filewrapper)
 
         self.populated = True
-
-    def __iter__(self):
-
-        if not self.populated:
-            self.populate()
-        return self.parsed_data.__iter__()
-
-    def __len__(self):
-        return len(self.parsed_data)
