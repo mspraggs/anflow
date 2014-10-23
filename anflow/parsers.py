@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import inspect
-from itertools import product
+from itertools import chain, product
 import os
 import re
 
@@ -31,6 +31,26 @@ class Parser(object):
     def __len__(self):
         """Length attribute"""
         return len(self.parsed_data)
+
+    def __add__(self, parser):
+        """Join two parsers together"""
+        return CombinedParser(self, parser)
+
+class CombinedParser(Parser):
+
+    def __init__(self, parser1, parser2):
+        """Constructor for CombinedParser"""
+
+        self.parser1 = parser1
+        self.parser2 = parser2
+
+    def __iter__(self):
+        """Combine iterators from the two parsers"""
+        return chain(self.parser1, self.parser2)
+
+    def __len__(self):
+        """Total length is the sum of both iterators"""
+        return len(self.parser1) + len(self.parser2)
 
 class GuidedParser(Parser):
 

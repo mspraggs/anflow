@@ -17,7 +17,7 @@ import pytest
 import numpy as np
 
 from anflow.data import FileWrapper
-from anflow.parsers import GuidedParser, Parser
+from anflow.parsers import CombinedParser, GuidedParser, Parser
 
 
 
@@ -76,6 +76,14 @@ class TestParser(object):
         """Parser.__len__ test"""
         parser = Parser()
         assert len(parser) == 0
+
+    def test_add(self):
+        """Test Parser.__add__"""
+
+        parser = Parser()
+        combined_parser = parser + parser
+        assert isinstance(combined_parser, CombinedParser)
+        assert len(combined_parser) == 0
 
 class TestGuidedParser(object):
 
