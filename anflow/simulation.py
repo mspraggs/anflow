@@ -127,7 +127,7 @@ class Simulation(object):
             except ValueError:
                 source_timestamp = 0
             input_timestamp = max([datum.timestamp for datum in data])
-            results = self.models[model][0].results
+            results = func.results
             try:
                 results = results.all()
             except IOError:
