@@ -133,12 +133,17 @@ class Simulation(object):
             except IOError:
                 results = []
             if not results:  # Check for lack of existing results
+                log.info("No results for model")
                 do_run = True
             else:
                 results_timestamp = min([result.timestamp for result in results])
+                if results_timestamp < input_timestamp:
+                    log.info("Input data is newer than results")
+                if results_timestamp < source_timestamp:
+                    log.info("Model source is newer than results")
                 # Check for new input or source code
-                do_run = not (results_timestamp > input_timestamp and
-                              results_timestamp > source_timestamp)
+                do_run = (results_timestamp < input_timestamp or
+                          results_timestamp < source_timestamp)
 
         if do_run:
             log.info("Running model")
@@ -160,6 +165,8 @@ class Simulation(object):
                     log.info("Saving results")
                     result_datum = Datum(joint_params, result, file_prefix)
                     result_datum.save()
+        else:
+            log.info("Results are up-to-date")
 
         return do_run
 
