@@ -94,7 +94,10 @@ class Datum(object):
     def load(cls, filename):
         """Lazy-loads the object from disk"""
 
-        shelf = shelve.open(filename, flag="r", protocol=2)
+        try:
+            shelf = shelve.open(filename, flag="r", protocol=2)
+        except anydbm.error:
+            return None
         params = shelf[b'params']
         timestamp = shelf[b'timestamp']
         shelf.close()
@@ -156,10 +159,9 @@ class DataSet(object):
         actual_prefix = os.path.join(self.config.RESULTS_DIR, self._prefix)
         for params in self._params:
             filename = generate_filename(params, actual_prefix, '.pkl')
-            try:
-                output.append(Datum.load(filename))
-            except anydbm.error:
-                raise IOError("Unable to open shelve file {}".format(filename))
+            datum = Datum.load(filename)
+            if datum is not None:
+                output.append(datum)
         return output
 
     def first(self):
@@ -184,11 +186,14 @@ class DataSet(object):
             self._counter = 0
             raise StopIteration
         else:
-            actual_prefix = os.path.join(self.config.RESULTS_DIR, self._prefix)
-            filename = generate_filename(self._params[self._counter],
-                                         actual_prefix, '.pkl')
-            self._counter += 1
-            return Datum.load(filename)
+            datum = None
+            while datum is None and self._counter < len(self._params):
+                actual_prefix = os.path.join(self.config.RESULTS_DIR, self._prefix)
+                filename = generate_filename(self._params[self._counter],
+                                             actual_prefix, '.pkl')
+                self._counter += 1
+                datum = Datum.load(filename)
+            return datum
 
     def __len__(self):
         return len(self._params)

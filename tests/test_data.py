@@ -150,6 +150,8 @@ class TestDatum(object):
         assert not hasattr(new_datum, '_data')
         assert new_datum.params == random_datum_file['params']
         assert new_datum.timestamp == random_datum_file["timestamp"]
+        new_datum = Datum.load("some_non_existant_file")
+        assert new_datum is None
 
     def test_delete(self, random_datum_file, tmp_dir):
         """Test Datum.delete"""        
