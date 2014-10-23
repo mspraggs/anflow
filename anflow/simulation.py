@@ -155,7 +155,7 @@ class Simulation(object):
                 kwargs = dict([(key, joint_params[key]) for key in args])
                 log.info("Running model with parameters ({} of {}):"
                          .format(i + 1, num_runs))
-                for key, value in kwargs.items():
+                for key, value in joint_params.items():
                     log.info("{}: {}".format(key, value))
                 if hasattr(func, 'resampled'):
                     result = func(datum, **kwargs)
