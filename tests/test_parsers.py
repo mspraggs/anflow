@@ -77,10 +77,13 @@ class TestParser(object):
     def test_add(self):
         """Test Parser.__add__"""
 
-        parser = Parser()
-        combined_parser = parser + parser
+        parser1 = Parser()
+        parser2 = Parser()
+        parser1.parsed_data = range(3)
+        parser2.parsed_data = range(5)
+        combined_parser = parser1 + parser2
         assert isinstance(combined_parser, CombinedParser)
-        assert len(combined_parser) == 0
+        assert len(combined_parser) == 8
 
 class TestGuidedParser(object):
 
