@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import importlib
 import inspect
 import os
+import sys
 
 
 
@@ -32,7 +33,7 @@ class Manager(object):
                 pass
 
         # Get any available arguments
-        self.argv = argv or []
+        self.argv = argv or sys.argv
 
     def execute(self):
         try:
