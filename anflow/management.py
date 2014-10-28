@@ -20,7 +20,6 @@ class Manager(object):
         # Look for commands in the commands sub-directory
         commands_dir = os.path.join(os.path.dirname(__file__), "commands")
         files = os.listdir(commands_dir)
-        this_module_name = inspect.getmodule(self).__name__
         for f in files:
             module_name = "{}".format(inspect.getmodulename(f))
             # Try to locate a main() function in the current file
