@@ -47,10 +47,10 @@ class Datum(object):
 
     _extensions = ['', '.bak', '.dat', '.dir', '.pag', '.db']
 
-    def __init__(self, params, data, file_prefix=None):
+    def __init__(self, params, data, file_prefix=None, path_template=None):
         """Constructor"""
 
-        filename = generate_filename(params, file_prefix, ".pkl")
+        filename = generate_filename(params, file_prefix, ".pkl", path_template)
         self.filename = filename
         self._params = set(params.keys())
         self._data = data
@@ -86,6 +86,8 @@ class Datum(object):
 
     def save(self):
         """Saves the datum to disk"""
+        if not os.path.exists(os.path.dirname(self.filename)):
+            os.makedirs(os.path.dirname(self.filename))
         shelf = shelve.open(self.filename, protocol=2)
         shelf[b'params'] = self.params
         shelf[b'data'] = self.data
@@ -123,11 +125,12 @@ class Datum(object):
 
 class DataSet(object):
 
-    def __init__(self, params, config, prefix=None):
+    def __init__(self, params, config, prefix=None, path_template=None):
         """Constructor - initialize parameter set"""
         self.config = config
         self._params = params
         self._prefix = prefix
+        self._template = path_template
 
         self._counter = 0
     
@@ -152,7 +155,7 @@ class DataSet(object):
                 filter_func = lambda d: d[key] == value
 
             new_params = filter(filter_func, new_params)
-        return DataSet(new_params, self.config, self._prefix)
+        return DataSet(new_params, self.config, self._prefix, self._template)
 
     def all(self):
         """Return a list of all Datum objects matched by the current
@@ -160,7 +163,8 @@ class DataSet(object):
         output = []
         actual_prefix = os.path.join(self.config.RESULTS_DIR, self._prefix)
         for params in self._params:
-            filename = generate_filename(params, actual_prefix, '.pkl')
+            filename = generate_filename(params, actual_prefix, '.pkl',
+                                         self._template)
             datum = Datum.load(filename)
             if datum is not None:
                 output.append(datum)
@@ -170,7 +174,8 @@ class DataSet(object):
         """Return the first item in the DataSet"""
         actual_prefix = os.path.join(self.config.RESULTS_DIR, self._prefix)
         try:
-            filename = generate_filename(self._params[0], actual_prefix, '.pkl')
+            filename = generate_filename(self._params[0], actual_prefix, '.pkl',
+                                         self._template)
         except IndexError:
             return
         try:
@@ -192,7 +197,7 @@ class DataSet(object):
             while datum is None and self._counter < len(self._params):
                 actual_prefix = os.path.join(self.config.RESULTS_DIR, self._prefix)
                 filename = generate_filename(self._params[self._counter],
-                                             actual_prefix, '.pkl')
+                                             actual_prefix, '.pkl', self._template)
                 self._counter += 1
                 datum = Datum.load(filename)
             return datum

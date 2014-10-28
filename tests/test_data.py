@@ -174,6 +174,7 @@ class TestDataSet(object):
 
         assert random_dataset['dataset']._params == random_dataset['params']
         assert random_dataset['dataset']._prefix == tmp_dir + '/'
+        assert random_dataset['dataset']._template is None
 
     def test_filter(self, random_dataset):
         """Test filter feature of dataset"""
