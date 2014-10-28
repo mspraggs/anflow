@@ -15,6 +15,6 @@ setup(
     packages=find_packages(exclude=EXCLUDE_FROM_PACKAGES),
     scripts=['anflow/bin/anflow-admin.py'],
     entry_points={'console_scripts': [
-        'anflow-admin = anflow.core.management:execute_from_command_line',
+        'anflow-admin = anflow.management:execute_from_command_line',
     ]},
 )
