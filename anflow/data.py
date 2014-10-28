@@ -115,8 +115,7 @@ class Datum(object):
     def delete(self):
         """Deletes the datum file(s) on disk"""
 
-        extensions = ['', '.bak', '.dat', '.dir', '.pag', '.db']
-        for extension in extensions:
+        for extension in self._extensions:
             try:
                 os.unlink(self.filename + extension)
             except OSError:
