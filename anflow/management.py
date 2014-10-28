@@ -37,9 +37,10 @@ class Manager(object):
     def execute(self):
         try:
             command = self.anflow_commands[self.argv[1]]
-            command(self.argv[2:])
         except (IndexError, KeyError) as e:
             self.help()
+        else:
+            command(self.argv[2:])
 
     def help(self):
         print("Usage: {} subcommand [options] [args]"
