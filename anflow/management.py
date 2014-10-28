@@ -52,4 +52,3 @@ class Manager(object):
         commands.sort()
         for command in commands:
             print("    {}".format(command))
-
