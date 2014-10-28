@@ -25,9 +25,8 @@ class Manager(object):
             module_name = "{}".format(inspect.getmodulename(f))
             # Try to locate a main() function in the current file
             try:
-                module = importlib.import_module(".commands.{}"
-                                                 .format(module_name),
-                                                 this_module_name)
+                module = importlib.import_module("anflow.commands.{}"
+                                                 .format(module_name))
                 function = module.main
                 self.anflow_commands[module_name] = function
             except (ImportError, AttributeError) as e:
