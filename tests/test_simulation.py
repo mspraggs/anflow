@@ -104,7 +104,7 @@ class TestSimulation(object):
             pass
 
         assert (simulation.models
-                == {'some_func': (some_func, sim['input_data'], None)})
+                == {'some_func': (some_func, sim['input_data'], None, None)})
         assert hasattr(some_func, 'results')
         assert len(some_func.results._params) == 1
         assert some_func.results._parent == some_func

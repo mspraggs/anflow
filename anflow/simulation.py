@@ -52,7 +52,7 @@ class Simulation(object):
             fh.setFormatter(formatter)
             self.log.addHandler(fh)
 
-    def register_model(self, input_data, parameters=None):
+    def register_model(self, input_data, parameters=None, path_template=None):
         """Register the supplied model function and associated parameters"""
 
         try:
@@ -61,12 +61,15 @@ class Simulation(object):
             data_params = [datum.params for datum in input_data]
         actual_parameters = parameters or [{}]
 
+        if path_template:
+            path_template = os.path.join(funcname, path_template)
+
         def decorator(func):
             try:
                 funcname = func.__name__
             except AttributeError:
                 funcname = func.original.__name__
-            self.models[funcname] = (func, input_data, parameters)
+            self.models[funcname] = (func, input_data, parameters, path_template)
             prefix = "{}/".format(funcname)
             all_params = []
             for dparams in data_params:
@@ -76,7 +79,7 @@ class Simulation(object):
                     temp_params.update(params)
                     all_params.append(temp_params)
             func.results = DataSet(all_params, self.config,
-                                   prefix)
+                                   prefix, path_template)
             func.results._parent = func
             return func
 
@@ -99,7 +102,7 @@ class Simulation(object):
         log = self.log.getChild('models.{}'.format(model))
         log.info("Preparing to run model {}".format(model))
 
-        func, data, parameters = self.models[model]
+        func, data, parameters, path_template = self.models[model]
         try:
             args = inspect.getargspec(func.original).args[1:]
             if func.error_name:
@@ -109,6 +112,8 @@ class Simulation(object):
         parameters = parameters or [{}]
         results_dir = os.path.join(self.config.RESULTS_DIR,
                                    model)
+        if path_template:
+            path_template = os.path.join(model, path_template)
         try:
             os.makedirs(results_dir)
         except OSError:
@@ -163,7 +168,8 @@ class Simulation(object):
                     result = func(datum.data, **kwargs)
                 if result is not None:
                     log.info("Saving results")
-                    result_datum = Datum(joint_params, result, results_dir + "/")
+                    result_datum = Datum(joint_params, result, results_dir + "/",
+                                         path_template)
                     result_datum.save()
         else:
             log.info("Results are up-to-date")
