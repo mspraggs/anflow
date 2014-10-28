@@ -9,7 +9,7 @@ from anflow.management import Manager
 
 class TestManager(object):
 
-    def test_constructor(self):
+    def test_init(self):
         """Test for Manager constructor"""
         manager = Manager()
         assert manager.argv == sys.argv
