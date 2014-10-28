@@ -135,11 +135,11 @@ class TestSimulation(object):
 
         result = simulation.run_model('func1')
         assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'func1_a1.pkl')) > 0
+                                               'func1', 'a1.pkl')) > 0
         assert result
         result = simulation.run_model('func2')
         assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'func2_a1.pkl')) > 0
+                                               'func2', 'a1.pkl')) > 0
         assert result
 
         result = simulation.run_model('func2')
@@ -164,8 +164,9 @@ class TestSimulation(object):
 
         result = simulation.run_view('some_view')
         assert result
-        assert os.path.exists(os.path.join(tmp_dir, 'reports/some_file'))
-        with open(os.path.join(tmp_dir, 'reports/some_file')) as f:
+        assert os.path.exists(os.path.join(tmp_dir, 'reports/some_view/'
+                                                    'some_file'))
+        with open(os.path.join(tmp_dir, 'reports/some_view/some_file')) as f:
             lines = f.readlines()
         assert len(lines) == 1
         assert lines[0] == '1\n'
@@ -185,6 +186,6 @@ class TestSimulation(object):
         
         simulation.run()
         assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'func1_a1.pkl')) > 0
+                                               'func1', 'a1.pkl')) > 0
         assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'func2_a1.pkl')) > 0
+                                               'func2', 'a1.pkl')) > 0

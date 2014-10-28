@@ -67,7 +67,7 @@ class Simulation(object):
             except AttributeError:
                 funcname = func.original.__name__
             self.models[funcname] = (func, input_data, parameters)
-            prefix = "{}_".format(funcname)
+            prefix = "{}/".format(funcname)
             all_params = []
             for dparams in data_params:
                 for params in actual_parameters:
@@ -107,10 +107,10 @@ class Simulation(object):
         except AttributeError:
             args = inspect.getargspec(func).args[1:]
         parameters = parameters or [{}]
-        file_prefix = os.path.join(self.config.RESULTS_DIR,
-                                   model + "_")
+        results_dir = os.path.join(self.config.RESULTS_DIR,
+                                   model)
         try:
-            os.makedirs(self.config.RESULTS_DIR)
+            os.makedirs(results_dir)
         except OSError:
             pass
 
@@ -163,7 +163,7 @@ class Simulation(object):
                     result = func(datum.data, **kwargs)
                 if result is not None:
                     log.info("Saving results")
-                    result_datum = Datum(joint_params, result, file_prefix)
+                    result_datum = Datum(joint_params, result, results_dir + "/")
                     result_datum.save()
         else:
             log.info("Results are up-to-date")
@@ -218,7 +218,7 @@ class Simulation(object):
         if do_run:
             log.info("Running view")
             old_cwd = os.getcwd()
-            os.chdir(self.config.REPORTS_DIR)
+            os.chdir(reports_dir)
             parameters = parameters or [{}]
             for params in parameters:
                 data = {}
