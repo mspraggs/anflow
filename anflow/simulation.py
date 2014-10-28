@@ -96,7 +96,7 @@ class Simulation(object):
 
         self._setup_log()
 
-        log = self.log.getChild('model.{}'.format(model))
+        log = self.log.getChild('models.{}'.format(model))
         log.info("Preparing to run model {}".format(model))
 
         func, data, parameters = self.models[model]
@@ -179,7 +179,7 @@ class Simulation(object):
 
         func, models, parameters = self.views[view]
         args = inspect.getargspec(func).args[1:]
-        reports_dir = self.config.REPORTS_DIR
+        reports_dir = os.path.join(self.config.REPORTS_DIR, view)
         try:
             os.makedirs(reports_dir)
         except OSError:
@@ -201,7 +201,7 @@ class Simulation(object):
                 candidate = max([datum.timestamp for datum in model.results])
                 input_timestamp = max(candidate, input_timestamp)
             try:
-                timestamp_path = os.path.join(reports_dir,
+                timestamp_path = os.path.join(self.config.REPORTS_DIR,
                                               "{}.run".format(view))
                 last_run_timestamp = os.path.getmtime(timestamp_path)
             except OSError:
@@ -243,9 +243,10 @@ class Simulation(object):
                 else:
                     log.info("Running view without parameters")
                 func(data, **kwargs)
-            with open("{}.run".format(view), 'w') as f:
-                pass
             os.chdir(old_cwd)
+            with open(os.path.join(self.config.REPORTS_DIR,
+                                   "{}.run".format(view)), 'w'):
+                pass
         else:
             log.info("View output is up-to-date")
 
