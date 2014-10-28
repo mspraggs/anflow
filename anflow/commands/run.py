@@ -8,12 +8,6 @@ from datetime import datetime
 import os
 import sys
 
-from anflow.conf import settings
-from anflow.db.history import History
-from anflow.core.management.utils import gather_models, gather_views
-from anflow.utils.debug import debug_message
-from anflow.utils.logging import logger
-
 
 
 def set_term_handler(func):

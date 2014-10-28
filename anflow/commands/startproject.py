@@ -10,9 +10,6 @@ from importlib import import_module
 
 from jinja2 import Template
 
-from anflow.conf import settings
-from anflow.utils.debug import debug_message
-
 def main(argv):
     
     project_name = argv[0]

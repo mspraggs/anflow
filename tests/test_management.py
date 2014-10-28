@@ -11,5 +11,5 @@ class TestManager(object):
         """Test for Manager constructor"""
         manager = Manager()
         assert manager.argv == []
-        assert manager.anflow_commands.keys() == ["run", "start_project",
-                                                  "start_study"]
+        assert (manager.anflow_commands.keys()
+                == ["startstudy", "run", "startproject"])

@@ -7,10 +7,6 @@ import os
 
 from jinja2 import Template
 
-from anflow.conf import settings
-from anflow.utils.debug import debug_message
-from anflow.utils.io import projectify
-
 def main(argv):
     study_name = argv[0]
     template_args = {'study_name': study_name}
