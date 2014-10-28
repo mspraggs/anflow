@@ -16,6 +16,7 @@ def main(argv):
         location = argv[1]
     except IndexError:
         location = '.'
+    location = os.path.abspath(location)
     template_args = {'project_name': project_name}
     # Check that the project doesn't already exist
     try:
@@ -25,7 +26,8 @@ def main(argv):
         sys.path.pop(0)
         pass
     else:
-        print("Folder {} already exists".format(project_name))
+        print("Path {} already exists"
+              .format(os.path.join(location, project_name)))
         return
     # Now iterate through the project template and substitute in the
     # template arguments to each file
