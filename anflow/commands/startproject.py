@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 from importlib import import_module
+import sys
 
 from jinja2 import Template
 
@@ -18,10 +19,13 @@ def main(argv):
     template_args = {'project_name': project_name}
     # Check that the project doesn't already exist
     try:
-        module = import_module(project_name)
-    except ImportError as e:
+        sys.path.insert(0, location)
+        import_module(project_name)
+    except ImportError:
+        sys.path.pop(0)
         pass
     else:
+        print("Folder {} already exists".format(project_name))
         return
     # Now iterate through the project template and substitute in the
     # template arguments to each file
