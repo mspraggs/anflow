@@ -98,6 +98,14 @@ class TestFunctions(object):
         params = {'a': 4, 'blah': 2, 'ds': 'ok'}
         filename = generate_filename(params, "some_prefix_", ".pkl")
         assert filename == "some_prefix_a4_blah2_dsok.pkl"
+        filename = generate_filename(params)
+        assert filename == "a4_blah2_dsok"
+        filename = generate_filename(params, suffix=".pkl")
+        assert filename == "a4_blah2_dsok.pkl"
+        filename = generate_filename(params, "some_prefix_")
+        assert filename == "some_prefix_a4_blah2_dsok"
+        filename = generate_filename(params, path_template="a{a}/blah{blah}/ds{ds}")
+        assert filename == "a4/blah2/dsok"
 
 class TestFilewrapper(object):
 

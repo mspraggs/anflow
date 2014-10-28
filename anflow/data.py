@@ -12,14 +12,17 @@ import time
 
 
 
-def generate_filename(params, prefix=None, suffix=None):
+def generate_filename(params, prefix=None, suffix=None, path_template=None):
     """Generates the filename for the given parameters"""
 
-    prefix = prefix or ""
-    suffix = suffix or ""
-    paramstring = "_".join(["{}{}".format(key, value)
-                            for key, value in params.items()])
-    return "{}{}{}".format(prefix, paramstring, suffix)
+    if path_template:
+        return path_template.format(**params)
+    else:
+        prefix = prefix or ""
+        suffix = suffix or ""
+        paramstring = "_".join(["{}{}".format(key, value)
+                                for key, value in params.items()])
+        return "{}{}{}".format(prefix, paramstring, suffix)
 
 class FileWrapper(object):
     """Lazy file loading wrapper"""
