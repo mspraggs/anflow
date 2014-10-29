@@ -7,11 +7,32 @@ import inspect
 import os
 import sys
 
+from anflow.config import Config, project_defaults
 
 
 def execute_from_command_line(argv=None):
     manager = Manager(argv)
     manager.execute()
+
+
+def get_project_path():
+    """Retrieves the project path by looking up the stack"""
+    import __main__
+    if __main__.__file__.endswith('manage.py'):
+        return os.path.join(os.path.dirname(__main__.__file__))
+    else:
+        raise RuntimeError("Trying to work with project without using manage.py")
+
+def load_project_config():
+    """Loads the project settings found in settings.py and returns a Config
+    object"""
+    project_path = get_project_path()
+    settings_file = os.path.join(project_path, "settings.py")
+    config = Config()
+    config.from_dict(project_defaults)
+    config.from_pyfile(settings_file)
+    return config
+
 
 class Manager(object):
 
