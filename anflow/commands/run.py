@@ -30,7 +30,7 @@ def sort_simulations(simulations):
     insertion sort"""
     for i, simulation in enumerate(simulations):
         j = i
-        while j > 0 and simulations[j - 1] in simulations[j].dependencies:
+        while j > 0 and simulations[j - 1] not in simulations[j].dependencies:
             simulations[j - 1], simulations[j] = (simulations[j],
                                                   simulations[j - 1])
             j -= 1
