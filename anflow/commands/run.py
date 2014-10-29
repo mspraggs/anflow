@@ -59,6 +59,7 @@ def main(argv):
         study, model = options.model.split('.')
         simulation = gather_simulations([study])[0]
         simulation.config.from_object(config)
+        [s.config.from_object(config) for s in simulation.dependencies]
         simulation.run_model(model, options.force)
     elif options.view:
         study, view = options.model.split('.')
