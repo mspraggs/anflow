@@ -108,6 +108,7 @@ class TestSimulation(object):
         assert hasattr(some_func, 'results')
         assert len(some_func.results._params) == 1
         assert some_func.results._parent == some_func
+        assert some_func.simulation == "testsim"
 
     def test_register_view(self, run_sim):
         """Test Simulation.register_view"""

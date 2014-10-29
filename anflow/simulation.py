@@ -81,6 +81,7 @@ class Simulation(object):
             func.results = DataSet(all_params, self.config,
                                    prefix, path_template)
             func.results._parent = func
+            func.simulation = self
             return func
 
         return decorator
