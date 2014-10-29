@@ -61,15 +61,15 @@ class Simulation(object):
             data_params = [datum.params for datum in input_data]
         actual_parameters = parameters or [{}]
 
-        if path_template:
-            path_template = os.path.join(funcname, path_template)
-
         def decorator(func):
             try:
                 funcname = func.__name__
             except AttributeError:
                 funcname = func.original.__name__
-            self.models[funcname] = (func, input_data, parameters, path_template)
+            local_path_template = path_template
+            if local_path_template:
+                local_path_template = os.path.join(funcname, local_path_template)
+            self.models[funcname] = (func, input_data, parameters, local_path_template)
             prefix = "{}/".format(funcname)
             all_params = []
             for dparams in data_params:
