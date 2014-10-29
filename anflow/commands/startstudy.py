@@ -26,6 +26,7 @@ def main(argv):
                             component=(component + ".py")))
         new_path = os.path.join(project_path, new_path)
         if os.path.exists(new_path):
+            print("Path {} already exists".format(new_path))
             return
         paths[component] = new_path
 
@@ -37,7 +38,7 @@ def main(argv):
         except OSError:
             pass
 
-        template_file = os.path.join(template, component + ".py")
+        template_file = os.path.join(template_path, component + ".py")
         with open(template_file) as f:
             template = Template(f.read())
         with open(path, 'w') as f:
