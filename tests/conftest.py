@@ -1,50 +1,40 @@
 from __future__ import absolute_import
-from __future__ import division
 from __future__ import unicode_literals
-from __future__ import print_function
 
-import datetime
-import logging
 import os
+import random
 import shutil
 
 import pytest
 
-@pytest.fixture(scope="session")
-def settings(request):
-    from anflow.conf import settings, ENVIRONMENT_VARIABLE
+from anflow.data import Datum
 
-    project_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               "test_project")
+from .utils import delete_shelve_files
+
+
+
+@pytest.fixture(scope="session")
+def tmp_dir(request):
+
+    tmp_dir = os.path.join(os.path.dirname(__file__),
+                           'tmp')
     try:
-        os.makedirs(project_dir)
+        os.makedirs(tmp_dir)
     except OSError:
         pass
 
-    settings.DEBUG = True
-    settings.PROJECT_ROOT = project_dir
-    settings.CACHE_PATH = os.path.join(project_dir, "cache")
+    request.addfinalizer(lambda: shutil.rmtree(tmp_dir, ignore_errors=True))
+    return tmp_dir
+
+@pytest.fixture
+def random_datum(request, tmp_dir):
+
+    data = random.sample(range(100), 10)
+    params = {'a': 1, 'b': 2}
+    datum = Datum(params, data, file_prefix=tmp_dir+'/some_measurement_')
     
-    settings.LOGGING_LEVEL = logging.INFO
-    settings.LOGGING_CONSOLE = True
-    settings.LOGGING_FORMAT = ("%(asctime)s : %(name)s : "
-                               "%(levelname)s : %(message)s")
-    settings.LOGGING_DATEFMT = "%d/%m/%Y %H:%M:%S"
-    settings.LOGGING_FILE = (project_dir, "output_{}".format(datetime))
+    request.addfinalizer(lambda: delete_shelve_files(datum.filename))
 
-    settings.COMPONENT_TEMPLATE = "{study_name}/{component}"
-    settings.RAWDATA_TEMPLATE = "rawdata"
-    settings.RESULTS_TEMPLATE = "{study_name}/results"
-    settings.REPORTS_TEMPLATE = "{study_name}/reports"
-
-    settings.DB_PATH='sqlite:///{}/sqlite.db'.format(project_dir)
-
-    settings.ACTIVE_STUDIES = ["foo",
-                               "bar"]
-
-    settings.configure()
-
-    def fin():
-        shutil.rmtree(project_dir, ignore_errors=True)
-    request.addfinalizer(fin)
-    return settings
+    return {'datum': datum,
+            'data': data,
+            'params': params}

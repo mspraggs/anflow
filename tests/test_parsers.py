@@ -3,13 +3,6 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
-from anflow.db.data import DataSet, Datum
-from anflow.core.parsers.base import BaseParser
-from anflow.core.parsers import BlindParser, GuidedParser
-
-import importlib
-import inspect
-from itertools import product
 import os
 try:
     import cPickle as pickle
@@ -20,111 +13,110 @@ import shutil
 import pytest
 import numpy as np
 
-from anflow.utils.io import projectify
+from anflow.data import FileWrapper
+from anflow.parsers import CombinedParser, GuidedParser, Parser
 
 
 
-def common_fixture_setup(attr, settings):
-    component_file = projectify(settings.COMPONENT_TEMPLATE
-                                .format(component='models', study_name='foo')
-                                + ".py")
-    component_directory = os.path.dirname(component_file)
+@pytest.fixture
+def data_to_parse(tmp_dir, request):
+
     try:
-        os.makedirs(component_directory)
+        os.makedirs(os.path.join(tmp_dir, "rawdata"))
     except OSError:
         pass
-    loader_path = os.path.join(os.path.dirname(__file__),
-                               "static/parser_loaders.py")
-    shutil.copyfile(loader_path, component_file)
+    data = np.arange(10)
+    np.save(os.path.join(tmp_dir, "rawdata/data_a1_b2.npy"), data)
+
+    template = os.path.join(tmp_dir, "rawdata/data_a{a}_b{b}.npy")
+    
+    params = {'a': [1], 'b': [2]}
+    def load_func(filepath, b):
+        return np.load(filepath.format(b=b[0]))
         
-    for dirpath, dirnames, filenames in os.walk(settings.PROJECT_ROOT):
-        open(os.path.join(dirpath, '__init__.py'), 'w').close()
-    try:
-        os.makedirs(projectify(settings.RAWDATA_TEMPLATE))
-    except OSError:
-        pass
-    for mass, config in product(np.arange(0.1, 0.8, 0.1), range(100)):
-        filename = projectify(os.path.join(settings.RAWDATA_TEMPLATE,
-                                           'data_m{}.{}.pkl'
-                                           .format(mass, config)))
-        with open(filename, 'w') as f:
-            pickle.dump(range(10), f)
+    parser = GuidedParser(template, load_func, parameters=params)
 
-    module_name = os.path.relpath(component_file)[:-3].replace('/', '.')
-    module = importlib.import_module(module_name, 'test_project')
+    request.addfinalizer(lambda: shutil.rmtree(os.path.join(tmp_dir, "rawdata"),
+                                               ignore_errors=True))
 
-    return getattr(module, attr)
+    return {'data': data, 'parser': parser,
+            'rawdata_dir': os.path.join(tmp_dir, 'rawdata'),
+            'template': template, 'load_func': load_func,
+            'params': params}
 
-@pytest.fixture()
-def study_base_parser(settings, request):
-    return common_fixture_setup('get_base_parser', settings)()
+class TestParser(object):
 
-@pytest.fixture()
-def study_blind_parser(settings, request):
-    return common_fixture_setup('get_blind_parser', settings)()
+    def test_init(self):
+        """Parser constructor test"""
+        parser = Parser()
+        assert hasattr(parser, 'parsed_data')
+        assert hasattr(parser, '__iter__')
+        assert hasattr(parser, '__len__')
+        assert hasattr(parser, 'populate')
+        assert not parser.populated
+        assert len(parser) == 0
 
-@pytest.fixture()
-def study_guided_parser(settings, request):
-    return common_fixture_setup('get_guided_parser', settings)()
+    def test_populate(self):
+        """Parser.populate test"""
+        parser = Parser()
+        with pytest.raises(NotImplementedError):
+            parser.populate()
 
-class TestBaseParser(object):
+    def test_iter(self):
+        """Parser.__iter__ test"""
+        parser = Parser()
+        with pytest.raises(NotImplementedError):
+            for datum in parser:
+                pass
 
-    def test_constructor(self, settings, study_base_parser):
+    def test_len(self):
+        """Parser.__len__ test"""
+        parser = Parser()
+        assert len(parser) == 0
 
-        assert study_base_parser.study == 'foo'
-        assert study_base_parser.rawdata_dir.endswith(settings.RAWDATA_TEMPLATE
-                                                      .format(study_name='foo'))
-        assert isinstance(study_base_parser.parsed_data, list)
-        assert study_base_parser.populated == False
+    def test_add(self):
+        """Test Parser.__add__"""
 
-    def test_set_path_format(self, settings, study_base_parser):
-
-        params = {'ok': 1, 'computer': 0.5}
-        study_base_parser.parsed_data.append(Datum(params, [0, 1, 2], 'spam'))
-        study_base_parser.set_path_format()
-        assert study_base_parser.path_format == 'computer{computer}_ok{ok}.pkl'
-
-    def test_iterator(self, study_base_parser):
-
-        sample_datum = Datum({'a': 1}, [1, 2, 3], 'some_file')
-        for i in range(10):
-            study_base_parser.parsed_data.append(sample_datum)
-
-        datum_dump = []
-        for datum in study_base_parser:
-            datum_dump.append(datum)
-            assert datum == sample_datum
-
-        assert len(datum_dump) == 10
-
-class TestBlindParser(object):
-
-    def test_populate(self, study_blind_parser):
-
-        study_blind_parser.populate()
-        masses = [str(x) for x in np.arange(0.1, 0.8, 0.1)]
-        configs = [str(x) for x in range(100)]
-        assert study_blind_parser.populated
-        assert len(study_blind_parser.parsed_data) == 700
-
-        for datum in study_blind_parser.parsed_data:
-            assert datum.paramsdict().keys() == ['mass', 'config']
-            assert datum.paramsdict()['mass'] in masses
-            assert datum.paramsdict()['config'] in configs
-            assert datum.value == range(10)
+        parser1 = Parser()
+        parser2 = Parser()
+        parser1.parsed_data = range(3)
+        parser2.parsed_data = range(5)
+        combined_parser = parser1 + parser2
+        assert isinstance(combined_parser, CombinedParser)
+        assert len(combined_parser) == 8
 
 class TestGuidedParser(object):
 
-    def test_populate(self, study_guided_parser):
+    def test_init(self, data_to_parse):
+        """Test GuidedParser constructor"""
 
-        study_guided_parser.populate()
-        masses = np.arange(0.1, 0.8, 0.1).tolist()
-        configs = range(100)
-        assert study_guided_parser.populated
-        assert len(study_guided_parser.parsed_data) == 700
+        parser = data_to_parse['parser']
 
-        for datum in study_guided_parser.parsed_data:
-            assert datum.paramsdict().keys() == ['config', 'mass']
-            assert datum.paramsdict()['mass'] in masses
-            assert datum.paramsdict()['config'] in configs
-            assert datum.value == range(10)
+        assert parser.path_template == data_to_parse['template']
+        assert parser.loader == data_to_parse['load_func']
+        assert parser.collect == ['b']
+        assert parser.populated == False
+        assert hasattr(parser, 'parsed_data')
+
+    def test_populate(self, data_to_parse):
+        """Test GuidedParser"""
+        
+        parser = data_to_parse['parser']
+        parser.populate()
+
+        assert len(parser.parsed_data) == 1
+        assert isinstance(parser.parsed_data[0], FileWrapper)
+        assert (parser.parsed_data[0].data == data_to_parse['data']).all()
+        assert parser.parsed_data[0].params == {'a': 1}
+        assert parser.populated
+
+    def test_iter(self, data_to_parse):
+        """Test GuidedParser.__iter__ and GuidedParser.next"""
+
+        parser = data_to_parse['parser']
+
+        for datum in parser:
+            assert datum.params == {'a': 1}
+            assert (datum.data == data_to_parse['data']).all()
+
+        assert parser.populated

@@ -1,7 +1,5 @@
 from __future__ import absolute_import
-from __future__ import division
 from __future__ import unicode_literals
-from __future__ import print_function
 
 import os
 import hashlib
@@ -10,16 +8,66 @@ try:
 except ImportError:
     import pickle
 import random
+import shelve
+import shutil
+import time
 
 import numpy as np
+import pytest
 
-from anflow.db.data import Datum
-from anflow.lib.resamplers import bin_data, Bootstrap, Jackknife, Resampler
-from anflow.utils.io import projectify
+from anflow.data import Datum
+from anflow.resamplers import (bin_data, cache_lookup, cache_dump, hashgen,
+                               Bootstrap, Jackknife, Resampler)
+
+from .utils import delete_shelve_files
+
+
+
+@pytest.fixture
+def resampler(tmp_dir, request):
+    cache_path = cache_path=os.path.join(tmp_dir, "cache")
+
+    class MyResampler(Resampler):
+
+        @staticmethod
+        def _error(data, centre):
+            return sum(data) / 10
+
+        def _central_value(self, datum, results, func):
+            return func(sum(datum.data) / len(datum.data))
+
+        def _resample(self, data):
+            return data
+    
+    resampler = MyResampler(resample=True, average=True, binsize=1,
+                            cache_path=cache_path, error_name='error')
+    request.addfinalizer(lambda: shutil.rmtree(cache_path, ignore_errors=True))
+    
+    return {"resampler": resampler, "cache_path": cache_path, "do_resample": True,
+            "binsize": 1, "average": True, 'error_name': 'error'}
+
+@pytest.fixture
+def cached_datum(tmp_dir, request):
+    obj = ("foo", "bar", 1)
+    filename = os.path.join(tmp_dir, '36720cc7aec4fa2fe7625f72ea4cfdd4.pkl')
+    
+    data = random.sample(range(100), 10)
+    params = {'a': 1, 'b': 2}
+    timestamp = time.time()
+    shelf = shelve.open(filename, protocol=2)
+    shelf[b'params'] = params
+    shelf[b'data'] = data
+    shelf[b'timestamp'] = timestamp
+    shelf.close()
+
+    request.addfinalizer(lambda: delete_shelve_files(filename))
+
+    return {'filename': filename, 'obj': obj, 'data': data}
 
 class TestFunctions(object):
 
     def test_bin_data(self):
+        """Test bin_data"""
         data = np.random.random(100)
         binned_data = bin_data(data, 10)
         # Check that the right number of bins have been computed
@@ -28,171 +76,123 @@ class TestFunctions(object):
         for i, datum in enumerate(binned_data):
             assert np.allclose(datum, data[10*i:10*(i+1)].mean())
 
+    def test_hashgen(self):
+        "Test hashgen"
+        obj = ('foo', 'bar', 1)
+        thehash = hashgen(obj)
+        assert thehash == '36720cc7aec4fa2fe7625f72ea4cfdd4'
+
+    def test_cache_lookup(self, cached_datum, tmp_dir):
+        """Test cache_lookup"""
+        result = cache_lookup(cached_datum['obj'], tmp_dir, 0)
+        assert result == cached_datum['data']
+        result = cache_lookup(cached_datum['obj'], tmp_dir, time.time())
+        assert not result
+
+    def test_cache_dump(self, tmp_dir, random_datum):
+        """Test cache_dump"""
+        obj = ('foo', 'bar', 1)
+        cache_dump(obj, tmp_dir, random_datum['datum'])
+        filename = os.path.join(tmp_dir, '36720cc7aec4fa2fe7625f72ea4cfdd4.pkl')
+        assert os.path.exists(filename)
+
+        shelf = shelve.open(filename, protocol=2)
+        assert shelf[b'params'] == random_datum['params']
+        assert shelf[b'data'] == random_datum['data']
+        shelf.close()
+
 class TestResampler(object):
 
-    resampler_class = Resampler
+    def test_init(self, resampler):
+        """Test basic resampler constructor"""
+        assert resampler['resampler']._cache_path == resampler['cache_path']
+        for attr in ["do_resample", "binsize", "average", "error_name"]:
+            assert getattr(resampler['resampler'], attr) == resampler[attr]
+        assert os.path.exists(resampler['cache_path'])
+        assert resampler['resampler']._cache
+        assert hasattr(resampler['resampler'], 'bins')
 
-    def check_centre(self, centre):
-        assert np.allclose(np.arange(4.5, 14.0, 1.0) ** 2, centre)
+    def test_call(self, resampler):
+        """Test decorating facilities of resampler"""
 
-    def check_error(self, error):
-        assert error is None
+        res = resampler['resampler']
 
-    def check_results(self, data, results, function):
-        assert len(results) == 10
-        for d, r in zip(data, results):
-            assert np.allclose(function(d), r)
+        @res
+        def test_function(data, error):
+            return data**2
+        assert hasattr(test_function, 'original')
 
-    def test_constructor(self, settings):
-        # Test the default constructor first
-        resampler = self.resampler_class()
-        attributes = ('do_resample', 'average', 'binsize')
-        for attr, val in zip(attributes, (True, False, 1)):
-            assert getattr(resampler, attr) == val
+        result = test_function(Datum({'a': 1, 'b': 2}, [1.0, 2.0]))
+        assert result.data == [1.0, 4.0]
+        assert result.centre == 2.25
+        assert result.error == 0.5
+        assert not result.bins
 
-        # Now test some random values
-        truefalse = [True, False] * 100
-        do_resample, compute_error, average = random.sample(truefalse, 3)
-        binsize = random.randint(0, 100)
-        args = (do_resample, compute_error, average, binsize)
-        resampler = self.resampler_class(*args)
-        for attr, val in zip(attributes, args):
-            assert getattr(resampler, attr) == val
+class TestJackknife(object):
 
-    def test_call(self, settings):
-
-        functions = [lambda x: x**2, lambda x: (sum(x)/ len(x))**2]
-
-        for average, function in zip((True, False), functions):
+    def test_central_value(self):
+        """Test Jackknife._central_value"""
+        class Datum(object): pass
+        datum = Datum()
+        datum.data = [1.0, 2.0, 3.0]
+        datum.centre = 5
+        results = None
         
-            resampler = self.resampler_class(average=average)
-            # First we need to set up some data to do the resampling on
-            data = [np.arange(10, dtype=np.float) + i for i in range(10)]
-            params = {'foo': 12, 'bar': random.randint(0, 10)}
-            datum = Datum(params, data,
-                          filename=os.path.join(settings.PROJECT_ROOT,
-                                                "data.pkl"))
-            datum.save()
-            # The measurement function
-
-            # Compute the name of the cached resampled file
-            hash_object = (datum.paramsdict(), average, resampler.binsize,
-                           resampler.__class__.__name__)
-            data_hash = hashlib.md5(pickle.dumps(hash_object, 2)).hexdigest()
-            filename = "{}.pkl".format(data_hash)
-
-            for i in range(2):
-                results, centre, error = resampler(datum, function)
-                self.check_centre(centre)
-                self.check_error(error)
-                self.check_results(data, results, function)
-                assert os.path.exists(projectify(os.path.join(settings
-                                                              .CACHE_PATH,
-                                                              filename)))
-
-    def test_resample(self):
-        data = np.random.random(100)
-        resampler = self.resampler_class()
-        resampled_data = resampler.resample(data)
-
-        assert np.allclose(data, resampled_data)
-
+        jack = Jackknife(average=True)
+        assert jack._central_value(datum, results, lambda x: x) == 2
+        jack = Jackknife(average=False)
+        datum.data.append(4)
+        assert jack._central_value(datum, results,
+                                   lambda x: sum(x) / len(x)) == 2.5
+        jack = Jackknife(resample=False)
+        assert jack._central_value(datum, results, lambda x: x) == 5
+    
     def test_error(self):
-        data = np.random.random(100)
-        error = self.resampler_class.error(data, data.mean())
-        assert error is None
-
-class TestBootstrap(TestResampler):
-
-    resampler_class = Bootstrap
-
-    def check_centre(self, centre):
-        # Since we're sampling randomly, we can only really check the bounds
-        # the result must lie in.
-        assert np.less_equal(centre, np.arange(9.0, 19.0, 1.0)**2).all()
-        assert np.greater_equal(centre, np.arange(10)**2).all()
-
-    def check_error(self, error):
-        # Again, we can only really check bounds
-        upper_bound = np.std([(np.arange(10) + i)**2 for i in range(10)],
-                             axis=0)
-        assert np.less_equal(error, upper_bound).all()
-        assert np.greater_equal(error, np.zeros(error.shape)).all()
-
-    def check_results(self, data, results, function):
-        # Again, check bounds
-        for result in results:
-            assert np.less_equal(result, data[-1]**2).all()
-            assert np.greater_equal(result, data[0]**2).all()
+        """Test Jackknife._error"""
+        assert np.allclose(Jackknife._error([1, 2, 3], 2),
+                           np.sqrt(2) * np.std([1, 2, 3]))
 
     def test_resample(self):
-        data = np.random.random(100)
-        resampler = self.resampler_class(average=False)
-        resampled_data = resampler.resample(data)
+        """Test Jackknife._resample"""
+        data = [1.0, 2.0, 3.0]
+        jack = Jackknife()
+        assert jack._resample(data) == [[2.0, 3.0], [1.0, 3.0], [1.0, 2.0]]
+        jack = Jackknife(average=True)
+        assert jack._resample(data) == [2.5, 2.0, 1.5]
 
-        for datum in resampled_data:
-            for subdatum in datum:
-                assert subdatum in data
+class TestBootstrap(object):
 
-        resampler = self.resampler_class(average=True)
-        resampled_data = resampler.resample(data)
+    def test_init(self):
+        """Test the bootstrap constructor - should store bins"""
+        bins = [[1, 2, 1], [2, 3, 1], [1, 3, 3]]
+        boot = Bootstrap(bins=bins)
+        assert boot.bins == bins
+        assert boot.num_bootstraps == 3
+        boot = Bootstrap(num_bootstraps=10)
+        assert boot.num_bootstraps == 10
 
-        assert np.less_equal(resampled_data, data.max()).all()
-        assert np.greater_equal(resampled_data, data.min()).all()
+        with pytest.raises(ValueError):
+            boot = Bootstrap()
 
-    def test_error(self):
-        data = np.random.random(100)
-        error = self.resampler_class.error(data, data.mean())
-        assert np.allclose(error, np.std(data))
-
-class TestJackknife(TestResampler):
-
-    resampler_class = Jackknife
-
-    def check_centre(self, centre):
-        data = [np.arange(10, dtype=np.float) + i for i in range(10)]
-        expected = np.mean(data, axis=0)**2
-        assert np.allclose(centre, expected)
-
-    def check_error(self, error):
-        data = [np.arange(10, dtype=np.float) + i for i in range(10)]
-        expected = np.array([8.62645884,
-                             10.53956635,
-                             12.45321078,
-                             14.3671776,
-                             16.2813531,
-                             18.19567143,
-                             20.1100918,
-                             22.0245876,
-                             23.93914073,
-                             25.85373846])
-        assert np.allclose(error, expected)
-
-    def check_results(self, data, results, function):
-        data = [np.arange(10, dtype=np.float) + i for i in range(10)]
-        expected = [np.mean(data[:i] + data[i+1:], axis=0) ** 2
-                    for i in range(10)]
-        for r, e in zip(results, expected):
-            assert np.allclose(r, e)
-
-    def test_resample(self):
-
-        data = np.random.random(100).tolist()
-        resampler = self.resampler_class(average=False)
-        resampled_data = resampler.resample(data)
-
-        for datum in resampled_data:
-            for subdatum in datum:
-                assert subdatum in data
-
-        resampler = self.resampler_class(average=True)
-        resampled_data = resampler.resample(data)
-        expected_data = np.array([(sum(data) - data[i]) / (len(data) - 1)
-                                  for i in range(100)])
+    def test_central_value(self):
+        """Test Bootstrap._central_value"""
+        results = [1.0, 2.0, 3.0]
         
-        assert np.allclose(resampled_data, expected_data)
+        boot = Bootstrap(num_bootstraps=1)
+        assert boot._central_value(None, results, lambda x: x) == 2.0
 
     def test_error(self):
-        data = np.random.random(100)
-        error = self.resampler_class.error(data, data.mean())
-        assert np.allclose(error, np.sqrt(99) * np.std(data))
+        """Test Bootstrap._error"""
+        assert np.allclose(Bootstrap._error([1, 2, 3], 2),
+                           np.std([1, 2, 3]))
+        
+    def test_resample(self):
+        """Test Bootstrap._resample"""
+        bins = [[0, 1, 0], [1, 2, 0], [0, 2, 2]]
+        data = [1.0, 2.0, 3.0]
+        boot = Bootstrap(bins=bins)
+        assert boot._resample(data) == [[1.0, 2.0, 1.0],
+                                        [2.0, 3.0, 1.0],
+                                        [1.0, 3.0, 3.0]]
+        boot = Bootstrap(average=True, bins=bins)
+        assert boot._resample(data) == [4.0 / 3.0, 2.0, 7.0 / 3.0]

@@ -7,7 +7,7 @@ import re
 
 import numpy as np
     
-from anflow.db.data import Datum
+from anflow.core.wrappers import Datum
 from anflow.core.parsers.base import BaseParser
 from anflow.core.parsers import BlindParser, GuidedParser
 

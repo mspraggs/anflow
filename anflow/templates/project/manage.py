@@ -3,7 +3,9 @@ from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function
 
+import sys
+
 from anflow import management
 
 if __name__ == "__main__":
-    management.execute_from_command_line()
+    management.execute_from_command_line(sys.argv)
