@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import sys
 
-from anflow.core import management
+from anflow import management
 
 if __name__ == "__main__":
     management.execute_from_command_line(sys.argv)
