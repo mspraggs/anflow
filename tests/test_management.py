@@ -40,7 +40,7 @@ class TestFunctions(object):
         """Test get_project_path"""
         assert get_project_path() == project_path
 
-    def test_load_project_config(self, project_path):
+    def test_load_project_config(self):
         """Test load_project_config"""
         config = load_project_config()
         assert config.ACTIVE_STUDIES == []
