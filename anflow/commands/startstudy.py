@@ -7,18 +7,22 @@ import os
 
 from jinja2 import Template
 
+from anflow.management import get_project_path, load_project_config
+
+
 def main(argv):
     study_name = argv[0]
     template_args = {'study_name': study_name}
 
-    file_template = settings.COMPONENT_TEMPLATE
+    project_path = get_project_path()
+    config = load_project_config()
     
     paths = {}
-    for component in settings.STUDY_COMPONENTS:
-        new_path = (settings.COMPONENT_TEMPLATE
+    for component in config.STUDY_COMPONENTS:
+        new_path = (config.COMPONENT_TEMPLATE
                     .format(study_name=study_name,
                             component=(component + ".py")))
-        new_path = projectify(new_path)
+        new_path = os.path.join(project_path, new_path)
         if os.path.exists(new_path):
             return
         paths[component] = new_path
@@ -28,19 +32,19 @@ def main(argv):
             os.makedirs(os.path.dirname(path))
             open(os.path.join(os.path.dirname(path),
                               "__init__.py"), 'a').close()
-        except OSError as e:
-            debug_message(e, path)
+        except OSError:
+            pass
 
-        template_file = os.path.join(settings.STUDY_TEMPLATE, component + ".py")
+        template_file = os.path.join(config.STUDY_TEMPLATE, component + ".py")
         with open(template_file) as f:
             template = Template(f.read())
         with open(path, 'w') as f:
             f.write(template.render(**template_args))
 
-    for template in [settings.RAWDATA_TEMPLATE,
-                     settings.REPORTS_TEMPLATE]:
-        template = projectify(template)
+    for template in [config.RAWDATA_TEMPLATE,
+                     config.REPORTS_TEMPLATE]:
+        template = os.path.join(project_path, template)
         try:
             os.makedirs(template.format(study_name=study_name))
         except OSError as e:
-            debug_message(e)
+            pass
