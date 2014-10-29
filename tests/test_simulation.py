@@ -108,7 +108,7 @@ class TestSimulation(object):
         assert hasattr(some_func, 'results')
         assert len(some_func.results._params) == 1
         assert some_func.results._parent == some_func
-        assert some_func.simulation == "testsim"
+        assert some_func.simulation == simulation
 
     def test_register_view(self, run_sim):
         """Test Simulation.register_view"""
@@ -190,3 +190,17 @@ class TestSimulation(object):
                                                'func1', 'a1.pkl')) > 0
         assert count_shelve_files(os.path.join(tmp_dir, "results",
                                                'func2', 'a1.pkl')) > 0
+
+    def test_dependencies(self, sim, tmp_dir):
+        """Test Simulation.dependencies"""
+        simulation = Simulation('blah')
+        @simulation.register_model(input_data=sim['input_data'])
+        def func1(data):
+            return data
+
+        simulation2 = sim['simulation']
+        decorator = simulation2.register_model(input_data=func1.results)
+        func2 = sim['module'].func2
+        func2 = decorator(func2)
+
+        assert simulation2.dependencies == [simulation]

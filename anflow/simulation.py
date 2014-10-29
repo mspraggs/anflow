@@ -270,3 +270,19 @@ class Simulation(object):
             results[view] = self.run_view(view, force)
 
         return results
+
+    @property
+    def dependencies(self):
+        """Retrieve a list of simulations on which this depends"""
+
+        simulations = []
+        for func, input_data, params, template in self.models.values():
+            try:
+                dependency = input_data._parent.simulation
+            except AttributeError:
+                pass
+            else:
+                if dependency != self:
+                    simulations.append(dependency)
+
+        return simulations
