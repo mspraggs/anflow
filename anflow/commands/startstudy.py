@@ -14,6 +14,8 @@ def main(argv):
     study_name = argv[0]
     template_args = {'study_name': study_name}
 
+    template_path = os.path.join(os.path.dirname(__file__),
+                                 '../templates/study')
     project_path = get_project_path()
     config = load_project_config()
     
@@ -35,7 +37,7 @@ def main(argv):
         except OSError:
             pass
 
-        template_file = os.path.join(config.STUDY_TEMPLATE, component + ".py")
+        template_file = os.path.join(template, component + ".py")
         with open(template_file) as f:
             template = Template(f.read())
         with open(path, 'w') as f:
