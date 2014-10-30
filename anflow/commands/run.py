@@ -32,7 +32,7 @@ def main(argv):
         [s.config.from_object(config) for s in simulation.dependencies]
         simulation.run_model(model, options.force)
     elif options.view:
-        study, view = options.model.split('.')
+        study, view = options.view.split('.')
         simulation = gather_simulations([study])[0]
         simulation.config.from_object(config)
         simulation.run_view(view, options.force)
