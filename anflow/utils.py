@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import inspect
 import os
 import pkgutil
+import re
 import sys
 
 
@@ -67,3 +68,10 @@ def get_dependency_files(obj, top, n=10):
             if attrmod != mod:
                 out.extend(get_dependency_files(attr, top, n - 1))
     return list(set(out))
+
+def extract_from_format(format, string):
+    """Extracts the variables specified format string from the supplied
+    string"""
+    format_regex = re.sub(r'\{ *(?P<var>\w+) *\}', r'(?P<\g<var>>.+)',
+                          format.replace('.', '\.'))
+    return re.match(format_regex, string)

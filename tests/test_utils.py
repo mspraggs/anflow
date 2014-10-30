@@ -7,7 +7,8 @@ import sys
 
 import pytest
 
-from anflow.utils import get_dependency_files, get_root_path
+from anflow.utils import (extract_from_format, get_dependency_files,
+                          get_root_path)
 
 
 
@@ -55,3 +56,11 @@ class TestFunctions(object):
 
         assert files == [os.path.join(tmp_dir, 'anothermod.py'),
                          os.path.join(tmp_dir, 'somemod.py')]
+
+    def test_extract_from_format(self):
+        "Test extract_from_format"
+
+        result = extract_from_format(r'{foo}_{bar}.{derp}', r'spam_eggs.ham')
+        assert result.group('foo') == 'spam'
+        assert result.group('bar') == 'eggs'
+        assert result.group('derp') == 'ham'
