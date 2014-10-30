@@ -5,8 +5,7 @@ from __future__ import print_function
 
 from setuptools import setup, find_packages
 
-EXCLUDE_FROM_PACKAGES = ['anflow.conf.project_template',
-                         'anflow.conf.study_template',
+EXCLUDE_FROM_PACKAGES = ['anflow.templates',
                          'anflow.bin']
 
 setup(
