@@ -4,37 +4,9 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 import argparse
-import importlib
-import sys
 
-from anflow.management import get_project_path, load_project_config
-
-
-def gather_simulations(studies):
-    """Goes through study locations and loads simulations"""
-    config = load_project_config()
-    simulations = []
-    sys.path.insert(0, get_project_path())
-    for study in studies:
-        module_name = (config.COMPONENT_TEMPLATE.format(study_name=study,
-                                                        component='simulation')
-                       .replace('/', '.'))
-        module = importlib.import_module(module_name)
-        simulations.append(module.sim)
-    sys.path.pop(0)
-    return simulations
-
-
-def sort_simulations(simulations):
-    """Sorts the supplied simulations based on their dependencies using
-    insertion sort"""
-    for i, simulation in enumerate(simulations):
-        j = i
-        while j > 0 and simulations[j - 1] not in simulations[j].dependencies:
-            simulations[j - 1], simulations[j] = (simulations[j],
-                                                  simulations[j - 1])
-            j -= 1
-    return simulations
+from anflow.management import (gather_simulations, load_project_config,
+                               sort_simulations)
 
 
 def main(argv):
