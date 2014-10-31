@@ -6,6 +6,7 @@ import collections
 from functools import wraps
 import json
 import hashlib
+import logging
 import os
 
 from anflow.data import Datum
@@ -55,6 +56,8 @@ class Resampler(object):
         self.do_resample = resample
         self.error_name = error_name
         self.bins = None
+        self.log = logging.getLogger('anflow.resamplers.{}'
+                                     .format(self.__class__.__name__))
 
         if self._cache:
             try:
@@ -99,9 +102,11 @@ class Resampler(object):
                     input_centre = sum(working_data) / len(working_data)
                     kwargs[self.error_name] = self._error(working_data,
                                                           input_centre)
-            
-            results = map(lambda datum: function(datum, *args, **kwargs),
-                          working_data)
+            results = []
+            N = len(working_data)
+            for i, datum in enumerate(working_data):
+                self.log.info("Applying function to sample {} of {}".format(i + 1, N))
+                results.append(function(datum, *args, **kwargs))
             results = filter(lambda x: x is not None, results)
             if len(results) == 0:
                 return
@@ -109,9 +114,11 @@ class Resampler(object):
                 centre_data = data.data
             else:
                 centre_data = data
+            self.log.info("Applying function to central value")
             centre = self._central_value(centre_data, results,
                                          lambda datum: function(datum, *args,
                                                                 **kwargs))
+            self.log.info("Computing error")
             error = self._error(results, centre)
             result_datum = ResamplerResult(data=results, centre=centre,
                                            error=error, bins=self.bins)

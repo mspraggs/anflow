@@ -32,25 +32,25 @@ class Simulation(object):
 
         self.config.from_dict(self.defaults)
         self.log = logging.getLogger(self.import_name)
-        self.log.propagate = False
         self._setup_log()
 
     def _setup_log(self):
         # Set up the log
-        self.log.handlers = []
-        self.log.setLevel(self.config.LOGGING_LEVEL)
+        log = logging.getLogger()
+        log.handlers = []
+        log.setLevel(self.config.LOGGING_LEVEL)
         formatter = logging.Formatter(self.config.LOGGING_FORMAT,
                                       self.config.LOGGING_DATEFMT)
         if self.config.LOGGING_CONSOLE:
             ch = logging.StreamHandler()
             ch.setLevel(self.config.LOGGING_LEVEL)
             ch.setFormatter(formatter)
-            self.log.addHandler(ch)
+            log.addHandler(ch)
         if self.config.LOGGING_FILE:
             fh = logging.FileHandler(self.config.LOGGING_FILE)
             fh.setLevel(self.config.LOGGING_LEVEL)
             fh.setFormatter(formatter)
-            self.log.addHandler(fh)
+            log.addHandler(fh)
 
     def register_model(self, input_data, parameters=None, path_template=None):
         """Register the supplied model function and associated parameters"""
