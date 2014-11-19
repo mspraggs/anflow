@@ -95,17 +95,17 @@ class TestFunctions(object):
 
     def test_generate_filename(self):
         """Test generate_filename"""
-        params = {'a': 4, 'blah': 2, 'ds': 'ok'}
+        params = {'a': 4, 'ds': 'ok', 'blah': 2, 'L': 500}
         filename = generate_filename(params, "some_prefix_", ".pkl")
-        assert filename == "some_prefix_a4_blah2_dsok.pkl"
+        assert filename == "some_prefix_L500_a4_blah2_dsok.pkl"
         filename = generate_filename(params)
-        assert filename == "a4_blah2_dsok"
+        assert filename == "L500_a4_blah2_dsok"
         filename = generate_filename(params, suffix=".pkl")
-        assert filename == "a4_blah2_dsok.pkl"
+        assert filename == "L500_a4_blah2_dsok.pkl"
         filename = generate_filename(params, "some_prefix_")
-        assert filename == "some_prefix_a4_blah2_dsok"
-        filename = generate_filename(params, path_template="a{a}/blah{blah}/ds{ds}")
-        assert filename == "a4/blah2/dsok"
+        assert filename == "some_prefix_L500_a4_blah2_dsok"
+        filename = generate_filename(params, path_template="L{L}/a{a}/blah{blah}/ds{ds}")
+        assert filename == "L500/a4/blah2/dsok"
 
 class TestFilewrapper(object):
 

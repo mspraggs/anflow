@@ -20,8 +20,9 @@ def generate_filename(params, prefix=None, suffix=None, path_template=None):
     else:
         prefix = prefix or ""
         suffix = suffix or ""
+        sorted_items = sorted(params.items(), key=lambda item: item[0])
         paramstring = "_".join(["{}{}".format(key, value)
-                                for key, value in params.items()])
+                                for key, value in sorted_items])
         return "{}{}{}".format(prefix, paramstring, suffix)
 
 class FileWrapper(object):
