@@ -14,6 +14,8 @@ def main(argv):
     parser = argparse.ArgumentParser(description="Run models and views")
     parser.add_argument('--force', action='store_true', default=False,
                         help='Force a run of models and/or views')
+    parser.add_argument('--dry-run', action='store_true', default=False,
+                        help='Don\'t save the results from a model')
     parser.add_argument('--studies', action='store',
                         help='Studies from which to run measurements')
     parser.add_argument('--model', action='store', help='Model to run')
@@ -30,7 +32,7 @@ def main(argv):
         simulation = gather_simulations([study])[0]
         simulation.config.from_object(config)
         [s.config.from_object(config) for s in simulation.dependencies]
-        simulation.run_model(model, options.force)
+        simulation.run_model(model, options.force, options.dry_run)
     elif options.view:
         study, view = options.view.split('.')
         simulation = gather_simulations([study])[0]
@@ -42,4 +44,4 @@ def main(argv):
         simulations = sort_simulations(simulations)
         for simulation in simulations:
             simulation.config.from_object(config)
-            simulation.run(options.force)
+            simulation.run(options.force, options.dry_run)

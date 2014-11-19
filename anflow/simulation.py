@@ -95,7 +95,7 @@ class Simulation(object):
 
         return decorator
 
-    def run_model(self, model, force=False):
+    def run_model(self, model, force=False, dry_run=False):
         """Run a model"""
 
         self._setup_log()
@@ -167,11 +167,13 @@ class Simulation(object):
                     result = func(datum, **kwargs)
                 else:
                     result = func(datum.data, **kwargs)
-                if result is not None:
+                if result is not None and not dry_run:
                     log.info("Saving results")
                     result_datum = Datum(joint_params, result, results_dir + "/",
                                          path_template)
                     result_datum.save()
+                elif not dry_run:
+                    log.info("Dry run, so no results saved")
         else:
             log.info("Results are up-to-date")
 
@@ -259,13 +261,13 @@ class Simulation(object):
 
         return do_run
 
-    def run(self, force=False):
+    def run(self, force=False, dry_run=False):
         """Run all models in this simulation"""
 
         self.log.info("Running all models and views")
         results = {}
         for model in self.models.keys():
-            results[model] = self.run_model(model, force)
+            results[model] = self.run_model(model, force, dry_run)
         for view in self.views.keys():
             results[view] = self.run_view(view, force)
 
