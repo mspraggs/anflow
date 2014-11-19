@@ -55,4 +55,4 @@ class TestManager(object):
         manager = Manager()
         assert manager.argv == sys.argv
         assert (manager.anflow_commands.keys()
-                == ["startstudy", "run", "startproject"])
+                == ["startstudy", "describe", "run", "startproject"])
