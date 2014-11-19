@@ -77,9 +77,12 @@ class Resampler(object):
                 hash_object = (data.filename, self.average, self.binsize,
                                self.__class__.__name__)
                 # Check for cached data
+                self.log.info("Checking cache for resampled data")
                 working_data = cache_lookup(hash_object, self._cache_path,
                                             data.timestamp)
                 if not working_data:
+                    self.log.info("No cached data")
+                    self.log.info("Resampling")
                     # Resample data if it's not in the cache
                     working_data = self._resample(bin_data(data.data,
                                                            self.binsize))
