@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import argparse
 
+from anflow.commands import describe
 from anflow.management import (gather_simulations, load_project_config,
                                sort_simulations)
 
@@ -28,14 +29,49 @@ def main(argv):
         studies = config.ACTIVE_STUDIES
 
     if options.model:
-        study, model = options.model.split('.')
-        simulation = gather_simulations([study])[0]
+        try:
+            study, model = options.model.split('.')
+        except ValueError:
+            # Model specification format (study.model) not followed
+            print("Model specification error. Format: <study>.<model>")
+            describe.main(argv)
+            return
+        try:
+            simulation = gather_simulations([study])[0]
+        except ImportError:
+            # Cannot find the study in the project tree
+            print("Study specification error.")
+            describe.main(argv)
+            return
+        if model not in simulation.models.keys():
+            # Model doesn't exist
+            print("Cannot find model {} in study {}".format(study, study))
+            describe.main(argv)
+            return
+
         simulation.config.from_object(config)
         [s.config.from_object(config) for s in simulation.dependencies]
         simulation.run_model(model, options.force, options.dry_run)
     elif options.view:
-        study, view = options.view.split('.')
-        simulation = gather_simulations([study])[0]
+        try:
+            study, view = options.view.split('.')
+        except ValueError:
+            # View specification format (study.view) not followed
+            print("View specification error. Format: <study>.<view>")
+            describe.main(argv)
+            return
+        try:
+            simulation = gather_simulations([study])[0]
+        except ImportError:
+            # Cannot find the study in the project tree
+            print("Study specification error.")
+            describe.main(argv)
+            return
+        if view not in simulation.views.keys():
+            from .describe import main
+            main(argv)
+            return
+
         simulation.config.from_object(config)
         [s.config.from_object(config) for s in simulation.dependencies]
         simulation.run_view(view, options.force)
