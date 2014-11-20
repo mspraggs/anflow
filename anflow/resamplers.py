@@ -111,6 +111,7 @@ class Resampler(object):
                 self.log.info("Applying function to sample {} of {}".format(i + 1, N))
                 result = function(datum, *args, **kwargs)
                 if result is None:
+                    self.log.warning("Measurement on sample returned None")
                     return
                 results.append(result)
             if len(results) == 0:
