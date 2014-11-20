@@ -109,8 +109,10 @@ class Resampler(object):
             N = len(working_data)
             for i, datum in enumerate(working_data):
                 self.log.info("Applying function to sample {} of {}".format(i + 1, N))
-                results.append(function(datum, *args, **kwargs))
-            results = filter(lambda x: x is not None, results)
+                result = function(datum, *args, **kwargs)
+                if result is None:
+                    return
+                results.append(result)
             if len(results) == 0:
                 return
             if type(data.data) == ResamplerResult:
