@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import anydbm
+import operator
 import os
 try:
     import cPickle as pickle
@@ -24,6 +25,12 @@ def generate_filename(params, prefix=None, suffix=None, path_template=None):
         paramstring = "_".join(["{}{}".format(key, value)
                                 for key, value in sorted_items])
         return "{}{}{}".format(prefix, paramstring, suffix)
+
+
+def _aprx(x, y, rtol, atol):
+    """Simple approximate operator"""
+    return abs(x - y) <= rtol * abs(y) + atol
+
 
 class FileWrapper(object):
     """Lazy file loading wrapper"""
@@ -135,28 +142,12 @@ class DataSet(object):
 
         self._counter = 0
     
-    def filter(self, **kwargs):
+    def filter(self, *args, **kwargs):
         """Filter the dataset according to the supplied kwargs"""
 
-        new_params = self._params[:]
-        for key, value in kwargs.items():
-            if key.endswith('__gt'):
-                filter_func = lambda d: d[key[:-4]] > value
-            elif key.endswith('__gte'):
-                filter_func = lambda d: d[key[:-5]] >= value
-            elif key.endswith('__lt'):
-                filter_func = lambda d: d[key[:-4]] < value
-            elif key.endswith('__lte'):
-                filter_func = lambda d: d[key[:-5]] <= value
-            elif key.endswith('__aprx'):
-                abs_value = abs(value)
-                def filter_func(d):
-                    return abs(d[key[:-6]] - value) <= 1e-8 * abs_value
-            else:
-                filter_func = lambda d: d[key] == value
-
-            new_params = filter(filter_func, new_params)
-        return DataSet(new_params, self.config, self._prefix, self._template)
+        query = Query(*args, **kwargs)
+        return DataSet(query.evaluate(self._params), self.config, self._prefix,
+                       self._template)
 
     def all(self):
         """Return a list of all Datum objects matched by the current
@@ -205,3 +196,75 @@ class DataSet(object):
 
     def __len__(self):
         return len(self._params)
+
+
+class Query(object):
+    """Parameter filtering class using tree/node structure"""
+
+    comparison_map = {'gt': operator.gt,
+                      'gte': operator.ge,
+                      'lt': operator.lt,
+                      'lte': operator.le,
+                      'aprx': lambda x, y: _aprx(x, y, 1e-5, 1e-8)}
+
+    def __init__(self, *args, **kwargs):
+        """Query Constructor"""
+        self.children = []
+        for arg in args:
+            if not isinstance(arg, type(arg)):
+                raise TypeError("Invalid argument {} to with type {} passed "
+                                "to {} constructor".format(arg, type(arg),
+                                                           self.__class__
+                                                           .__name__))
+            self.children.append(arg)
+
+        for key, value in kwargs.items():
+            key_split = key.split('__')
+            child = type(self)()
+            op = (
+                self.comparison_map[key_split[-1]]
+                if len(key_split) > 1 else operator.eq
+            )
+            child._set_filter(op, key_split[0], value)
+            self.children.append(child)
+
+        self.connector = operator.and_
+        self.filter_func = None
+        self.negate = False
+
+    def _set_filter(self, func, parameter_name, parameter_value):
+        """Specify a filter function that returns True or False for a given
+        parameter value"""
+        self.filter_func = lambda d: func(d[parameter_name], parameter_value)
+
+    def _recurse(self, parameters):
+        """Recursively call _recurse on children to build up a list of True
+        and False statements"""
+
+        if self.filter_func:
+            results = map(self.filter_func, parameters)
+        else:
+            results = [child._recurse(parameters) for child in self.children]
+            results = [reduce(self.connector, result)
+                       for result in zip(*results)]
+        return [~result if self.negate else result for result in results]
+
+    def evaluate(self, parameters):
+        """Evaluate which parameters we're keeping and which we're discarding,
+        returning the list of parameter combinations that we do want to keep"""
+
+        results = self._recurse(parameters)
+        return [params for keep, params in zip(results, parameters)
+                if keep]
+
+    def __and__(self, other):
+        """And operator"""
+        out = type(self)(self, other)
+        out.connector = operator.and_
+        return out
+
+    def __or__(self, other):
+        """Or operator"""
+        out = type(self)(self, other)
+        out.connector = operator.or_
+        return out

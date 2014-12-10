@@ -14,7 +14,7 @@ import time
 import pytest
 
 from anflow.config import Config
-from anflow.data import generate_filename, FileWrapper, Datum, DataSet
+from anflow.data import _aprx, generate_filename, FileWrapper, Datum, DataSet, Query
 
 from .utils import count_shelve_files, delete_shelve_files
 
@@ -91,6 +91,13 @@ def random_dataset(request, tmp_dir):
 
     return {'dataset': dataset, 'params': all_params}
 
+
+@pytest.fixture
+def random_parameters():
+    return [{'a': a, 'b': b, 'c': c}
+            for a in range(10) for b in range(10, 30) for c in ['foo', 'bar']]
+
+
 class TestFunctions(object):
 
     def test_generate_filename(self):
@@ -104,8 +111,16 @@ class TestFunctions(object):
         assert filename == "L500_a4_blah2_dsok.pkl"
         filename = generate_filename(params, "some_prefix_")
         assert filename == "some_prefix_L500_a4_blah2_dsok"
-        filename = generate_filename(params, path_template="L{L}/a{a}/blah{blah}/ds{ds}")
+        filename = generate_filename(params, path_template="L{L}/a{a}/blah"
+                                                           "{blah}/ds{ds}")
         assert filename == "L500/a4/blah2/dsok"
+
+    def test_aprx(self):
+        """Test the approximately equal function"""
+
+        assert _aprx(1, 1 + 1e-8, 1e-5, 1e-8)
+        assert not _aprx(1, 2, 1e-5, 1e-8)
+        assert _aprx(1, 1 + 1e-8, 1e-5, 0)
 
 class TestFilewrapper(object):
 
@@ -207,3 +222,54 @@ class TestDataSet(object):
             counter += 1
 
         assert counter == len(random_dataset['params'])
+
+
+class TestQuery(object):
+
+    def test_init(self):
+        """Test the constructor"""
+        q = Query(a=1, b=3)
+        assert len(q.children) == 2
+        assert hasattr(q, 'connector')
+        assert q.negate is False
+        assert q.filter_func is None
+        for child in q.children:
+            assert isinstance(child, Query)
+
+    def test_set_filter(self):
+        """Test the _set_filter function"""
+        q = Query()
+        q._set_filter(lambda x, y: x > y, 'foo', 2)
+        assert q.filter_func({'foo': 4})
+        assert not q.filter_func({'foo': 2})
+
+    def test_evaluate(self, random_parameters):
+        """Test the evaluation of the query on a parameter set"""
+
+        q = Query(a=1, b=10)
+        results = q.evaluate(random_parameters)
+        assert len(results) == 2
+        for result in results:
+            assert result['a'] == 1
+            assert result['b'] == 10
+
+        q = Query(a=1, b__gte=20)
+        results = q.evaluate(random_parameters)
+        assert len(results) == 20
+        for result in results:
+            assert result['a'] == 1
+            assert result['b'] >= 10
+
+        q = Query(a=1) | Query(b__gte=20)
+        results = q.evaluate(random_parameters)
+        assert len(results) == 220
+        for result in results:
+            assert result['a'] == 1 or result['b'] >= 20
+
+        q2 = q & Query(c='foo')
+        results = q2.evaluate(random_parameters)
+        assert len(results) == 110
+        for result in results:
+            assert (
+                (result['a'] == 1 or result['b'] >= 20) and result['c'] == 'foo'
+            )
