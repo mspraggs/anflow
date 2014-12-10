@@ -244,9 +244,13 @@ class Query(object):
         if self.filter_func:
             results = map(self.filter_func, parameters)
         else:
-            results = [child._recurse(parameters) for child in self.children]
-            results = [reduce(self.connector, result)
-                       for result in zip(*results)]
+            if self.children:
+                results = [child._recurse(parameters)
+                           for child in self.children]
+                results = [reduce(self.connector, result)
+                           for result in zip(*results)]
+            else:
+                results = [True] * len(parameters)
         return [not result if self.negate else result for result in results]
 
     def evaluate(self, parameters):
@@ -254,8 +258,7 @@ class Query(object):
         returning the list of parameter combinations that we do want to keep"""
 
         results = self._recurse(parameters)
-        return [params for keep, params in zip(results, parameters)
-                if keep]
+        return [params for keep, params in zip(results, parameters) if keep]
 
     def __and__(self, other):
         """And operator"""

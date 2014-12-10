@@ -246,6 +246,10 @@ class TestQuery(object):
     def test_evaluate(self, random_parameters):
         """Test the evaluation of the query on a parameter set"""
 
+        q = Query()
+        results = q.evaluate(random_parameters)
+        assert results == random_parameters
+
         q = Query(a=1, b=10)
         results = q.evaluate(random_parameters)
         assert len(results) == 2
