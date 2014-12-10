@@ -273,3 +273,9 @@ class TestQuery(object):
             assert (
                 (result['a'] == 1 or result['b'] >= 20) and result['c'] == 'foo'
             )
+
+        q = ~Query(a=1)
+        results = q.evaluate(random_parameters)
+        assert len(results) == 360
+        for result in results:
+            assert not result['a'] == 1

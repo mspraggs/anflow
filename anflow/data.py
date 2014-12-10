@@ -247,7 +247,7 @@ class Query(object):
             results = [child._recurse(parameters) for child in self.children]
             results = [reduce(self.connector, result)
                        for result in zip(*results)]
-        return [~result if self.negate else result for result in results]
+        return [not result if self.negate else result for result in results]
 
     def evaluate(self, parameters):
         """Evaluate which parameters we're keeping and which we're discarding,
@@ -268,3 +268,9 @@ class Query(object):
         out = type(self)(self, other)
         out.connector = operator.or_
         return out
+
+    def __invert__(self):
+        """Not operator"""
+        ret = type(self)(*self.children)
+        ret.negate = not self.negate
+        return ret
