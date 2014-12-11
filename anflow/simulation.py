@@ -8,7 +8,7 @@ import logging
 import os
 
 from anflow.config import Config
-from anflow.data import DataSet, Datum
+from anflow.data import DataSet, Datum, Query
 from anflow.utils import get_root_path, get_dependency_files
 
 
@@ -86,11 +86,12 @@ class Simulation(object):
 
         return decorator
 
-    def register_view(self, models, parameters=None):
+    def register_view(self, models, parameters=None, query=None):
         """Returns a decorator to register the designated view"""
 
         def decorator(func):
-            self.views[func.__name__] = (func, models, parameters)
+            # TODO: Make this work with ParameterSet
+            self.views[func.__name__] = (func, models, parameters, query)
             return func
 
         return decorator
@@ -186,7 +187,7 @@ class Simulation(object):
         log = self.log.getChild("view.{}".format(view))
         log.info("Preparing to run view {}".format(view))
 
-        func, models, parameters = self.views[view]
+        func, models, parameters, query = self.views[view]
         args = inspect.getargspec(func).args[1:]
         reports_dir = os.path.join(self.config.REPORTS_DIR, view)
         try:
@@ -229,19 +230,15 @@ class Simulation(object):
             old_cwd = os.getcwd()
             os.chdir(reports_dir)
             parameters = parameters or [{}]
+            query = query or Query()
             for params in parameters:
                 data = {}
                 # Iterate through the input models and compile a dictionary
                 # of input data
                 for model in models:
                     # Get model parameter names
-                    param_names = model.results.first()._params
-                    # Construct filter with parameters relevant to model
-                    model_filter = dict([(key, value)
-                                         for key, value in params.items()
-                                         if key.split("__")[0] in param_names])
                     # Get the result of the filter
-                    result = model.results.filter(**model_filter).all()
+                    result = model.results.filter(query)
                     # Assign the result to the data dictionary
                     data[model.__name__] = result
                 kwargs = dict([(arg, params[arg]) for arg in args])
