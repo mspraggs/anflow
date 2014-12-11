@@ -11,7 +11,7 @@ import time
 import pytest
 
 from anflow import Simulation
-from anflow.data import DataSet, Datum
+from anflow.data import DataSet, Datum, Query
 
 from .utils import delete_shelve_files, count_shelve_files
 
@@ -23,11 +23,15 @@ def sim(tmp_dir, request):
     settings = {}
     settings['RESULTS_DIR'] = os.path.join(tmp_dir, "results")
     settings['REPORTS_DIR'] = os.path.join(tmp_dir, "reports")
-    
-    params = {'a': 1}
-    datum = Datum(params, 1.0, tmp_dir + '/')
-    datum.save()
-    input_data = [datum]
+
+    input_data = []
+    input_parameters = []
+    for a, b in [(x, y) for x in range(5) for y in range(2)]:
+        params = {'a': a, 'b': b}
+        input_parameters.append(params)
+        datum = Datum(params, 1.0, tmp_dir + '/')
+        datum.save()
+        input_data.append(datum)
 
     sim = Simulation("testsim", root_path=tmp_dir)
     sim.config.from_dict(settings)
@@ -54,7 +58,7 @@ def sim(tmp_dir, request):
     request.addfinalizer(fin)
     
     return {'simulation': sim, 'input_data': input_data,
-            'module': module}
+            'module': module, 'parameters': input_parameters}
 
 @pytest.fixture
 def run_sim(tmp_dir, sim, request):
@@ -103,10 +107,10 @@ class TestSimulation(object):
         def some_func(data):
             pass
 
-        assert (simulation.models
-                == {'some_func': (some_func, sim['input_data'], None, None)})
+        assert (simulation.models['some_func']
+                == (some_func, sim['input_data'], None, None, None))
         assert hasattr(some_func, 'results')
-        assert len(some_func.results._params) == 1
+        assert len(some_func.results._params) == len(sim['parameters'])
         assert some_func.results._parent == some_func
         assert some_func.simulation == simulation
 
@@ -119,8 +123,8 @@ class TestSimulation(object):
         def some_view(data):
             pass
 
-        assert (dict(simulation.views)
-                == {'some_view': (some_view, (run_sim['model'],), params)})
+        assert (simulation.views['some_view']
+                == (some_view, (run_sim['model'],), params, None))
 
     def test_run_model(self, sim, tmp_dir):
         """Test Simulation.run_model"""
@@ -130,17 +134,26 @@ class TestSimulation(object):
         def func1(data):
             return data
             
-        decorator = simulation.register_model(input_data=func1.results)
+        decorator = simulation.register_model(input_data=func1.results,
+                                              query=Query(a=1))
         func2 = sim['module'].func2
         func2 = decorator(func2)
 
         result = simulation.run_model('func1')
-        assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'func1', 'a1.pkl')) > 0
+        for params in sim['parameters']:
+            fname = 'a{a}_b{b}.pkl'.format(**params)
+            assert count_shelve_files(os.path.join(tmp_dir, "results",
+                                                   'func1', fname)) > 0
         assert result
         result = simulation.run_model('func2')
-        assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'func2', 'a1.pkl')) > 0
+        for params in sim['parameters']:
+            fname = 'a{a}_b{b}.pkl'.format(**params)
+            if params['a'] == 1:
+                assert count_shelve_files(os.path.join(tmp_dir, "results",
+                                                       'func2', fname)) > 0
+            else:
+                assert count_shelve_files(os.path.join(tmp_dir, "results",
+                                                       'func2', fname)) == 0
         assert result
 
         result = simulation.run_model('func2')
@@ -155,7 +168,7 @@ class TestSimulation(object):
         
         def some_view(data):
             with open("some_file", 'w') as f:
-                f.write(data['model'][0].params['a'].__repr__() + "\n")
+                f.write(data['model'].first().params['a'].__repr__() + "\n")
         run_sim['module'].func3 = some_view
                 
         decorator = simulation.register_view((run_sim['model'],),
@@ -186,10 +199,12 @@ class TestSimulation(object):
         func2 = decorator(func2)
         
         simulation.run()
-        assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'func1', 'a1.pkl')) > 0
-        assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                               'func2', 'a1.pkl')) > 0
+        for params in sim['parameters']:
+            fname = 'a{a}_b{b}.pkl'.format(**params)
+            assert count_shelve_files(os.path.join(tmp_dir, "results",
+                                                   'func1', fname)) > 0
+            assert count_shelve_files(os.path.join(tmp_dir, "results",
+                                                   'func2', fname)) > 0
 
     def test_dependencies(self, sim, tmp_dir):
         """Test Simulation.dependencies"""
