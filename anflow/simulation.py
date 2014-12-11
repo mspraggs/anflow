@@ -283,7 +283,7 @@ class Simulation(object):
         """Retrieve a list of simulations on which this depends"""
 
         simulations = []
-        for func, input_data, params, template in self.models.values():
+        for func, input_data, params, query, template in self.models.values():
             try:
                 dependency = input_data._parent.simulation
             except AttributeError:
