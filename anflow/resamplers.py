@@ -9,7 +9,10 @@ import hashlib
 import logging
 import os
 
+import numpy as np
+
 from anflow.data import Datum
+from anflow.management import load_project_config
 
 
 
@@ -72,6 +75,12 @@ class Resampler(object):
         @wraps(function)
         def decorator(data, *args, **kwargs):
             """Resampling function"""
+            try:
+                config = load_project_config()
+            except RuntimeError:
+                pass
+            else:
+                self._cache_path = self._cache_path or config.CACHE_PATH
             if self.do_resample:
                 # Do the resampling as required
                 hash_object = (data.filename, self.average, self.binsize,
