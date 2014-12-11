@@ -52,7 +52,8 @@ class Simulation(object):
             fh.setFormatter(formatter)
             log.addHandler(fh)
 
-    def register_model(self, input_data, parameters=None, path_template=None):
+    def register_model(self, input_data, parameters=None, query=None,
+                       path_template=None):
         """Register the supplied model function and associated parameters"""
 
         try:
@@ -69,7 +70,8 @@ class Simulation(object):
             local_path_template = path_template
             if local_path_template:
                 local_path_template = os.path.join(funcname, local_path_template)
-            self.models[funcname] = (func, input_data, parameters, local_path_template)
+            self.models[funcname] = (func, input_data, parameters, query,
+                                     local_path_template)
             prefix = "{}/".format(funcname)
             all_params = []
             for dparams in data_params:
@@ -78,6 +80,7 @@ class Simulation(object):
                     temp_params.update(dparams)
                     temp_params.update(params)
                     all_params.append(temp_params)
+            all_params = query.evaluate(all_params)
             func.results = DataSet(all_params, self.config,
                                    prefix, path_template)
             func.results._parent = func
@@ -104,7 +107,7 @@ class Simulation(object):
         log = self.log.getChild('models.{}'.format(model))
         log.info("Preparing to run model {}".format(model))
 
-        func, data, parameters, path_template = self.models[model]
+        func, data, parameters, query, path_template = self.models[model]
         try:
             args = inspect.getargspec(func.original).args[1:]
             if func.error_name:
@@ -156,6 +159,9 @@ class Simulation(object):
             log.info("Running model")
             num_runs = len(data) * len(parameters)
             for i, (datum, params) in enumerate(product(data, parameters)):
+                if not query.evaluate([datum.params]):
+                    # If query filters out the datum parameters, skip
+                    continue
                 joint_params = {}
                 joint_params.update(datum.params)
                 joint_params.update(params)
