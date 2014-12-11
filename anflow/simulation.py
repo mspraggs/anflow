@@ -61,6 +61,7 @@ class Simulation(object):
         except AttributeError:
             data_params = [datum.params for datum in input_data]
         actual_parameters = parameters or [{}]
+        proper_query = query or Query()
 
         def decorator(func):
             try:
@@ -80,7 +81,7 @@ class Simulation(object):
                     temp_params.update(dparams)
                     temp_params.update(params)
                     all_params.append(temp_params)
-            all_params = query.evaluate(all_params)
+            all_params = proper_query.evaluate(all_params)
             func.results = DataSet(all_params, self.config,
                                    prefix, path_template)
             func.results._parent = func
@@ -115,6 +116,7 @@ class Simulation(object):
         except AttributeError:
             args = inspect.getargspec(func).args[1:]
         parameters = parameters or [{}]
+        query = query or Query()
         results_dir = os.path.join(self.config.RESULTS_DIR,
                                    model)
         if path_template:
