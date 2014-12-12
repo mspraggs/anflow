@@ -1,6 +1,7 @@
 from __future__  import absolute_import
 
 from itertools import product
+from xml.etree import ElementTree as ET
 
 
 def global_sweep(**kwargs):
@@ -24,5 +25,21 @@ def hub_and_spokes(base, **kwargs):
             params = base.copy()
             params[key] = value
             parameters.append(params)
-
     return parameters
+
+
+def parse_etree(etree, path):
+    """Parses the supplied ElementTree, looking in the specified path for
+    <parameters> tags from which to load dictionaries of parameters"""
+
+    # Handle broken findall on ElementTree if ET.VERSION == 1.3.x
+    if path.startswith('/') and ET.VERSION.split('.')[:2] == ['1', '3']:
+        path = '.' + path
+
+    ret = []
+    for parameters in etree.iterfind(path):
+        params_dict = {}
+        for param_elem in parameters:
+            params_dict[param_elem.tag] = eval(param_elem.text)
+        ret.append(params_dict)
+    return ret
