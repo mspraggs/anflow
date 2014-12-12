@@ -43,3 +43,17 @@ def parse_etree(etree, path):
             params_dict[param_elem.tag] = eval(param_elem.text)
         ret.append(params_dict)
     return ret
+
+
+def generate_etree(parameters, root_name):
+    """Generate an xml Element using the specified list of parameters"""
+
+    root = ET.Element(root_name)
+
+    for params in parameters:
+        node = ET.SubElement(root, 'parameters')
+        for key, value in params.items():
+            parameter = ET.SubElement(node, key)
+            parameter.text = str(value)
+
+    return root

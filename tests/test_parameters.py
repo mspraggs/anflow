@@ -5,7 +5,8 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from anflow.parameters import global_sweep, hub_and_spokes, parse_etree
+from anflow.parameters import (generate_etree, global_sweep, hub_and_spokes,
+                               parse_etree)
 
 
 @pytest.fixture
@@ -55,3 +56,11 @@ class TestFunctions(object):
 
         for params, expect_params in zip(parameters, expected_params):
             assert params == expect_params
+
+    def test_generate_etree(self, xml_params):
+        """Test xml generation of parameter lists"""
+
+        params = [{'a': a, 'b': b} for a in range(10) for b in range(10)]
+        etree = generate_etree(params, 'root')
+        assert len(etree.getchildren()) == len(xml_params.getchildren())
+        assert ET.tostring(etree) == ET.tostring(xml_params)
