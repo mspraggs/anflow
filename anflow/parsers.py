@@ -52,48 +52,46 @@ class CombinedParser(Parser):
         """Total length is the sum of both iterators"""
         return len(self.parser1) + len(self.parser2)
 
+
 class GuidedParser(Parser):
 
-    def __init__(self, path_template, loader, parameters):
+    def __init__(self, path_template, loader, parameters, **kwargs):
         """Constructor for the GuidedParser"""
         super(GuidedParser, self).__init__()
         self.path_template = path_template
         self.loader = loader
         self.collect = inspect.getargspec(loader).args[1:]
         self.parameters = parameters
+        self.auxparams = kwargs
 
     def populate(self):
         """Populate the parser using the data on the specified paths"""
 
-        params_copy = self.parameters.copy()        
-        collect_params = {}
         path_template_copy = self.path_template
         # First the path template needs to be reformatted if there are variables
         # to collect
-        if self.collect:
-            for param in self.collect:
-                collect_params[param] = params_copy.pop(param)
-                path_template_copy = re.sub('{{ *{} *}}'.format(param),
-                                            '{{{{{}}}}}'.format(param),
-                                            path_template_copy)
+        for key in self.auxparams.keys():
+            path_template_copy = re.sub('{{ *{} *}}'.format(key),
+                                        '{{{{{}}}}}'.format(key),
+                                        path_template_copy)
 
-        # Now go through all non-collected parameters and set up FileWrapper for each
-        for values in product(*params_copy.values()):
-            paramdict = dict(zip(params_copy.keys(), values))
-            sub_template = path_template_copy.format(**paramdict)
+        # Now go through all non-collected parameters and set up FileWrapper for
+        # each
+        for params in self.parameters:
+            sub_template = path_template_copy.format(**params)
 
             timestamps = []
-            for collected_values in product(*collect_params.values()):
-                collected_paramsdict = dict(zip(collect_params.keys(),
-                                                collected_values))
-                filename = sub_template.format(**collected_paramsdict)
+            for auxvalues in product(*self.auxparams.values()):
+                auxparamsdict = dict(zip(self.auxparams.keys(),
+                                         auxvalues))
+                filename = sub_template.format(**auxparamsdict)
                 timestamps.append(os.path.getmtime(filename))
             timestamp = max(timestamps)
             def wrapped_loader(template):
-                return self.loader(template, **collect_params)
+                return self.loader(template, **self.auxparams)
             filewrapper = FileWrapper(sub_template, wrapped_loader,
                                       timestamp=timestamp)
-            filewrapper.params = paramdict
+            filewrapper.params = params
             self.parsed_data.append(filewrapper)
 
         self.populated = True

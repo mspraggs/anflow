@@ -30,11 +30,12 @@ def data_to_parse(tmp_dir, request):
 
     template = os.path.join(tmp_dir, "rawdata/data_a{a}_b{b}.npy")
     
-    params = {'a': [1], 'b': [2]}
+    params = [{'a': 1}]
     def load_func(filepath, b):
         return np.load(filepath.format(b=b[0]))
         
-    parser = GuidedParser(template, load_func, parameters=params)
+    parser = GuidedParser(template, load_func, parameters=params,
+                          b=[2])
 
     request.addfinalizer(lambda: shutil.rmtree(os.path.join(tmp_dir, "rawdata"),
                                                ignore_errors=True))
@@ -94,7 +95,7 @@ class TestGuidedParser(object):
 
         assert parser.path_template == data_to_parse['template']
         assert parser.loader == data_to_parse['load_func']
-        assert parser.collect == ['b']
+        assert parser.auxparams == {'b': [2]}
         assert parser.populated == False
         assert hasattr(parser, 'parsed_data')
 
