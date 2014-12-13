@@ -79,5 +79,6 @@ def main(argv):
         simulations = gather_simulations(studies)
         simulations = sort_simulations(simulations)
         for simulation in simulations:
+            [s.config.from_object(config) for s in simulation.dependencies]
             simulation.config.from_object(config)
             simulation.run(options.force, options.dry_run)
