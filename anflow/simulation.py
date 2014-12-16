@@ -246,7 +246,7 @@ class Simulation(object):
                 for model in models:
                     # Get model parameter names
                     # Get the result of the filter
-                    result = model.results.filter(query)
+                    result = model.results.filter(query, **params)
                     # Assign the result to the data dictionary
                     data[model.__name__] = result
                 kwargs = dict([(arg, params[arg]) for arg in args])
