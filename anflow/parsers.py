@@ -6,8 +6,7 @@ from itertools import chain, product
 import os
 import re
 
-from anflow.data import FileWrapper
-
+from anflow.data import FileWrapper, Query
 
 
 class Parser(object):
@@ -95,3 +94,11 @@ class GuidedParser(Parser):
             self.parsed_data.append(filewrapper)
 
         self.populated = True
+
+    def filter(self, *args, **kwargs):
+        """Filter the parser data according to either a query or
+        a list of parameters"""
+        query = Query(*args, **kwargs)
+        return GuidedParser(self.path_template, self.loader,
+                            query.evaluate(self.parameters),
+                            **self.auxparams)
