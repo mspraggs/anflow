@@ -81,6 +81,7 @@ class Resampler(object):
                 pass
             else:
                 self._cache_path = self._cache_path or config.CACHE_PATH
+                self._cache = self._cache_path and self.do_resample
             if self.do_resample:
                 # Do the resampling as required
                 hash_object = (data.filename, self.average, self.binsize,
