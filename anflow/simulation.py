@@ -94,7 +94,6 @@ class Simulation(object):
         """Returns a decorator to register the designated view"""
 
         def decorator(func):
-            # TODO: Make this work with ParameterSet
             self.views[func.__name__] = (func, models, parameters, query)
             return func
 
