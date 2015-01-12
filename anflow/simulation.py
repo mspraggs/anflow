@@ -109,11 +109,16 @@ class Simulation(object):
 
         func, data, parameters, query, path_template = self.models[model]
         try:
-            args = inspect.getargspec(func.original).args[1:]
+            argspec = inspect.getargspec(func.original)
+        except AttributeError:
+            argspec = inspect.getargspec(func)
+        args = argspec.args[1:]
+        try:
             if func.error_name:
                 args.remove(func.error_name)
         except AttributeError:
-            args = inspect.getargspec(func).args[1:]
+            pass
+        defaults = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
         parameters = parameters or [{}]
         query = query or Query()
         results_dir = os.path.join(self.config.RESULTS_DIR,
@@ -166,7 +171,12 @@ class Simulation(object):
                 joint_params = {}
                 joint_params.update(datum.params)
                 joint_params.update(params)
-                kwargs = dict([(key, joint_params[key]) for key in args])
+                kwargs = {}
+                for key in args:
+                    try:
+                        kwargs[key] = joint_params[key]
+                    except KeyError:
+                        kwargs[key] = defaults[key]
                 log.info("Running model with parameters ({} of {}):"
                          .format(i + 1, num_runs))
                 for key, value in joint_params.items():
