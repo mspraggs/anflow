@@ -13,7 +13,10 @@ def parameters_from_elem(elem):
     for subelem in elem:
         if subelem.tag in ["constant", "spoke", "sweep"]:
             name = subelem.get('name')
-            value = eval(subelem.text)
+            try:
+                value = eval(subelem.text)
+            except NameError:
+                value = subelem.text
 
         if subelem.tag == "constant":
             for i, params in enumerate(output):
