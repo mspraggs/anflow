@@ -4,13 +4,18 @@ from itertools import product
 from xml.etree import ElementTree as ET
 
 
-def global_sweep(**kwargs):
+def add_sweep(base, **kwargs):
     """Generate a list of dictionaries containing all possible combinations of
     the supplied parameters. Parameters should be specified using keywords
     with either single values or iterables."""
-    parameters = [dict(zip(kwargs.keys(), items))
-                  for items in product(*kwargs.values())]
-    return parameters
+
+    output = []
+    for params in base:
+        for items in product(*kwargs.values()):
+            params_to_add = params.copy()
+            params_to_add.update(zip(kwargs.keys(), items))
+            output.append(params_to_add)
+    return output
 
 
 def hub_and_spokes(base, **kwargs):

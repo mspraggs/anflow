@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from anflow.parameters import (generate_etree, global_sweep, hub_and_spokes,
+from anflow.parameters import (generate_etree, add_sweep, hub_and_spokes,
                                parse_etree)
 
 
@@ -27,7 +27,7 @@ class TestFunctions(object):
 
     def test_global_sweep(self):
         """Test the global sweep parameter set generation function"""
-        parameters = global_sweep(a=range(5), b=range(10), c=["tree", "car"])
+        parameters = add_sweep([{}], a=range(5), b=range(10), c=["tree", "car"])
         assert len(parameters) == 100
         for params in [dict(a=a, b=b, c=c) for a in range(5) for b in range(10)
                        for c in ["tree", "car"]]:
