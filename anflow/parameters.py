@@ -6,8 +6,9 @@ from xml.etree import ElementTree as ET
 
 def add_sweep(base, **kwargs):
     """Generate a list of dictionaries containing all possible combinations of
-    the supplied parameters. Parameters should be specified using keywords
-    with either single values or iterables."""
+    the supplied parameters, using the provided list as a base. Parameters
+    should be specified using keywords with either single values or iterables.
+    """
 
     output = []
     for params in base:
@@ -18,19 +19,21 @@ def add_sweep(base, **kwargs):
     return output
 
 
-def hub_and_spokes(base, **kwargs):
+def add_spokes(base, **kwargs):
     """Generate a list of dictionaries all based on the supplied base
-    dictionary. Each of the entries in this dictionary are then varied in turn
-    using the supplied keyword arguments, which themselves should be
-    iterables"""
+    dictionaries. Each of the entries in the supplied list of dictionaries are
+    varied in turn using the supplied keyword arguments, which themselves should
+    be iterables"""
 
-    parameters = [base]
-    for key, values in kwargs.items():
-        for value in values:
-            params = base.copy()
-            params[key] = value
-            parameters.append(params)
-    return parameters
+    output = []
+    for params in base:
+        output.append(params)
+        for key, values in kwargs.items():
+            for value in values:
+                params_copy = params.copy()
+                params_copy[key] = value
+                output.append(params_copy)
+    return output
 
 
 def parse_etree(etree, path):
