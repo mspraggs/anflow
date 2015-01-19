@@ -2,7 +2,7 @@
 <anflow>
     <data_root>/path/to/data</data_root>
     <parser tag="parsed_data">
-        <loader module="lib.io">load_some_data</loader>
+        <loader module="somemod">some_func</loader>
         <path_template>
             {a}_{b}_{another_var}_{foo}.txt
         </path_template>
@@ -16,7 +16,7 @@
         </parameters>
         <collect name="foo">["text1", "text2"]</collect>
     </parser>
-    <model module="lib.models" function="some_func" tag="model_some_func">
+    <model module="somemod" function="some_func" tag="model_some_func">
         <input>
             <tag>parsed_data</tag>
             <filter connector="and">
@@ -28,7 +28,7 @@
             <sweep name="baz">["yes", "no"]</sweep>
         </parameters>
     </model>
-    <view module="yam" function="view_func">
+    <view module="somemod" function="some_func">
         <model>model_some_func</model>
         <parameters>
             <filter>
