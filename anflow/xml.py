@@ -26,13 +26,15 @@ def parameters_from_elem(elem):
         elif subelem.tag == "spoke":
             output = add_spokes(output, **{name, value})
         elif subelem.tag in ["filter", "exclude"]:
-            exclude_params = parameters_from_elem(subelem)
-            for params in exclude_params:
+            subparams = parameters_from_elem(subelem)
+            for params in subparams:
                 query = Query(**params)
                 query.connector = getattr(operator,
-                                          "{}_".format(query.get('connector')))
+                                          "{}_".format(subelem.get('connector')))
                 query.negate = subelem.tag == "exclude"
                 output = query.evaluate(output)
+
+    return output
 
 
 def simulation_from_etree(tree, defaults={}):

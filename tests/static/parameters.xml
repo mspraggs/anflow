@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<anflow>
+    <data_root>/path/to/data</data_root>
+    <input tag="parsed_data">
+        <loader module="lib.io">load_some_data</loader>
+        <path_template>
+            {a}_{b}_{another_var}_{foo}.txt
+        </path_template>
+        <parameters>
+            <constant name="a">96</constant>
+            <constant name="b">48</constant>
+            <sweep name="another_var">[0.1, 0.5, 0.4]</sweep>
+            <exclude connector="and">
+                <constant name="another_var">0.5</constant>
+            </exclude>
+        </parameters>
+        <collect name="foo">["text1", "text2"]</collect>
+    </input>
+    <model module="lib.models" function="some_func" tag="model_some_func">
+        <input>
+            <tag>parsed_data</tag>
+            <filter connector="and">
+                <parameter name="a">96</parameter>
+            </filter>
+        </input>
+        <parameters>
+            <constant name="bar">5.3</constant>
+            <sweep name="baz">["yes", "no"]</sweep>
+        </parameters>
+    </model>
+    <view module="yam" function="view_func">
+        <model>model_some_func</model>
+        <parameters>
+            <filter>
+                <constant name="b">yes</constant>
+            </filter>
+        </parameters>
+    </view>
+</anflow>
