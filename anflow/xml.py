@@ -1,7 +1,10 @@
+import importlib
 import operator
+import os
 
 from anflow.data import Query
-from anflow.parameters import (add_sweep, add_spokes)
+from anflow.parameters import add_sweep, add_spokes
+from anflow.parsers import GuidedParser
 from anflow.simulation import Simulation
 
 
@@ -37,6 +40,32 @@ def parameters_from_elem(elem):
     return output
 
 
+def parser_from_elem(sim, elem, data_root):
+    """Takes part of an element tree and uses it to register a parser object
+    with the specified simulation"""
+    # Get the parameters
+    parser_tag = elem.get("tag")
+    parameters = parameters_from_elem(elem.find('./parameters'))
+    # Get the loader function
+    loader_elem = elem.find('./loader')
+    modname = loader_elem.get('module')
+    funcname = loader_elem.text
+    mod = importlib.import_module(modname)
+    loader_func = getattr(mod, funcname)
+    # Get the path template
+    path_template = loader_elem.find('./path_template').text
+    if data_root:
+        path_template = os.path.join(data_root, path_template)
+    # Get the collect statements
+    collect = {}
+    for subelem in elem.findall('./constant'):
+        collect[subelem.get('name')] = eval(elem.text)
+
+    # Now register the parser
+    parser = GuidedParser(path_template, loader_func, parameters, **collect)
+    sim.register_parser(parser_tag, parser)
+
+
 def simulation_from_etree(tree, defaults={}):
     """Generates a simulation object using the parameters in the supplied
     ElementTree"""
@@ -44,9 +73,6 @@ def simulation_from_etree(tree, defaults={}):
     sim = Simulation()
     data_root = defaults.get('data_root')
     root = tree.getroot()
-    input_elems = []
-    model_elems = []
-    view_elems = []
 
     for elem in root:
         if elem.tag == "data_root":
@@ -55,8 +81,6 @@ def simulation_from_etree(tree, defaults={}):
             model_from_elem(sim, elem)
         elif elem.tag == "view":
             view_from_elem(sim, elem)
-        elif elem.tag == "input":
-            input_from_elem(sim, elem)
-
-    inputs = [input_from_elem(elem, data_root) for elem in input_elems]
+        elif elem.tag == "parser":
+            parser_from_elem(sim, elem, data_root)
 
