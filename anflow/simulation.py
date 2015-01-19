@@ -126,7 +126,10 @@ class Simulation(object):
                 args.remove(func.error_name)
         except AttributeError:
             pass
-        defaults = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
+        if argspec.defaults:
+            defaults = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
+        else:
+            defaults = {}
         parameters = parameters or [{}]
         query = query or Query()
         results_dir = os.path.join(self.config.RESULTS_DIR,
