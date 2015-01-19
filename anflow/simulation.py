@@ -24,6 +24,7 @@ class Simulation(object):
         """Constructor"""
 
         self.config = Config()
+        self.parsers = OrderedDict()
         self.models = OrderedDict()
         self.views = OrderedDict()
         self.import_name = import_name
@@ -51,6 +52,13 @@ class Simulation(object):
             fh.setLevel(self.config.LOGGING_LEVEL)
             fh.setFormatter(formatter)
             log.addHandler(fh)
+
+    def register_parser(self, tag, parser):
+        """Register the supplied parser with the specified tag"""
+        # TODO: Add test
+        if tag in self.parsers or self.models:
+            raise RuntimeError("Parser tag {} already exists".format(tag))
+        self.parsers[tag] = parser
 
     def register_model(self, input_data, parameters=None, query=None,
                        path_template=None):
