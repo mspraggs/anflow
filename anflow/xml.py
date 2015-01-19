@@ -8,7 +8,7 @@ from anflow.parsers import GuidedParser
 from anflow.simulation import Simulation
 
 
-def load_func_from_file(path, funcname):
+def load_from_file(path, funcname):
     # TODO: implement
     pass
 
