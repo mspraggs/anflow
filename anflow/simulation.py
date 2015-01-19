@@ -63,6 +63,7 @@ class Simulation(object):
     def register_model(self, input_data, parameters=None, query=None,
                        path_template=None):
         """Register the supplied model function and associated parameters"""
+        # TODO: Adapt this so it's no longer a decorator
 
         try:
             data_params = input_data._params
@@ -100,6 +101,7 @@ class Simulation(object):
 
     def register_view(self, models, parameters=None, query=None):
         """Returns a decorator to register the designated view"""
+        # Adapt this so it's not a decorator
 
         def decorator(func):
             self.views[func.__name__] = (func, models, parameters, query)
@@ -141,6 +143,7 @@ class Simulation(object):
         except OSError:
             pass
 
+        # TODO: Remove this
         # Determine whether data is up to date and we should run the model
         # Part of this is concerned with determining if source has changed
         if force:
@@ -172,6 +175,7 @@ class Simulation(object):
                 do_run = (results_timestamp < input_timestamp or
                           results_timestamp < source_timestamp)
 
+        # TODO: Remove this if statement
         if do_run:
             log.info("Running model")
             num_runs = len(data) * len(parameters)
@@ -227,6 +231,7 @@ class Simulation(object):
             log.info("View run has been forced")
             do_run = force
         else:
+            # TODO: Get rid of this. Run always
             # Determine whether we need to run the view
             log.info("Checking whether output is up-to-date")
             source_files = get_dependency_files(func, self.root_path)

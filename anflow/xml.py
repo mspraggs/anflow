@@ -8,6 +8,11 @@ from anflow.parsers import GuidedParser
 from anflow.simulation import Simulation
 
 
+def load_func_from_file(path, funcname):
+    # TODO: implement
+    pass
+
+
 def parameters_from_elem(elem):
     """Recurses through the supplied xml element and builds a list of
     dictionaries containing parameters"""
