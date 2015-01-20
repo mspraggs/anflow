@@ -16,7 +16,6 @@ from anflow.data import DataSet, Datum, Query
 from .utils import delete_shelve_files, count_shelve_files
 
 
-
 @pytest.fixture
 def sim(tmp_dir, request):
 
@@ -103,16 +102,13 @@ class TestSimulation(object):
         """Test Simulation.register_model"""
 
         simulation = sim['simulation']
-        @simulation.register_model(input_data=sim['input_data'])
         def some_func(data):
             pass
+        simulation.register_model("some_func", some_func, "input_tag")
 
-        assert (simulation.models['some_func']
-                == (some_func, sim['input_data'], None, None, None))
-        assert hasattr(some_func, 'results')
-        assert len(some_func.results._params) == len(sim['parameters'])
-        assert some_func.results._parent == some_func
-        assert some_func.simulation == simulation
+        assert simulation.models['some_func'].func == some_func
+        assert simulation.models['some_func'].input_tag == "input_tag"
+        assert simulation.models['some_func'].path_template is None
 
     def test_register_view(self, run_sim):
         """Test Simulation.register_view"""
