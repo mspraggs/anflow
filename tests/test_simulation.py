@@ -126,22 +126,19 @@ class TestSimulation(object):
         """Test Simulation.run_model"""
         
         simulation = sim['simulation']
-        @simulation.register_model(input_data=sim['input_data'])
         def func1(data):
             return data
-            
-        decorator = simulation.register_model(input_data=func1.results,
-                                              query=Query(a=1))
-        func2 = sim['module'].func2
-        func2 = decorator(func2)
+        simulation.register_parser('input', sim['input_data'])
+        simulation.register_model('func1', func1, 'input')
+        simulation.register_model('func2', sim['module'].func2, 'func1')
 
         result = simulation.run_model('func1')
         for params in sim['parameters']:
             fname = 'a{a}_b{b}.pkl'.format(**params)
             assert count_shelve_files(os.path.join(tmp_dir, "results",
                                                    'func1', fname)) > 0
-        assert result
-        result = simulation.run_model('func2')
+
+        simulation.run_model('func2', query=Query(a=1))
         for params in sim['parameters']:
             fname = 'a{a}_b{b}.pkl'.format(**params)
             if params['a'] == 1:
@@ -150,12 +147,6 @@ class TestSimulation(object):
             else:
                 assert count_shelve_files(os.path.join(tmp_dir, "results",
                                                        'func2', fname)) == 0
-        assert result
-
-        result = simulation.run_model('func2')
-        assert not result
-        result = simulation.run_model('func2', force=True)
-        assert result
 
     def test_run_view(self, run_sim, tmp_dir):
         """Test Simulation.run_model"""
