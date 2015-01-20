@@ -152,96 +152,49 @@ class Simulation(object):
         self.results[model_tag] = DataSet(dataset_params, self.config,
                                           results_dir + "/", path_template)
 
-    def run_view(self, view, force=False):
+    def run_view(self, view_tag, parameters):
         """Runs the specified view"""
 
         self._setup_log()
-        log = self.log.getChild("view.{}".format(view))
-        log.info("Preparing to run view {}".format(view))
+        log = self.log.getChild("view.{}".format(view_tag))
+        log.info("Preparing to run view {}".format(view_tag))
 
-        func, models, parameters, query = self.views[view]
-        args = inspect.getargspec(func).args[1:]
-        reports_dir = os.path.join(self.config.REPORTS_DIR, view)
+        func, input_tags, output_dir = self.views[view_tag]
+        args = gather_function_args(func)
+        reports_dir = output_dir or os.path.join(self.config.REPORTS_DIR,
+                                                 view_tag)
         try:
             os.makedirs(reports_dir)
         except OSError:
             pass
 
-        if force:
-            log.info("View run has been forced")
-            do_run = force
-        else:
-            # TODO: Get rid of this. Run always
-            # Determine whether we need to run the view
-            log.info("Checking whether output is up-to-date")
-            source_files = get_dependency_files(func, self.root_path)
-            try:
-                source_timestamp = max(map(os.path.getmtime, source_files))
-            except ValueError:
-                source_timestamp = 0
-            input_timestamp = 0
-            for model in models:
-                candidate = max([datum.timestamp for datum in model.results])
-                input_timestamp = max(candidate, input_timestamp)
-            try:
-                timestamp_path = os.path.join(self.config.REPORTS_DIR,
-                                              "{}.run".format(view))
-                last_run_timestamp = os.path.getmtime(timestamp_path)
-            except OSError:
-                log.info("View has not been run")
-                do_run = True
+        log.info("Running view")
+        old_cwd = os.getcwd()
+        os.chdir(reports_dir)
+        parameters = parameters or [{}]
+        for params in parameters:
+            data = {}
+            # Iterate through the input models and compile a dictionary
+            # of input data
+            for input_tag in input_tags:
+                # Get model parameter names
+                # Get the result of the filter
+                result = self.results[input_tag].filter(**params)
+                # Assign the result to the data dictionary
+                data[input_tag] = result
+            kwargs = dict([(key, params.get(key, args[key]))
+                           for key in args.keys()])
+            if len(params) > 0:
+                log.info("Running view with parameters:")
+                for key, value in params.items():
+                    log.info("{}: {}".format(key, value))
             else:
-                if last_run_timestamp < input_timestamp:
-                    log.info("Input data is newer than view output")
-                if last_run_timestamp < source_timestamp:
-                    log.info("View source code is newer than view output")
-                do_run = (last_run_timestamp < input_timestamp
-                          or last_run_timestamp < source_timestamp)
-
-        if do_run:
-            log.info("Running view")
-            old_cwd = os.getcwd()
-            os.chdir(reports_dir)
-            parameters = parameters or [{}]
-            query = query or Query()
-            for params in parameters:
-                data = {}
-                # Iterate through the input models and compile a dictionary
-                # of input data
-                for model in models:
-                    # Get model parameter names
-                    # Get the result of the filter
-                    result = model.results.filter(query, **params)
-                    # Assign the result to the data dictionary
-                    data[model.__name__] = result
-                kwargs = dict([(arg, params[arg]) for arg in args])
-                if len(parameters) > 0:
-                    log.info("Running view with parameters:")
-                    for key, value in params.items():
-                        log.info("{}: {}".format(key, value))
-                else:
-                    log.info("Running view without parameters")
-                func(data, **kwargs)
-            os.chdir(old_cwd)
-            with open(os.path.join(self.config.REPORTS_DIR,
-                                   "{}.run".format(view)), 'w'):
-                pass
-        else:
-            log.info("View output is up-to-date")
-
-        return do_run
-
-    def run(self, force=False, dry_run=False):
-        """Run all models in this simulation"""
-
-        self.log.info("Running all models and views")
-        results = {}
-        for model in self.models.keys():
-            results[model] = self.run_model(model, force, dry_run)
-        for view in self.views.keys():
-            results[view] = self.run_view(view, force)
-
-        return results
+                log.info("Running view without parameters")
+            func(data, **kwargs)
+        os.chdir(old_cwd)
+        with open(os.path.join(self.config.REPORTS_DIR,
+                               "{}.run".format(view_tag)), 'w'):
+            pass
 
     @property
     def dependencies(self):
