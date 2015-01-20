@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import inspect
 from itertools import product
 import logging
@@ -10,6 +10,9 @@ import os
 from anflow.config import Config
 from anflow.data import DataSet, Datum, Query
 from anflow.utils import get_root_path, get_dependency_files
+
+
+Model = namedtuple("Model", ("func", "input_tag", "path_template"))
 
 
 class Simulation(object):
@@ -60,44 +63,9 @@ class Simulation(object):
             raise RuntimeError("Parser tag {} already exists".format(tag))
         self.parsers[tag] = parser
 
-    def register_model(self, input_data, parameters=None, query=None,
-                       path_template=None):
+    def register_model(self, model_tag, func, input_tag, path_template=None):
         """Register the supplied model function and associated parameters"""
-        # TODO: Adapt this so it's no longer a decorator
-
-        try:
-            data_params = input_data._params
-        except AttributeError:
-            data_params = [datum.params for datum in input_data]
-        actual_parameters = parameters or [{}]
-        proper_query = query or Query()
-
-        def decorator(func):
-            try:
-                funcname = func.__name__
-            except AttributeError:
-                funcname = func.original.__name__
-            local_path_template = path_template
-            if local_path_template:
-                local_path_template = os.path.join(funcname, local_path_template)
-            self.models[funcname] = (func, input_data, parameters, query,
-                                     local_path_template)
-            prefix = "{}/".format(funcname)
-            all_params = []
-            for dparams in data_params:
-                for params in actual_parameters:
-                    temp_params = {}
-                    temp_params.update(dparams)
-                    temp_params.update(params)
-                    all_params.append(temp_params)
-            all_params = proper_query.evaluate(all_params)
-            func.results = DataSet(all_params, self.config,
-                                   prefix, path_template)
-            func.results._parent = func
-            func.simulation = self
-            return func
-
-        return decorator
+        self.models[model_tag] = Model(func, input_tag, path_template)
 
     def register_view(self, models, parameters=None, query=None):
         """Returns a decorator to register the designated view"""
