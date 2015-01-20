@@ -22,9 +22,9 @@ def parameters_from_elem(elem):
         if subelem.tag in ["constant", "spoke", "sweep"]:
             name = subelem.get('name')
             try:
-                value = eval(subelem.text)
+                value = eval(subelem.text.strip())
             except NameError:
-                value = subelem.text
+                value = subelem.text.strip()
 
         if subelem.tag == "constant":
             for i, params in enumerate(output):
@@ -54,17 +54,17 @@ def parser_from_elem(sim, elem, data_root):
     # Get the loader function
     loader_elem = elem.find('./loader')
     modname = loader_elem.get('module')
-    funcname = loader_elem.text
+    funcname = loader_elem.text.strip()
     mod = importlib.import_module(modname)
     loader_func = getattr(mod, funcname)
     # Get the path template
-    path_template = loader_elem.find('./path_template').text
+    path_template = elem.find('./path_template').text.strip()
     if data_root:
         path_template = os.path.join(data_root, path_template)
     # Get the collect statements
     collect = {}
-    for subelem in elem.findall('./constant'):
-        collect[subelem.get('name')] = eval(elem.text)
+    for subelem in elem.findall('./collect'):
+        collect[subelem.get('name')] = eval(subelem.text.strip())
 
     # Now register the parser
     parser = GuidedParser(path_template, loader_func, parameters, **collect)
@@ -81,7 +81,7 @@ def simulation_from_etree(tree, defaults={}):
 
     for elem in root:
         if elem.tag == "data_root":
-            data_root = elem.text
+            data_root = elem.text.strip()
         elif elem.tag == "model":
             model_from_elem(sim, elem)
         elif elem.tag == "view":
