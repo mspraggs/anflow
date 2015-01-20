@@ -74,6 +74,15 @@ class Simulation(object):
             fh.setFormatter(formatter)
             log.addHandler(fh)
 
+    def _get_input(self, tag):
+        """Look in parsers for the specified input tag, and if it's not there
+        then look in results"""
+        # TODO: Add test
+        try:
+            return self.parsers[tag]
+        except KeyError:
+            return self.results[tag]
+
     def register_parser(self, tag, parser):
         """Register the supplied parser with the specified tag"""
         self.parsers[tag] = parser
