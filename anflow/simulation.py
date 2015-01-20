@@ -47,6 +47,7 @@ class Simulation(object):
         self.parsers = OrderedDict()
         self.models = OrderedDict()
         self.views = OrderedDict()
+        self.results = OrderedDict()
         self.import_name = import_name
 
         self.root_path = root_path or get_root_path(import_name)
