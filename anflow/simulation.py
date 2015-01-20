@@ -16,6 +16,22 @@ Model = namedtuple("Model", ("func", "input_tag", "path_template"))
 View = namedtuple("View", ("func", "input_tags", "output_dir"))
 
 
+def gather_function_args(func):
+    """Gathers function arguments and defaults"""
+    # TODO: Add test
+    working_func = getattr(func, "original", func)
+    argspec = inspect.getargspec(working_func)
+    # Omit first argument - this is data
+    args = dict([(arg, None) for arg in argspec.args[1:]])
+    error_name = getattr(func, "error_name", None)
+    if error_name:
+        args.pop(error_name)
+    if argspec.defaults:
+        defaults = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
+        args.update(defaults)
+    return args
+
+
 class Simulation(object):
     defaults = {'DEBUG': False,
                 'LOGGING_LEVEL': logging.NOTSET,
