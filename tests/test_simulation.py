@@ -65,10 +65,9 @@ def run_sim(tmp_dir, sim, request):
     simulation = sim['simulation']
     def model(data):
         return data
-    model.results = DataSet([{'a': 1}], simulation.config,
-                            os.path.join(tmp_dir, 'results', 'model_'))
-    model.results._parent = model
-    simulation.models = {'model': (model, sim['input_data'], None)}
+    results = DataSet([{'a': 1}], simulation.config,
+                      os.path.join(tmp_dir, 'results', 'model_'))
+    simulation.results = {'model': results}
 
     os.makedirs(os.path.join(tmp_dir, "results"))
     shelf = shelve.open(tmp_dir + "/results/model_a1.pkl")
@@ -156,24 +155,16 @@ class TestSimulation(object):
         def some_view(data):
             with open("some_file", 'w') as f:
                 f.write(data['model'].first().params['a'].__repr__() + "\n")
-        run_sim['module'].func3 = some_view
-                
-        decorator = simulation.register_view((run_sim['model'],),
-                                             parameters=[{'a': 1}])
-        func3 = run_sim['module'].func3
-        func3 = decorator(func3)
 
-        result = simulation.run_view('some_view')
-        assert result
+        simulation.register_view("some_view", some_view, ("model",))
+
+        simulation.run_view('some_view', [{'a': 1}])
         assert os.path.exists(os.path.join(tmp_dir, 'reports/some_view/'
                                                     'some_file'))
         with open(os.path.join(tmp_dir, 'reports/some_view/some_file')) as f:
             lines = f.readlines()
         assert len(lines) == 1
         assert lines[0] == '1\n'
-        
-        result = simulation.run_view('some_view')
-        assert not result
 
     def test_run(self, sim, tmp_dir):
         """Test Simulation.run"""
