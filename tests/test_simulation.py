@@ -114,13 +114,13 @@ class TestSimulation(object):
         """Test Simulation.register_view"""
         
         simulation = run_sim['simulation']
-        params = [{'a': 1}]
-        @simulation.register_view(models=(run_sim['model'],), parameters=params)
         def some_view(data):
             pass
+        simulation.register_view('some_view', some_view, ('some_input',))
 
-        assert (simulation.views['some_view']
-                == (some_view, (run_sim['model'],), params, None))
+        assert simulation.views['some_view'].func == some_view
+        assert simulation.views['some_view'].input_tags == ('some_input',)
+        assert simulation.views['some_view'].output_dir is None
 
     def test_run_model(self, sim, tmp_dir):
         """Test Simulation.run_model"""

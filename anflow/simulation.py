@@ -13,6 +13,7 @@ from anflow.utils import get_root_path, get_dependency_files
 
 
 Model = namedtuple("Model", ("func", "input_tag", "path_template"))
+View = namedtuple("View", ("func", "input_tags", "output_dir"))
 
 
 class Simulation(object):
@@ -67,15 +68,10 @@ class Simulation(object):
         """Register the supplied model function and associated parameters"""
         self.models[model_tag] = Model(func, input_tag, path_template)
 
-    def register_view(self, models, parameters=None, query=None):
+    def register_view(self, view_tag, func, input_tags, output_dir=None):
         """Returns a decorator to register the designated view"""
         # Adapt this so it's not a decorator
-
-        def decorator(func):
-            self.views[func.__name__] = (func, models, parameters, query)
-            return func
-
-        return decorator
+        self.views[view_tag] = View(func, input_tags, output_dir)
 
     def run_model(self, model, force=False, dry_run=False):
         """Run a model"""
