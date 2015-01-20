@@ -93,108 +93,64 @@ class Simulation(object):
         # Adapt this so it's not a decorator
         self.views[view_tag] = View(func, input_tags, output_dir)
 
-    def run_model(self, model, force=False, dry_run=False):
+    def run_model(self, model_tag, parameters=None, query=None, dry_run=False):
         """Run a model"""
 
         self._setup_log()
+        log = self.log.getChild('models.{}'.format(model_tag))
+        log.info("Preparing to run model {}".format(model_tag))
 
-        log = self.log.getChild('models.{}'.format(model))
-        log.info("Preparing to run model {}".format(model))
-
-        func, data, parameters, query, path_template = self.models[model]
-        try:
-            argspec = inspect.getargspec(func.original)
-        except AttributeError:
-            argspec = inspect.getargspec(func)
-        args = argspec.args[1:]
-        try:
-            if func.error_name:
-                args.remove(func.error_name)
-        except AttributeError:
-            pass
-        if argspec.defaults:
-            defaults = dict(zip(argspec.args[::-1], argspec.defaults[::-1]))
-        else:
-            defaults = {}
+        func, input_tag, path_template = self.models[model_tag]
         parameters = parameters or [{}]
         query = query or Query()
+
+        data = self._get_input(input_tag)
+        args = gather_function_args(func)
+
         results_dir = os.path.join(self.config.RESULTS_DIR,
-                                   model)
+                                   model_tag)
         if path_template:
-            path_template = os.path.join(model, path_template)
+            path_template = os.path.join(model_tag, path_template)
         try:
             os.makedirs(results_dir)
         except OSError:
             pass
 
-        # TODO: Remove this
-        # Determine whether data is up to date and we should run the model
-        # Part of this is concerned with determining if source has changed
-        if force:
-            log.info("Model run has been forced")
-            do_run = force
-        else:
-            log.info("Checking whether results are up-to-date")
-            source_files = get_dependency_files(func, self.root_path)
-            try:
-                source_timestamp = max(map(os.path.getmtime, source_files))
-            except ValueError:
-                source_timestamp = 0
-            input_timestamp = max([datum.timestamp for datum in data])
-            results = func.results
-            try:
-                results = results.all()
-            except IOError:
-                results = []
-            if not results:  # Check for lack of existing results
-                log.info("No results for model")
-                do_run = True
-            else:
-                results_timestamp = min([result.timestamp for result in results])
-                if results_timestamp < input_timestamp:
-                    log.info("Input data is newer than results")
-                if results_timestamp < source_timestamp:
-                    log.info("Model source is newer than results")
-                # Check for new input or source code
-                do_run = (results_timestamp < input_timestamp or
-                          results_timestamp < source_timestamp)
+        log.info("Running model")
+        num_runs = len(data) * len(parameters)
+        dataset_params = []
+        for i, (datum, params) in enumerate(product(data, parameters)):
+            if not query.evaluate([datum.params]):
+                # If query filters out the datum parameters, skip
+                continue
+            # Construct the function arguments from the given parameters
+            joint_params = datum.params.copy()
+            joint_params.update(params)
+            # Retrieve values, falling back to defaults where they exist
+            kwargs = dict([(key, joint_params.get(key, args[key]))
+                           for key in args.keys()])
 
-        # TODO: Remove this if statement
-        if do_run:
-            log.info("Running model")
-            num_runs = len(data) * len(parameters)
-            for i, (datum, params) in enumerate(product(data, parameters)):
-                if not query.evaluate([datum.params]):
-                    # If query filters out the datum parameters, skip
-                    continue
-                joint_params = {}
-                joint_params.update(datum.params)
-                joint_params.update(params)
-                kwargs = {}
-                for key in args:
-                    try:
-                        kwargs[key] = joint_params[key]
-                    except KeyError:
-                        kwargs[key] = defaults[key]
-                log.info("Running model with parameters ({} of {}):"
-                         .format(i + 1, num_runs))
-                for key, value in joint_params.items():
-                    log.info("{}: {}".format(key, value))
-                if hasattr(func, 'resampled'):
-                    result = func(datum, **kwargs)
-                else:
-                    result = func(datum.data, **kwargs)
-                if result is not None and not dry_run:
+            log.info("Running model ({} of {}):"
+                     .format(i + 1, num_runs))
+            for key, value in joint_params.items():
+                log.info("{}: {}".format(key, value))
+            # TODO: Fix this in accordance with resampler config
+            if hasattr(func, 'resampled'):
+                result = func(datum, **kwargs)
+            else:
+                result = func(datum.data, **kwargs)
+            if result is not None:
+                dataset_params.append(joint_params)
+                if not dry_run:
                     log.info("Saving results")
                     result_datum = Datum(joint_params, result, results_dir + "/",
                                          path_template)
                     result_datum.save()
-                elif not dry_run:
-                    log.info("Dry run, so no results saved")
-        else:
-            log.info("Results are up-to-date")
+            elif not dry_run:
+                log.info("Dry run, so no results saved")
 
-        return do_run
+        self.results[model_tag] = DataSet(dataset_params, self.config,
+                                          results_dir + "/", path_template)
 
     def run_view(self, view, force=False):
         """Runs the specified view"""
