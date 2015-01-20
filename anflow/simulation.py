@@ -59,9 +59,6 @@ class Simulation(object):
 
     def register_parser(self, tag, parser):
         """Register the supplied parser with the specified tag"""
-        # TODO: Add test
-        if tag in self.parsers or self.models:
-            raise RuntimeError("Parser tag {} already exists".format(tag))
         self.parsers[tag] = parser
 
     def register_model(self, model_tag, func, input_tag, path_template=None):
