@@ -117,8 +117,10 @@ def model_from_elem(sim, elem):
     func = getattr(mod, funcname)
 
     input_tag, query = input_from_elem(elem.find('./input'))
+    parameters = parameters_from_elem(elem.find('./parameters'))
 
     sim.register_model(model_tag, func, input_tag)
+    return parameters, query
 
 
 def simulation_from_etree(tree, defaults={}):
