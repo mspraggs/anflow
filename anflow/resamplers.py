@@ -71,10 +71,11 @@ class Resampler(object):
     def __call__(self, function):
         """Pulls together all the resampling components - the main resampling
         entry point"""
-
+        # TODO: Tidy this crap up!
         @wraps(function)
         def decorator(data, *args, **kwargs):
             """Resampling function"""
+            # TODO: Do not make this depend on FileWrapper
             try:
                 config = load_project_config()
             except RuntimeError:
