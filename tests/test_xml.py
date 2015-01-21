@@ -33,6 +33,15 @@ class TestFunctions(object):
         assert parameters == [{'a': 96, 'b': 48, 'another_var': 0.1},
                               {'a': 96, 'b': 48, 'another_var': 0.4}]
 
+    def test_query_from_elem(self, testtree):
+        """Test query_from_elem"""
+        elem = testtree.find("./model/input/filter")
+        query = query_from_elem(elem)
+        sample_params = [{'a': a, 'b': b}
+                         for a in range(94, 100)
+                         for b in range(10)]
+        assert len(query.evaluate(sample_params)) == 10
+
     def test_parser_from_elem(self, testtree, sim):
         """Test parser_from_elem"""
         elem = testtree.find("./parser")

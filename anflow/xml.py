@@ -57,16 +57,14 @@ def query_from_elem(elem):
                 value = eval(value)
             except NameError:
                 pass
-            output.append([Query(**{name: value})])
+            output.append(Query(**{name: value}))
         elif subelem.tag in ["filter", "exclude"]:
-            subqueries = query_from_elem(subelem)
-            query = Query(*subqueries)
+            query = query_from_elem(subelem)
             query.connector = getattr(operator,
                                       "{}_".format(subelem.get('connector')))
             query.negate = subelem.tag == "exclude"
             output.append(query)
-
-    return output
+    return Query(*output)
 
 
 def input_from_elem(elem):
