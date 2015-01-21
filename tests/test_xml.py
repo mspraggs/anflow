@@ -7,7 +7,7 @@ import pytest
 
 from anflow.simulation import Simulation
 from anflow.xml import (input_from_elem, model_from_elem, parameters_from_elem,
-                        parser_from_elem, query_from_elem)
+                        parser_from_elem, query_from_elem, view_from_elem)
 
 
 @pytest.fixture
@@ -42,7 +42,7 @@ class TestFunctions(object):
                          for a in range(94, 100)
                          for b in ['yes', 'no']]
         filtered_params = [{'a': a, 'b': 'yes'} for a in range(94, 100)]
-        assert len(query.evaluate(sample_params)) == 10
+        assert len(query.evaluate(sample_params)) == 6
         assert query.evaluate(sample_params) == filtered_params
 
     def test_parameters_from_elem(self, testtree):
@@ -93,10 +93,10 @@ class TestFunctions(object):
         """Test view_from_elem"""
         elem = testtree.find("./view")
         mod = importlib.import_module('somemod')
-        params, queries = model_from_elem(sim, elem)
+        params, queries = view_from_elem(sim, elem)
         self.check_view_query(queries['model_some_func'])
-        assert params == []
+        assert params is None
         assert 'view_some_func' in sim.views
-        assert sim.models['view_some_func'].func == mod.some_func
-        assert sim.models['view_some_func'].input_tag == "model_some_func"
-        assert sim.models['view_some_func'].output_dir is None
+        assert sim.views['view_some_func'].func == mod.some_func
+        assert sim.views['view_some_func'].input_tags == ["model_some_func",]
+        assert sim.views['view_some_func'].output_dir is None
