@@ -69,6 +69,19 @@ def query_from_elem(elem):
     return output
 
 
+def input_from_elem(elem):
+    """Retrieves the input tag and query from the xml element"""
+    # TODO: Write test for this function
+    input_tag = elem.find('./tag').text.string()
+    for tag in ['filter', 'exclude']:
+        query_elem = elem.find('./{}'.format(tag))
+        if query_elem:
+            break
+    query = query_from_elem(query_elem)
+
+    return input_tag, query
+
+
 def parser_from_elem(sim, elem, data_root):
     """Takes part of an element tree and uses it to register a parser object
     with the specified simulation"""
