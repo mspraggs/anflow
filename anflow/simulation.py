@@ -152,7 +152,7 @@ class Simulation(object):
         self.results[model_tag] = DataSet(dataset_params, self.config,
                                           results_dir + "/", path_template)
 
-    def run_view(self, view_tag, parameters=None, query=None):
+    def run_view(self, view_tag, parameters=None, queries=None):
         """Runs the specified view"""
 
         self._setup_log()
@@ -161,7 +161,9 @@ class Simulation(object):
 
         func, input_tags, output_dir = self.views[view_tag]
         parameters = parameters or [{}]
-        query = query or Query()
+        queries = queries or Query()
+        if type(queries) != dict:
+            queries = dict([(tag, queries) for tag in input_tags])
 
         args = gather_function_args(func)
         reports_dir = output_dir or os.path.join(self.config.REPORTS_DIR,
@@ -181,7 +183,8 @@ class Simulation(object):
             for input_tag in input_tags:
                 # Get model parameter names
                 # Get the result of the filter
-                result = self.results[input_tag].filter(query, **params)
+                result = self.results[input_tag].filter(queries[input_tag],
+                                                        **params)
                 # Assign the result to the data dictionary
                 data[input_tag] = result
             kwargs = dict([(key, params.get(key, args[key]))
