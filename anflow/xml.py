@@ -45,6 +45,30 @@ def parameters_from_elem(elem):
     return output
 
 
+def query_from_elem(elem):
+    """Creates a Query object from the specified xml element"""
+    # TODO: Write test for this function
+    output = []
+    for subelem in elem:
+        if subelem.tag == "constant":
+            name = subelem.get('name')
+            value = subelem.text.strip()
+            try:
+                value = eval(value)
+            except NameError:
+                pass
+            output.append([Query(**{name: value})])
+        elif subelem.tag in ["filter", "exclude"]:
+            subqueries = query_from_elem(subelem)
+            query = Query(*subqueries)
+            query.connector = getattr(operator,
+                                      "{}_".format(subelem.get('connector')))
+            query.negate = subelem.tag == "exclude"
+            output.append(query)
+
+    return output
+
+
 def parser_from_elem(sim, elem, data_root):
     """Takes part of an element tree and uses it to register a parser object
     with the specified simulation"""
