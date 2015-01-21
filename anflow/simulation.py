@@ -200,19 +200,3 @@ class Simulation(object):
         with open(os.path.join(self.config.REPORTS_DIR,
                                "{}.run".format(view_tag)), 'w'):
             pass
-
-    @property
-    def dependencies(self):
-        """Retrieve a list of simulations on which this depends"""
-
-        simulations = []
-        for func, input_data, params, query, template in self.models.values():
-            try:
-                dependency = input_data._parent.simulation
-            except AttributeError:
-                pass
-            else:
-                if dependency != self:
-                    simulations.append(dependency)
-
-        return simulations

@@ -169,35 +169,3 @@ class TestSimulation(object):
             lines = f.readlines()
         assert len(lines) == 1
         assert lines[0] == '1\n'
-
-    def test_run(self, sim, tmp_dir):
-        """Test Simulation.run"""
-        simulation = sim['simulation']
-        decorator = simulation.register_model(input_data=sim['input_data'])
-        func1 = sim['module'].func1
-        func1 = decorator(func1)
-        decorator = simulation.register_model(input_data=func1.results)
-        func2 = sim['module'].func2
-        func2 = decorator(func2)
-        
-        simulation.run()
-        for params in sim['parameters']:
-            fname = 'a{a}_b{b}.pkl'.format(**params)
-            assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                                   'func1', fname)) > 0
-            assert count_shelve_files(os.path.join(tmp_dir, "results",
-                                                   'func2', fname)) > 0
-
-    def test_dependencies(self, sim, tmp_dir):
-        """Test Simulation.dependencies"""
-        simulation = Simulation('blah')
-        @simulation.register_model(input_data=sim['input_data'])
-        def func1(data):
-            return data
-
-        simulation2 = sim['simulation']
-        decorator = simulation2.register_model(input_data=func1.results)
-        func2 = sim['module'].func2
-        func2 = decorator(func2)
-
-        assert simulation2.dependencies == [simulation]
