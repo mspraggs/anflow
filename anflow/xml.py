@@ -61,7 +61,6 @@ def parameters_from_elem(elem):
 
 def query_from_elem(elem):
     """Creates a Query object from the specified xml element"""
-    # TODO: Write test for this function
     output = []
     for subelem in elem:
         if subelem.tag == "constant":
@@ -83,7 +82,6 @@ def query_from_elem(elem):
 
 def input_from_elem(elem):
     """Retrieves the input tag and query from the xml element"""
-    # TODO: Write test for this function
     input_tag = elem.find('./tag').text.strip()
     for tag in ['filter', 'exclude']:
         query_elem = elem.find('./{}'.format(tag))
@@ -123,7 +121,6 @@ def parser_from_elem(sim, elem, data_root):
 def model_from_elem(sim, elem):
     """Register a model with the supplied simulation using the supplied
     xml element"""
-    # TODO: Write test for this function
     model_tag, func = get_func_and_tag(elem)
     input_tag, query = input_from_elem(elem.find('./input'))
     parameters = parameters_from_elem(elem.find('./parameters'))
