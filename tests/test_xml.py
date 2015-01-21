@@ -27,6 +27,15 @@ def sim(request):
 
 class TestFunctions(object):
 
+    def check_model_query(self, query):
+        """Evaluate supplied query on sample parameter set to check behaviour"""
+        sample_params = [{'a': a, 'b': b}
+                         for a in range(94, 100)
+                         for b in range(10)]
+        filtered_params = [{'a': 96, 'b': b} for b in range(10)]
+        assert len(query.evaluate(sample_params)) == 10
+        assert query.evaluate(sample_params) == filtered_params
+
     def test_parameters_from_elem(self, testtree):
         """Test parameters_from_elem"""
         elem = testtree.find("./parser/parameters")
@@ -38,20 +47,14 @@ class TestFunctions(object):
         """Test query_from_elem"""
         elem = testtree.find("./model/input/filter")
         query = query_from_elem(elem)
-        sample_params = [{'a': a, 'b': b}
-                         for a in range(94, 100)
-                         for b in range(10)]
-        assert len(query.evaluate(sample_params)) == 10
+        self.check_model_query(query)
 
     def test_input_from_elem(self, testtree):
         """Test input_from_elem"""
         elem = testtree.find("./model/input")
         tag, query = input_from_elem(elem)
-        sample_params = [{'a': a, 'b': b}
-                         for a in range(94, 100)
-                         for b in range(10)]
         assert tag == "parsed_data"
-        assert len(query.evaluate(sample_params)) == 10
+        self.check_model_query(query)
 
     def test_parser_from_elem(self, testtree, sim):
         """Test parser_from_elem"""
@@ -64,3 +67,15 @@ class TestFunctions(object):
         assert sim.parsers['parsed_data'].loader == mod.some_func
         assert sim.parsers['parsed_data'].auxparams == {'foo': ['text1',
                                                                 'text2']}
+
+    def test_model_from_elem(self, testtree, sim):
+        """Test model_from_elem"""
+        elem = testtree.find("./model")
+        mod = importlib.import_module('somemod')
+        params, query = model_from_elem(sim, elem)
+        self.check_model_query(query)
+        assert params == [{'bar': 5.3, 'baz': 'yes'}, {'bar': 5.3, 'baz': 'no'}]
+        assert 'model_some_func' in sim.models
+        assert sim.models['model_some_func'].func == mod.some_func
+        assert sim.models['model_some_func'].input_tag == 'parsed_data'
+        assert sim.models['model_some_func'].path_template is None
