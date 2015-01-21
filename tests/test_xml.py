@@ -6,7 +6,8 @@ import xml.etree.ElementTree as ET
 import pytest
 
 from anflow.simulation import Simulation
-from anflow.xml import parameters_from_elem, parser_from_elem
+from anflow.xml import (input_from_elem, parameters_from_elem, parser_from_elem,
+                        query_from_elem)
 
 
 @pytest.fixture
@@ -40,6 +41,16 @@ class TestFunctions(object):
         sample_params = [{'a': a, 'b': b}
                          for a in range(94, 100)
                          for b in range(10)]
+        assert len(query.evaluate(sample_params)) == 10
+
+    def test_input_from_elem(self, testtree):
+        """Test input_from_elem"""
+        elem = testtree.find("./model/input")
+        tag, query = input_from_elem(elem)
+        sample_params = [{'a': a, 'b': b}
+                         for a in range(94, 100)
+                         for b in range(10)]
+        assert tag == "parsed_data"
         assert len(query.evaluate(sample_params)) == 10
 
     def test_parser_from_elem(self, testtree, sim):
