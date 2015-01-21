@@ -108,6 +108,21 @@ def parser_from_elem(sim, elem, data_root):
     sim.register_parser(parser_tag, parser)
 
 
+def model_from_elem(sim, elem):
+    """Register a model with the supplied simulation using the supplied
+    xml element"""
+    # TODO: Write test for this function
+    model_tag = elem.get('tag')
+    modname = elem.get('module')
+    funcname = elem.get('function')
+    mod = importlib.import_module(modname)
+    func = getattr(mod, funcname)
+
+    input_tag, query = input_from_elem(elem.find('./input'))
+
+    sim.register_model(model_tag, func, input_tag)
+
+
 def simulation_from_etree(tree, defaults={}):
     """Generates a simulation object using the parameters in the supplied
     ElementTree"""
