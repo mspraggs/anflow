@@ -121,12 +121,7 @@ def model_from_elem(sim, elem):
     """Register a model with the supplied simulation using the supplied
     xml element"""
     # TODO: Write test for this function
-    model_tag = elem.get('tag')
-    modname = elem.get('module')
-    funcname = elem.get('function')
-    mod = importlib.import_module(modname)
-    func = getattr(mod, funcname)
-
+    model_tag, func = get_func_and_tag(elem)
     input_tag, query = input_from_elem(elem.find('./input'))
     parameters = parameters_from_elem(elem.find('./parameters'))
 
