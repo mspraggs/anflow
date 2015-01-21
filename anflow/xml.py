@@ -129,6 +129,24 @@ def model_from_elem(sim, elem):
     return parameters, query
 
 
+def view_from_elem(sim, elem):
+    """Register a view with the supplied simulation using the supplied xml
+    element"""
+    view_tag, func = get_func_and_tag(elem)
+
+    queries = {}
+    input_tags = []
+    for subelem in elem.findall("./input"):
+        tag, query = input_from_elem(subelem)
+        input_tags.append(tag)
+        queries[tag] = query
+
+    parameters = parameters_from_elem(elem.find('./parameters'))
+
+    sim.register_view(view_tag, func, input_tags)
+    return parameters, queries
+
+
 def simulation_from_etree(tree, defaults={}):
     """Generates a simulation object using the parameters in the supplied
     ElementTree"""
