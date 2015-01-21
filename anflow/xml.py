@@ -13,6 +13,17 @@ def load_from_file(path, funcname):
     pass
 
 
+def get_func_and_tag(elem):
+    """Gets the function and the tag from the supplied elems attributes"""
+    # TODO: Write test for this function
+    # TODO: Enable gathering from file that isn't in path
+    tag = elem.get('tag')
+    modname = elem.get('module')
+    funcname = elem.get('function')
+    mod = importlib.import_module(modname)
+    return tag, getattr(mod, funcname)
+
+
 def parameters_from_elem(elem):
     """Recurses through the supplied xml element and builds a list of
     dictionaries containing parameters"""
