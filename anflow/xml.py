@@ -28,6 +28,9 @@ def parameters_from_elem(elem):
     """Recurses through the supplied xml element and builds a list of
     dictionaries containing parameters"""
 
+    if elem is None:
+        return None
+
     output = [{}]
     for subelem in elem:
         if subelem.tag in ["constant", "spoke", "sweep"]:
