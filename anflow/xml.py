@@ -70,10 +70,10 @@ def query_from_elem(elem):
 def input_from_elem(elem):
     """Retrieves the input tag and query from the xml element"""
     # TODO: Write test for this function
-    input_tag = elem.find('./tag').text.string()
+    input_tag = elem.find('./tag').text.strip()
     for tag in ['filter', 'exclude']:
         query_elem = elem.find('./{}'.format(tag))
-        if query_elem:
+        if query_elem is not None:
             break
     query = query_from_elem(query_elem)
 
