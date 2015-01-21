@@ -97,6 +97,10 @@ class TestSimulation(object):
         assert sim['simulation'].config.REPORTS_DIR == os.path.join(tmp_dir,
                                                                     "reports")
 
+    def test_register_parser(self, sim):
+        # TODO: Implement this
+        pass
+
     def test_register_model(self, sim):
         """Test Simulation.register_model"""
 
