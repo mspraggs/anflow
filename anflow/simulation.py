@@ -184,10 +184,9 @@ class Simulation(object):
             # Iterate through the input models and compile a dictionary
             # of input data
             for input_tag in input_tags:
-                # Get model parameter names
-                # Get the result of the filter
-                result = self.results[input_tag].filter(queries[input_tag],
-                                                        **params)
+                # Apply relevant filters
+                query = queries[input_tag] or Query()
+                result = self.results[input_tag].filter(query, **params)
                 # Assign the result to the data dictionary
                 data[input_tag] = result
             kwargs = dict([(key, params.get(key, args[key]))
