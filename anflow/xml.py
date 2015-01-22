@@ -62,7 +62,7 @@ def parameters_from_elem(elem):
 def query_from_elem(elem):
     """Creates a Query object from the specified xml element"""
 
-    if elem in None:
+    if elem is None:
         return None
 
     output = []
