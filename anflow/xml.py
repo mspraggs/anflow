@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import importlib
 import operator
 import os
+from xml.etree.ElementTree import ParseError
 
 from anflow.data import Query
 from anflow.parameters import add_sweep, add_spokes
@@ -15,13 +16,22 @@ def load_from_file(path, funcname):
     pass
 
 
+def find_or_error(elem, path):
+    """Find the specified path in the supplied element, and fail if it doesn't
+    exist"""
+    child_elem = elem.find(path)
+    if child_elem is None:
+        raise ParseError("Cannot find path {} in {}".format(path, child_elem))
+    return child_elem
+
+
 def get_func_and_tag(elem):
     """Gets the function and the tag from the supplied elems attributes"""
     # TODO: Write test for this function
     # TODO: Enable gathering from file that isn't in path
-    tag = elem.get('tag')
-    modname = elem.get('module')
-    funcname = elem.get('function')
+    tag = elem.attrib['tag']
+    modname = elem.attrib['module']
+    funcname = elem.attrib['function']
     mod = importlib.import_module(modname)
     return tag, getattr(mod, funcname)
 
@@ -36,7 +46,7 @@ def parameters_from_elem(elem):
     output = [{}]
     for subelem in elem:
         if subelem.tag in ["constant", "spoke", "sweep"]:
-            name = subelem.get('name')
+            name = subelem.attrib['name']
             try:
                 value = eval(subelem.text.strip())
             except NameError:
@@ -54,7 +64,7 @@ def parameters_from_elem(elem):
             for params in subparams:
                 query = Query(**params)
                 query.connector = getattr(operator,
-                                          "{}_".format(subelem.get('connector')))
+                                          "{}_".format(subelem.attrib['connector']))
                 query.negate = subelem.tag == "exclude"
                 output = query.evaluate(output)
 
@@ -70,7 +80,7 @@ def query_from_elem(elem):
     output = []
     for subelem in elem:
         if subelem.tag == "constant":
-            name = subelem.get('name')
+            name = subelem.attrib['name']
             value = subelem.text.strip()
             try:
                 value = eval(value)
@@ -80,7 +90,7 @@ def query_from_elem(elem):
         elif subelem.tag in ["filter", "exclude"]:
             query = query_from_elem(subelem)
             query.connector = getattr(operator,
-                                      "{}_".format(subelem.get('connector')))
+                                      "{}_".format(subelem.attrib['connector']))
             query.negate = subelem.tag == "exclude"
             output.append(query)
     return Query(*output)
@@ -88,7 +98,7 @@ def query_from_elem(elem):
 
 def input_from_elem(elem):
     """Retrieves the input tag and query from the xml element"""
-    input_tag = elem.find('./tag').text.strip()
+    input_tag = find_or_error(elem, './tag').text.strip()
     for tag in ['filter', 'exclude']:
         query_elem = elem.find('./{}'.format(tag))
         if query_elem is not None:
@@ -102,22 +112,22 @@ def parser_from_elem(sim, elem, data_root):
     """Takes part of an element tree and uses it to register a parser object
     with the specified simulation"""
     # Get the parameters
-    parser_tag = elem.get("tag")
-    parameters = parameters_from_elem(elem.find('./parameters'))
+    parser_tag = elem.attrib["tag"]
+    parameters = parameters_from_elem(find_or_error(elem, './parameters'))
     # Get the loader function
-    loader_elem = elem.find('./loader')
-    modname = loader_elem.get('module')
+    loader_elem = find_or_error(elem, './loader')
+    modname = loader_elem.attrib['module']
     funcname = loader_elem.text.strip()
     mod = importlib.import_module(modname)
     loader_func = getattr(mod, funcname)
     # Get the path template
-    path_template = elem.find('./path_template').text.strip()
+    path_template = find_or_error(elem, './path_template').text.strip()
     if data_root:
         path_template = os.path.join(data_root, path_template)
     # Get the collect statements
     collect = {}
     for subelem in elem.findall('./collect'):
-        collect[subelem.get('name')] = eval(subelem.text.strip())
+        collect[subelem.attrib['name']] = eval(subelem.text.strip())
 
     # Now register the parser
     parser = GuidedParser(path_template, loader_func, parameters, **collect)
@@ -128,7 +138,7 @@ def model_from_elem(sim, elem):
     """Register a model with the supplied simulation using the supplied
     xml element"""
     model_tag, func = get_func_and_tag(elem)
-    input_tag, query = input_from_elem(elem.find('./input'))
+    input_tag, query = input_from_elem(find_or_error(elem, './input'))
     parameters = parameters_from_elem(elem.find('./parameters'))
 
     sim.register_model(model_tag, func, input_tag)
@@ -153,12 +163,11 @@ def view_from_elem(sim, elem):
     return view_tag, parameters, queries
 
 
-def simulation_from_etree(tree, defaults={}):
+def simulation_from_etree(tree, simname):
     """Generates a simulation object using the parameters in the supplied
     ElementTree"""
     # TODO: Add test for this function
-    sim = Simulation()
-    data_root = defaults.get('data_root')
+    sim = Simulation("")
     root = tree.getroot()
 
     queries = {}
@@ -169,7 +178,7 @@ def simulation_from_etree(tree, defaults={}):
         elif elem.tag == "model":
             tag, params, query = model_from_elem(sim, elem)
             queries[tag] = query
-            parameters[tag] = parameters
+            parameters[tag] = params
         elif elem.tag == "view":
             tag, params, query = view_from_elem(sim, elem)
             queries[tag] = query
