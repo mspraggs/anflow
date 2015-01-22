@@ -81,9 +81,10 @@ class TestFunctions(object):
         """Test model_from_elem"""
         elem = testtree.find("./model")
         mod = importlib.import_module('somemod')
-        params, query = model_from_elem(sim, elem)
+        tag, params, query = model_from_elem(sim, elem)
         self.check_model_query(query)
         assert params == [{'bar': 5.3, 'baz': 'yes'}, {'bar': 5.3, 'baz': 'no'}]
+        assert tag == "model_some_func"
         assert 'model_some_func' in sim.models
         assert sim.models['model_some_func'].func == mod.some_func
         assert sim.models['model_some_func'].input_tag == 'parsed_data'
@@ -93,9 +94,10 @@ class TestFunctions(object):
         """Test view_from_elem"""
         elem = testtree.find("./view")
         mod = importlib.import_module('somemod')
-        params, queries = view_from_elem(sim, elem)
+        tag, params, queries = view_from_elem(sim, elem)
         self.check_view_query(queries['model_some_func'])
         assert params is None
+        assert tag == "view_some_func"
         assert 'view_some_func' in sim.views
         assert sim.views['view_some_func'].func == mod.some_func
         assert sim.views['view_some_func'].input_tags == ["model_some_func",]
