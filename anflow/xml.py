@@ -130,7 +130,7 @@ def model_from_elem(sim, elem):
     parameters = parameters_from_elem(elem.find('./parameters'))
 
     sim.register_model(model_tag, func, input_tag)
-    return parameters, query
+    return model_tag, parameters, query
 
 
 def view_from_elem(sim, elem):
@@ -148,7 +148,7 @@ def view_from_elem(sim, elem):
     parameters = parameters_from_elem(elem.find('./parameters'))
 
     sim.register_view(view_tag, func, input_tags)
-    return parameters, queries
+    return view_tag, parameters, queries
 
 
 def simulation_from_etree(tree, defaults={}):
@@ -168,4 +168,3 @@ def simulation_from_etree(tree, defaults={}):
             view_from_elem(sim, elem)
         elif elem.tag == "parser":
             parser_from_elem(sim, elem, data_root)
-
