@@ -21,7 +21,7 @@ def find_or_error(elem, path):
     exist"""
     child_elem = elem.find(path)
     if child_elem is None:
-        raise ParseError("Cannot find path {} in {}".format(path, child_elem))
+        raise ParseError("Cannot find path {} in {}".format(path, elem))
     return child_elem
 
 
