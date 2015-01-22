@@ -19,6 +19,7 @@ def load_from_file(path, funcname):
 def find_or_error(elem, path):
     """Find the specified path in the supplied element, and fail if it doesn't
     exist"""
+    # TODO: Make test
     child_elem = elem.find(path)
     if child_elem is None:
         raise ParseError("Cannot find path {} in {}".format(path, elem))
