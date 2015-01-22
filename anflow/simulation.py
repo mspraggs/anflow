@@ -200,6 +200,3 @@ class Simulation(object):
                 log.info("Running view without parameters")
             func(data, **kwargs)
         os.chdir(old_cwd)
-        with open(os.path.join(self.config.REPORTS_DIR,
-                               "{}.run".format(view_tag)), 'w'):
-            pass
