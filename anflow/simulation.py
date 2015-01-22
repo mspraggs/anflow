@@ -78,7 +78,10 @@ class Simulation(object):
         """Look in parsers for the specified input tag, and if it's not there
         then look in results"""
         # TODO: Add test
-        return self.parsers.get(tag, self.results[tag])
+        value = self.parsers.get(tag, self.results.get(tag))
+        if value is None:
+            raise KeyError("Tag {} does not exist".format(tag))
+        return value
 
     def register_parser(self, tag, parser):
         """Register the supplied parser with the specified tag"""
