@@ -154,17 +154,25 @@ def view_from_elem(sim, elem):
 def simulation_from_etree(tree, defaults={}):
     """Generates a simulation object using the parameters in the supplied
     ElementTree"""
-
+    # TODO: Add test for this function
     sim = Simulation()
     data_root = defaults.get('data_root')
     root = tree.getroot()
 
+    queries = {}
+    parameters = {}
     for elem in root:
         if elem.tag == "data_root":
             data_root = elem.text.strip()
         elif elem.tag == "model":
-            model_from_elem(sim, elem)
+            tag, params, query = model_from_elem(sim, elem)
+            queries[tag] = query
+            parameters[tag] = parameters
         elif elem.tag == "view":
-            view_from_elem(sim, elem)
+            tag, params, query = view_from_elem(sim, elem)
+            queries[tag] = query
+            parameters[tag] = params
         elif elem.tag == "parser":
             parser_from_elem(sim, elem, data_root)
+
+    return sim, parameters, queries
