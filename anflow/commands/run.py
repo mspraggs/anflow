@@ -1,84 +1,30 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import argparse
+import xml.etree.ElementTree as ET
+import sys
 
-from anflow.commands import describe
-from anflow.management import (gather_simulations, load_project_config,
-                               sort_simulations)
+from anflow.management import load_project_config
+from anflow.xml import simulation_from_etree
 
 
 def main(argv):
     """Main command"""
 
     config = load_project_config()
-    parser = argparse.ArgumentParser(description="Run models and views")
-    parser.add_argument('--force', action='store_true', default=False,
-                        help='Force a run of models and/or views')
-    parser.add_argument('--dry-run', action='store_true', default=False,
-                        help='Don\'t save the results from a model')
-    parser.add_argument('--studies', action='store',
-                        help='Studies from which to run measurements')
-    parser.add_argument('--model', action='store', help='Model to run')
-    parser.add_argument('--view', action='store', help='View to run')
-    options = parser.parse_args(argv)
 
-    if options.studies:
-        studies = options.studies.split(',')
-    else:
-        studies = config.ACTIVE_STUDIES
+    try:
+        input_file = argv[0]
+    except IndexError:
+        print("Usage: {} run <input xml file>".format(sys.argv[0]))
 
-    if options.model:
-        try:
-            study, model = options.model.split('.')
-        except ValueError:
-            # Model specification format (study.model) not followed
-            print("Model specification error. Format: <study>.<model>")
-            describe.main(argv)
-            return
-        try:
-            simulation = gather_simulations([study])[0]
-        except ImportError:
-            # Cannot find the study in the project tree
-            print("Study specification error.")
-            describe.main(argv)
-            return
-        if model not in simulation.models.keys():
-            # Model doesn't exist
-            print("Cannot find model {} in study {}".format(study, study))
-            describe.main(argv)
-            return
+    tree = ET.parse(input_file)
+    simname = input_file.replace("/", "_").replace(".", "_")
+    simulation, parameters, queries = simulation_from_etree(tree, simname)
+    simulation.config.from_object(config)
 
-        simulation.config.from_object(config)
-        [s.config.from_object(config) for s in simulation.dependencies]
-        simulation.run_model(model, options.force, options.dry_run)
-    elif options.view:
-        try:
-            study, view = options.view.split('.')
-        except ValueError:
-            # View specification format (study.view) not followed
-            print("View specification error. Format: <study>.<view>")
-            describe.main(argv)
-            return
-        try:
-            simulation = gather_simulations([study])[0]
-        except ImportError:
-            # Cannot find the study in the project tree
-            print("Study specification error.")
-            describe.main(argv)
-            return
-        if view not in simulation.views.keys():
-            from .describe import main
-            main(argv)
-            return
+    for tag in simulation.models.keys():
+        simulation.run_model(tag,parameters[tag], queries[tag])
 
-        simulation.config.from_object(config)
-        [s.config.from_object(config) for s in simulation.dependencies]
-        simulation.run_view(view, options.force)
-    else:
-        simulations = gather_simulations(studies)
-        simulations = sort_simulations(simulations)
-        for simulation in simulations:
-            [s.config.from_object(config) for s in simulation.dependencies]
-            simulation.config.from_object(config)
-            simulation.run(options.force, options.dry_run)
+    for tag in simulation.views.keys():
+        simulation.run_view(tag, parameters[tag], queries[tag])
