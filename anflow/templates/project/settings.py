@@ -18,8 +18,9 @@ LOGGING_FILE = "output_{}".format(time.strftime("%d-%m-%Y_%H:%M:%S"))
 
 COMPONENT_TEMPLATE = "{study_name}/{component}"
 RAWDATA_TEMPLATE = "rawdata"
-RESULTS_TEMPLATE = "{study_name}/results"
-REPORTS_TEMPLATE = "{study_name}/reports"
+
+RESULTS_PATH = os.path.join(PROJECT_ROOT, "results")
+REPORTS_PATH = os.path.join(PROJECT_ROOT, "reports")
 
 ACTIVE_STUDIES = [
     ]

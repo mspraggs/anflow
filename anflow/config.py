@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import imp
 import os
 
-project_defaults = {'STUDY_COMPONENTS': ['simulation']}
+project_defaults = {'STUDY_COMPONENTS': ['model', 'view']}
 
 
 class Config(object):

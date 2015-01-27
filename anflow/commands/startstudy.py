@@ -11,6 +11,7 @@ from anflow.management import get_project_path, load_project_config
 
 
 def main(argv):
+    # TODO: Significant revision of this function needed
     study_name = argv[0]
     template_args = {'study_name': study_name}
 
@@ -18,36 +19,24 @@ def main(argv):
                                  '../templates/study')
     project_path = get_project_path()
     config = load_project_config()
-    
-    paths = {}
-    for component in config.STUDY_COMPONENTS:
-        new_path = (config.COMPONENT_TEMPLATE
-                    .format(study_name=study_name,
-                            component=(component + ".py")))
-        new_path = os.path.join(project_path, new_path)
-        if os.path.exists(new_path):
-            print("Path {} already exists".format(new_path))
-            return
-        paths[component] = new_path
 
-    for component, path in paths.items():
+    for filename in os.listdir(template_path):
+        with open(os.path.join(template_path, filename)) as f:
+            template = Template(f.read())
+        study_filepath = os.path.join(
+            project_path,
+            config.COMPONENT_TEMPLATE.format(study_name=study_name,
+                                             component=filename)
+        )
         try:
-            os.makedirs(os.path.dirname(path))
-            open(os.path.join(os.path.dirname(path),
-                              "__init__.py"), 'a').close()
+            os.makedirs(os.path.dirname(study_filepath))
         except OSError:
             pass
-
-        template_file = os.path.join(template_path, component + ".py")
-        with open(template_file) as f:
-            template = Template(f.read())
-        with open(path, 'w') as f:
+        with open(study_filepath, 'w') as f:
             f.write(template.render(**template_args))
 
-    for template in [config.RAWDATA_TEMPLATE,
-                     config.REPORTS_TEMPLATE]:
-        template = os.path.join(project_path, template)
+    for directory in [config.RESULTS_PATH, config.REPORTS_PATH]:
         try:
-            os.makedirs(template.format(study_name=study_name))
+            os.makedirs(directory)
         except OSError as e:
             pass

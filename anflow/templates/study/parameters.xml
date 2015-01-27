@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<anflow>
+    <data_root></data_root>
+    <parser tag="">
+        <loader module=""></loader>
+        <path_template></path_template>
+        <parameters>
+            <constant name=""></constant>
+            <sweep name=""></sweep>
+            <spoke name=""></spoke>
+            <filter connector="">
+                <!-- Parameter specification -->
+            </filter>
+            <exclude connector="">
+                <!-- Parameter specification -->
+            </exclude>
+        </parameters>
+        <collect name=""></collect>
+    </parser>
+    <model module="{{ study_name }}.models" function="" tag="">
+        <input>
+            <tag></tag>
+            <!-- Filters/excludes on input parameters here -->
+        </input>
+        <parameters>
+            <!-- Parameter spec here as above -->
+        </parameters>
+    </model>
+    <view module="{{ study_name }}.views" function="" tag="">
+        <input>
+            <tag></tag>
+            <!-- Filters/excludes on input parameters here -->
+        </input>
+        <parameters>
+            <!-- Parameter spec here as above -->
+        </parameters>
+    </view>
+</anflow>
