@@ -35,6 +35,9 @@ def main(argv):
         with open(study_filepath, 'w') as f:
             f.write(template.render(**template_args))
 
+    with open(os.path.join(os.path.dirname(study_filepath), "__init__.py"), 'a') as f:
+        pass
+
     for directory in [config.RESULTS_PATH, config.REPORTS_PATH]:
         try:
             os.makedirs(directory)
