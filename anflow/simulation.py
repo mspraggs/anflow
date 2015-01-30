@@ -8,11 +8,11 @@ import logging
 import os
 
 from anflow.config import Config
-from anflow.data import DataSet, Datum, Query
+from anflow.data import DataSet, Datum, Query, generate_filename
 from anflow.utils import get_root_path, get_dependency_files
 
 
-Model = namedtuple("Model", ("func", "input_tag", "path_template"))
+Model = namedtuple("Model", ("func", "input_tag", "path_template", "load_only"))
 View = namedtuple("View", ("func", "input_tags", "output_dir"))
 
 
@@ -87,9 +87,11 @@ class Simulation(object):
         """Register the supplied parser with the specified tag"""
         self.parsers[tag] = parser
 
-    def register_model(self, model_tag, func, input_tag, path_template=None):
+    def register_model(self, model_tag, func, input_tag, path_template=None,
+                       load_only=False):
         """Register the supplied model function and associated parameters"""
-        self.models[model_tag] = Model(func, input_tag, path_template)
+        self.models[model_tag] = Model(func, input_tag, path_template,
+                                       load_only)
 
     def register_view(self, view_tag, func, input_tags, output_dir=None):
         """Returns a decorator to register the designated view"""
@@ -103,7 +105,7 @@ class Simulation(object):
         log = self.log.getChild('models.{}'.format(model_tag))
         log.info("Preparing to run model {}".format(model_tag))
 
-        func, input_tag, path_template = self.models[model_tag]
+        func, input_tag, path_template, load_only = self.models[model_tag]
         parameters = parameters or [{}]
         query = query or Query()
 
@@ -137,20 +139,24 @@ class Simulation(object):
                      .format(i + 1, num_runs))
             for key, value in joint_params.items():
                 log.info("{}: {}".format(key, value))
-            # TODO: Fix this in accordance with resampler config
-            if hasattr(func, 'resampled'):
-                result = func(datum, **kwargs)
-            else:
-                result = func(datum.data, **kwargs)
-            if result is not None:
+            if load_only:
                 dataset_params.append(joint_params)
-                if not dry_run:
-                    log.info("Saving results")
-                    result_datum = Datum(joint_params, result, results_dir + "/",
-                                         path_template)
-                    result_datum.save()
-            elif not dry_run:
-                log.info("Dry run, so no results saved")
+            else:
+                # TODO: Fix this in accordance with resampler config
+                if hasattr(func, 'resampled'):
+                    result = func(datum, **kwargs)
+                else:
+                    result = func(datum.data, **kwargs)
+                if result is not None:
+                    dataset_params.append(joint_params)
+                    if not dry_run:
+                        log.info("Saving results")
+                        result_datum = Datum(joint_params, result,
+                                             results_dir + "/",
+                                             path_template)
+                        result_datum.save()
+                elif not dry_run:
+                    log.info("Dry run, so no results saved")
 
         self.results[model_tag] = DataSet(dataset_params, self.config,
                                           results_dir + "/", path_template)
