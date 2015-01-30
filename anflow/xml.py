@@ -168,6 +168,7 @@ def simulation_from_etree(tree, simname):
     ElementTree"""
     # TODO: Add test for this function
     sim = Simulation("")
+    tree.xinclude()
     root = tree.getroot()
 
     queries = {}

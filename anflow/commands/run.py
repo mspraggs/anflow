@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import xml.etree.ElementTree as ET
+from lxml import etree
 import sys
 
 from anflow.management import load_project_config
@@ -18,7 +19,7 @@ def main(argv):
     except IndexError:
         print("Usage: {} run <input xml file>".format(sys.argv[0]))
 
-    tree = ET.parse(input_file)
+    tree = etree.parse(input_file)
     simname = input_file.replace("/", "_").replace(".", "_")
     simulation, parameters, queries = simulation_from_etree(tree, simname)
     simulation.config.from_object(config)
