@@ -140,7 +140,8 @@ def model_from_elem(sim, elem):
     input_tag, query = input_from_elem(find_or_error(elem, './input'))
     parameters = parameters_from_elem(elem.find('./parameters'))
 
-    sim.register_model(model_tag, func, input_tag)
+    load_only = True if elem.find('./load_only') else False
+    sim.register_model(model_tag, func, input_tag, load_only=load_only)
     return model_tag, parameters, query
 
 
