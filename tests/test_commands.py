@@ -47,5 +47,6 @@ def test_startstudy(tmp_dir, new_project):
     __main__.__file__ = os.path.join(tmp_dir, 'new_project/manage.py')
     startstudy.main(['some_study'])
     __main__.__file__ = old_main_file
-    assert os.path.exists(os.path.join(tmp_dir, 'new_project/some_study/__init__.py'))
-    assert os.path.exists(os.path.join(tmp_dir, 'new_project/some_study/simulation.py'))
+    for fname in ["__init__.py", "models.py", "views.py", "parameters.xml"]:
+        assert os.path.exists(os.path.join(tmp_dir, 'new_project/some_study',
+                                           fname))
