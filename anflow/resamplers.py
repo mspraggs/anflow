@@ -103,7 +103,7 @@ class Resampler(object):
                                    Datum(data.params, working_data))
             else:
                 # If not resampling, then data is just the input data
-                working_data = data.data.data
+                working_data = data.data
 
             if self.error_name:
                 # If an error argument name is specified, add the error to

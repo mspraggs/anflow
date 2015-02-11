@@ -38,7 +38,7 @@ def main(argv):
     with open(os.path.join(os.path.dirname(study_filepath), "__init__.py"), 'a') as f:
         pass
 
-    for directory in [config.RESULTS_PATH, config.REPORTS_PATH]:
+    for directory in [config.RESULTS_DIR, config.REPORTS_DIR]:
         try:
             os.makedirs(directory)
         except OSError as e:
